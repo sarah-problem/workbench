@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Status Exam</title>
+
+    <!-- Fonts used on the Squarespace site -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <main class="page-shell">
+        <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+
+        <h1>Mental Status Exam</h1>
+
+        <section class="card controls-card">
+            <div>
+                <h2>Mode</h2>
+                <label class="inline-option">
+                    <input type="radio" name="mode" value="learn" checked>
+                    Learn
+                </label>
+                <label class="inline-option">
+                    <input type="radio" name="mode" value="document">
+                    Document
+                </label>
+                <label class="inline-option">
+                    <input type="radio" name="mode" value="compact">
+                    Compact
+                </label>
+            </div>
+
+            <div class="button-row">
+                <button type="button" class="primary-button" onclick="resetToNormal()">↺ Reset to Normal</button>
+                <button type="button" class="secondary-button learning-only" onclick="toggleAllInfo(true)">Open all info</button>
+                <button type="button" class="secondary-button learning-only" onclick="toggleAllInfo(false)">Close all info</button>
+            </div>
+        </section>
+
+        <div id="mse-fields"></div>
+
+        <section class="card output-card">
+            <h2>Generated MSE</h2>
+
+            <div class="output-style-row">
+                <span class="small-label">Output style</span>
+
+                <label class="inline-option compact-inline">
+                    <input type="radio" name="outputStyle" value="narrative" checked>
+                    Narrative
+                </label>
+
+                <label class="inline-option compact-inline">
+                    <input type="radio" name="outputStyle" value="list">
+                    List
+                </label>
+            </div>
+
+            <textarea id="output" readonly></textarea>
+
+            <div class="button-row">
+                <button type="button" class="primary-button" onclick="copyOutput()">Copy</button>
+                <button type="button" class="secondary-button" onclick="selectOutput()">Select text</button>
+                <span id="copyStatus" aria-live="polite"></span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Clinical content loads first; app.js uses that content to build the page. -->
+    <script src="mse-data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

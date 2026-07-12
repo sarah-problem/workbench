@@ -1,0 +1,248 @@
+:root {
+  --risk-bg: #000;
+  --risk-text: #fff;
+  --risk-pink: #ff42a7;
+  --risk-yellow: #ffec1a;
+  --risk-surface: #111;
+  --risk-surface-2: #1a1a1a;
+  --risk-border: #333;
+  --risk-heading: "Cutive", serif;
+  --risk-body: "Asap", sans-serif;
+}
+
+.risk-app,
+.risk-app * { box-sizing: border-box; }
+
+body.risk-app {
+  margin: 0;
+  background: var(--risk-bg);
+  color: var(--risk-text);
+  font-family: var(--risk-body);
+}
+
+.risk-shell {
+  max-width: 950px;
+  margin: 40px auto;
+  padding: 24px;
+}
+
+.risk-back { color: var(--risk-pink); }
+
+.risk-app h1,
+.risk-app h2 { font-family: var(--risk-heading); }
+
+.risk-app h1 {
+  margin: 24px 0;
+  color: var(--risk-yellow);
+  font-size: 42px;
+  line-height: 1.2;
+  text-decoration: underline var(--risk-pink);
+  text-underline-offset: 6px;
+}
+
+.risk-app h2 {
+  margin: 0 0 12px;
+  color: var(--risk-yellow);
+  font-size: 19px;
+}
+
+.risk-app h3,
+.field-label {
+  margin: 16px 0 8px;
+  color: var(--risk-yellow);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.risk-card {
+  margin: 14px 0;
+  padding: 18px;
+  border: 1px solid var(--risk-border);
+  border-radius: 30px;
+  background: var(--risk-surface);
+}
+
+.risk-section-heading,
+.risk-level-header,
+.button-row,
+.output-style-row,
+.risk-options,
+.framework-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.risk-section-heading,
+.risk-level-header {
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.risk-section-heading h2 { margin-bottom: 0; }
+.framework-badges { justify-content: flex-end; gap: 6px; }
+
+.framework-badge,
+.risk-level-result {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.framework-badge { color: var(--risk-pink); }
+.framework-badge.secondary { color: var(--risk-yellow); }
+
+.choice-chip {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.choice-chip input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choice-chip span,
+.risk-app button {
+  border: 1px solid var(--risk-border);
+  background: var(--risk-surface-2);
+  color: var(--risk-text);
+  font: inherit;
+  font-weight: 700;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .08s ease;
+}
+
+.choice-chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 9px 12px;
+  border-radius: 8px;
+}
+
+.single-choice .choice-chip span,
+.risk-app button { border-radius: 20px; }
+
+.choice-chip:hover span,
+.risk-app button:hover { border-color: var(--risk-yellow); }
+
+.choice-chip:active span,
+.risk-app button:active { transform: translateY(1px); }
+
+.choice-chip input:focus-visible + span,
+.risk-app button:focus-visible {
+  outline: 2px solid var(--risk-yellow);
+  outline-offset: 2px;
+}
+
+.choice-chip input:checked + span,
+.risk-app button.primary-button,
+.risk-app button.output-style-button.selected {
+  border-color: var(--risk-pink);
+  background: var(--risk-pink);
+  color: #000;
+}
+
+.choice-chip input[type="checkbox"]:checked + span::before { content: "✓ "; }
+
+.risk-app button {
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.risk-app button.primary-button:hover,
+.risk-app button.secondary-button:hover,
+.risk-app button.output-style-button:hover {
+  border-color: var(--risk-yellow);
+  background: var(--risk-yellow);
+  color: #000;
+}
+
+.risk-app button.secondary-button,
+.risk-app button.output-style-button {
+  background: transparent;
+  color: var(--risk-text);
+}
+
+.button-row { align-items: center; margin-top: 12px; }
+.output-style-row { align-items: center; margin-bottom: 10px; }
+.output-style-row .field-label { margin: 0 4px 0 0; }
+.risk-app button.output-style-button { padding: 8px 12px; }
+
+.risk-app textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid var(--risk-border);
+  border-radius: 18px;
+  background: var(--risk-surface-2);
+  color: var(--risk-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.risk-output { min-height: 240px !important; }
+.optional-details { display: none; margin-top: 10px; }
+.optional-details.open { display: block; }
+
+.risk-level-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--risk-border);
+  border-radius: 20px;
+  background: var(--risk-surface-2);
+}
+
+.risk-helper,
+.risk-note {
+  color: #ccc;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.risk-helper { margin-top: 3px; font-size: 13px; }
+.risk-note { margin-top: 8px; }
+.risk-level-options { margin-top: 8px; }
+
+.risk-level-explainer {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-left: 4px solid currentColor;
+  border-radius: 10px;
+  background: #101010;
+  line-height: 1.45;
+}
+
+.risk-low { color: #55d187; }
+.risk-low-moderate { color: #d7df58; }
+.risk-moderate { color: #ffbd4a; }
+.risk-moderate-high { color: #ff8a3d; }
+.risk-high { color: #ff5a5f; }
+
+.risk-choice input:checked + span { color: #000; }
+.risk-choice.risk-low input:checked + span { background: #55d187; border-color: #55d187; }
+.risk-choice.risk-low-moderate input:checked + span { background: #d7df58; border-color: #d7df58; }
+.risk-choice.risk-moderate input:checked + span { background: #ffbd4a; border-color: #ffbd4a; }
+.risk-choice.risk-moderate-high input:checked + span { background: #ff8a3d; border-color: #ff8a3d; }
+.risk-choice.risk-high input:checked + span { background: #ff5a5f; border-color: #ff5a5f; }
+
+#copy-status { color: var(--risk-yellow); font-weight: 700; }
+
+@media (max-width: 700px) {
+  .risk-shell { margin: 20px auto; padding: 14px; }
+  .risk-app h1 { font-size: 34px; }
+  .risk-section-heading,
+  .risk-level-header { display: block; }
+  .framework-badges,
+  .risk-level-result { margin-top: 8px; }
+}
