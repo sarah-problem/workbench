@@ -1,0 +1,473 @@
+:root {
+    --bg: #000000;
+    --text: #ffffff;
+    --accent-primary: #FF42A7;
+    --accent-secondary: #FFEC1A;
+    --surface: #111111;
+    --surface-2: #1a1a1a;
+    --border: #333333;
+
+    --radius-small: 20px;
+    --radius-large: 30px;
+
+    --heading-font: "Cutive", serif;
+    --body-font: "Asap", sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+}
+
+.page-shell {
+    max-width: 950px;
+    margin: 40px auto;
+    padding: 24px;
+}
+
+h1,
+h2 {
+    font-family: var(--heading-font);
+}
+
+h1 {
+    margin: 24px 0;
+    color: var(--accent-secondary);
+    font-size: 42px;
+    line-height: 1.2;
+    text-decoration: underline;
+    text-decoration-color: var(--accent-primary);
+    text-underline-offset: 6px;
+}
+
+h2 {
+    margin: 0;
+    color: var(--accent-secondary);
+    font-size: 19px;
+}
+
+a {
+    color: var(--accent-primary);
+}
+
+.back-link {
+    display: inline-block;
+}
+
+.card {
+    margin: 14px 0;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-large);
+    background: var(--surface);
+}
+
+.controls-card {
+    display: grid;
+    gap: 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.inline-option {
+    display: inline-flex;
+    align-items: center;
+    margin: 8px 18px 0 0;
+    font-size: 17px;
+}
+
+.compact-inline {
+    margin-top: 0;
+}
+
+.output-style-row {
+    margin-bottom: 12px;
+}
+
+.small-label,
+.info-label,
+.observation-box label,
+.orientation-label {
+    color: var(--accent-secondary);
+    font-weight: 700;
+}
+
+.small-label {
+    margin-right: 12px;
+}
+
+.segmented-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+button,
+.segment-button {
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-small);
+    font-family: var(--body-font);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .08s ease;
+}
+
+button {
+    margin: 0 8px 8px 0;
+    padding: 10px 16px;
+}
+
+.primary-button,
+button:not([class]),
+button:not(.secondary-button):not(.segment-button):not(.tiny-button) {
+    background: var(--accent-primary);
+    color: #000;
+}
+
+.secondary-button,
+.tiny-button {
+    border-color: var(--border);
+    background: transparent;
+    color: var(--text);
+}
+
+.segment-button {
+    padding: 10px 14px;
+    border-color: var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.segment-button.small { padding: 7px 11px; font-size: 14px; }
+
+.segment-button.selected {
+    border-color: var(--accent-primary);
+    background: var(--accent-primary);
+    color: #000;
+}
+
+button:hover,
+.segment-button:hover {
+    border-color: var(--accent-secondary);
+}
+
+.primary-button:hover,
+button:not([class]):hover {
+    background: var(--accent-secondary);
+}
+
+.secondary-button:hover,
+.tiny-button:hover {
+    border-color: var(--accent-secondary);
+    background: var(--accent-secondary);
+    color: #000;
+}
+
+button:focus-visible,
+.segment-button:focus-visible {
+    outline: 2px solid var(--accent-secondary);
+    outline-offset: 2px;
+}
+
+button:active,
+.segment-button:active { transform: translateY(1px); }
+
+.button-row { margin-top: 14px; }
+
+.tiny-button {
+    padding: 7px 11px;
+    color: var(--accent-secondary);
+    font-size: 13px;
+}
+
+.orientation-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.orientation-row {
+    display: grid;
+    grid-template-columns: 90px auto auto 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.observation-box {
+    display: none;
+    margin-top: 16px;
+}
+
+.observation-box.open {
+    display: block;
+}
+
+.observation-box label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-small);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 16px;
+    resize: vertical;
+}
+
+.observation-text {
+    min-height: 80px;
+}
+
+.more-info {
+    margin-top: 12px;
+}
+
+.more-info summary {
+    color: var(--accent-secondary);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.info-content {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 4px solid var(--accent-primary);
+    border-radius: var(--radius-small);
+    background: var(--surface-2);
+}
+
+.comparison-block {
+    margin: 8px 0 12px;
+}
+
+.comparison-title {
+    margin-bottom: 3px;
+    color: var(--accent-secondary);
+    font-weight: 700;
+}
+
+.comparison-block p,
+.info-note,
+.question-list li {
+    margin: 3px 0;
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.comparison-block strong {
+    color: var(--accent-primary);
+}
+
+.info-note {
+    margin: 8px 0;
+}
+
+.question-block {
+    margin-top: 10px;
+}
+
+.question-list {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.question-list li::before {
+    content: "□ ";
+    color: var(--accent-secondary);
+    font-weight: 700;
+}
+
+#copyStatus {
+    margin-left: 8px;
+    color: var(--accent-secondary);
+    font-weight: 700;
+}
+
+/* Document mode hides teaching content but keeps the normal layout. */
+.document-mode .more-info,
+.document-mode .learning-only {
+    display: none;
+}
+
+/* Compact mode hides teaching content and makes the form denser. */
+.compact-mode .more-info,
+.compact-mode .learning-only {
+    display: none;
+}
+
+.compact-mode .page-shell {
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.compact-mode h1 {
+    font-size: 30px;
+}
+
+.compact-mode #mse-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 10px;
+}
+
+.compact-mode .card {
+    margin: 0;
+    padding: 12px;
+    border-radius: var(--radius-small);
+}
+
+.compact-mode .controls-card,
+.compact-mode .output-card {
+    margin: 10px 0;
+}
+
+.compact-mode h2 {
+    font-size: 15px;
+}
+
+.compact-mode .segmented-options {
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.compact-mode .segment-button {
+    padding: 7px 9px;
+    font-size: 13px;
+}
+
+.compact-mode .tiny-button,
+.compact-mode .observation-box {
+    display: none !important;
+}
+
+.compact-mode .orientation-row {
+    grid-template-columns: 70px auto auto;
+}
+
+.compact-mode textarea {
+    min-height: 120px;
+    font-size: 14px;
+}
+
+@media (max-width: 700px) {
+    .page-shell {
+        margin: 20px auto;
+        padding: 14px;
+    }
+
+    h1 {
+        font-size: 34px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .orientation-row {
+        grid-template-columns: 72px auto auto;
+    }
+}
+
+
+/* Compact, information-dense More information panel */
+.option-explanations p,
+.notes-block p,
+.question-list li {
+    margin: 2px 0;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.option-explanations strong {
+    color: var(--accent-primary);
+}
+
+.question-block,
+.notes-block {
+    margin-top: 8px;
+}
+
+.notes-block {
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+}
+
+.info-label {
+    margin-bottom: 2px;
+}
+
+.more-info summary {
+    font-size: 14px;
+}
+
+
+/* Incremental polish: keep the learning panel informative without making it huge. */
+.option-explanations p,
+.notes-block p,
+.question-list li {
+    line-height: 1.28;
+}
+
+.info-content {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+
+/* MSE 3.5: minimal information-panel hierarchy */
+.option-explanations,
+.question-block,
+.notes-block {
+    margin: 0;
+}
+
+.question-block,
+.notes-block {
+    margin-top: 8px;
+}
+
+.option-explanations p,
+.notes-block p,
+.question-list li {
+    margin: 2px 0;
+    line-height: 1.3;
+}
+
+.notes-block {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.info-label {
+    display: inline-block;
+    margin-bottom: 2px;
+}
+
+/* Multi-select sections use squarer tag-style buttons as a visual cue. */
+.multi-select-options .segment-button {
+    border-radius: 8px;
+}
+
+.multi-select-options .segment-button.selected::before {
+    content: "✓ ";
+}
