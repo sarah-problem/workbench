@@ -13,19 +13,20 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
   background: var(--wb-bg);
   color: var(--wb-text);
   font-family: var(--wb-body);
 }
 
 .workbench-shell {
-  max-width: 1050px;
-  margin: 40px auto;
-  padding: 24px;
+  width: 100%;
+  margin: 0;
+  padding: clamp(28px, 4vw, 64px);
 }
 
 .workbench-shell h1 {
-  margin: 24px 0;
+  margin: 0;
   color: var(--wb-yellow);
   font-family: var(--wb-heading);
   font-size: 42px;
@@ -35,16 +36,47 @@ body {
   text-underline-offset: 6px;
 }
 
+.workbench-header {
+  margin-bottom: clamp(36px, 5vw, 64px);
+}
+
+.workbench-header p {
+  max-width: 720px;
+  margin: 18px 0 0;
+  color: #d6d6d6;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.5;
+}
+
+.dashboard-section + .dashboard-section {
+  margin-top: clamp(42px, 5vw, 72px);
+}
+
+.section-title {
+  margin: 0 0 20px;
+  color: var(--wb-pink);
+  font-family: var(--wb-heading);
+  font-size: clamp(23px, 2vw, 30px);
+  line-height: 1.25;
+}
+
 .workbench-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  gap: clamp(18px, 2vw, 28px);
+}
+
+.assessment-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.screening-grid {
+  grid-template-columns: minmax(320px, 1fr);
 }
 
 .tool-card {
   display: block;
-  min-height: 180px;
-  padding: 22px;
+  min-height: 230px;
+  padding: clamp(28px, 3vw, 44px);
   border: 1px solid var(--wb-border);
   border-radius: 30px;
   background: var(--wb-surface);
@@ -61,25 +93,44 @@ body {
 
 .tool-card:active { transform: translateY(1px); }
 
-.tool-card h2 {
-  margin: 0 0 12px;
+.tool-card h3 {
+  margin: 0 0 16px;
   color: var(--wb-yellow);
   font-family: var(--wb-heading);
-  font-size: 20px;
+  font-size: clamp(21px, 1.6vw, 27px);
+  line-height: 1.35;
 }
 
 .tool-card p {
   margin: 0;
-  line-height: 1.5;
+  max-width: 760px;
+  color: #eeeeee;
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.6;
+}
+
+@media (max-width: 1050px) {
+  .assessment-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 700px) {
   .workbench-shell {
-    margin: 20px auto;
-    padding: 14px;
+    padding: 24px 16px 36px;
   }
 
   .workbench-shell h1 {
     font-size: 34px;
+  }
+
+  .assessment-grid,
+  .screening-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-card {
+    min-height: 0;
+    padding: 26px;
   }
 }

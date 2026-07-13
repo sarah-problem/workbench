@@ -11,28 +11,39 @@
 </head>
 <body>
   <main class="workbench-shell">
-    <h1>Clinical Workbench</h1>
+    <header class="workbench-header">
+      <h1>Clinical Workbench</h1>
+      <p>Assessment, screening, teaching, and documentation tools.</p>
+    </header>
 
-    <section class="workbench-grid">
-      <a class="tool-card" href="mse.html">
-        <h2>Mental Status Exam</h2>
-        <p>Document findings, review definitions, and generate narrative or list output.</p>
-      </a>
+    <section class="dashboard-section" aria-labelledby="assessment-heading">
+      <h2 id="assessment-heading" class="section-title">Assessment</h2>
+      <div class="workbench-grid assessment-grid">
+        <a class="tool-card" href="mse.html">
+          <h3>Mental Status Exam</h3>
+          <p>Document findings, review definitions, and generate narrative or list output.</p>
+        </a>
 
-      <a class="tool-card" href="quick-risk.html">
-        <h2>Quick Risk Assessment</h2>
-        <p>Document current risk factors, protective factors, clinical formulation, and interventions.</p>
-      </a>
+        <a class="tool-card" href="quick-risk.html">
+          <h3>Quick Risk Assessment</h3>
+          <p>Document current risk factors, protective factors, clinical formulation, and interventions.</p>
+        </a>
 
-      <a class="tool-card" href="comprehensive-risk.html">
-        <h2>Comprehensive Suicide Assessment</h2>
-        <p>Complete a fuller suicide inquiry with ideation, behavior, intensity, means, formulation, and recommendation.</p>
-      </a>
+        <a class="tool-card" href="comprehensive-risk.html">
+          <h3>Comprehensive Suicide Assessment</h3>
+          <p>Complete a fuller suicide inquiry with ideation, behavior, intensity, means, formulation, and recommendation.</p>
+        </a>
+      </div>
+    </section>
 
-      <a class="tool-card" href="screening.html">
-        <h2>Screening Measures</h2>
-        <p>Complete the PHQ-9, GAD-7, or ISAS; calculate scores, review results, and generate documentation.</p>
-      </a>
+    <section class="dashboard-section" aria-labelledby="screening-heading">
+      <h2 id="screening-heading" class="section-title">Screening</h2>
+      <div class="workbench-grid screening-grid">
+        <a class="tool-card" href="screening.html">
+          <h3>Screening Measures</h3>
+          <p>Complete the PHQ-9, GAD-7, or ISAS; calculate scores, review results, and generate documentation.</p>
+        </a>
+      </div>
     </section>
   </main>
 </body>
