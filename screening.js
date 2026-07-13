@@ -16,6 +16,7 @@ const MEASURES = {
   phq9: {
     title: "PHQ-9",
     instructions: "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+    ageGuidance: "Adult timeframe: past 2 weeks. For clients ages 11–17, use the adolescent timeframe of the past 7 days.",
     impactPrompt: "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
     max: 27,
     symptomLabel: "depressive symptoms",
@@ -41,6 +42,7 @@ const MEASURES = {
   gad7: {
     title: "GAD-7",
     instructions: "Over the last 2 weeks, how often have you been bothered by the following problems?",
+    ageGuidance: "The GAD-7 has supporting evidence for adolescent use; interpret scores with age-appropriate clinical context.",
     impactPrompt: "If you checked off any problems, how difficult have these made it for you to do your work, take care of things at home, or get along with other people?",
     max: 21,
     symptomLabel: "anxiety symptoms",
@@ -85,6 +87,7 @@ function renderMeasure() {
   document.getElementById("page-title").textContent = config.title;
   document.getElementById("measure-title").textContent = config.title;
   document.getElementById("measure-instructions").textContent = config.instructions;
+  document.getElementById("age-guidance").textContent = config.ageGuidance;
   document.getElementById("impact-prompt").textContent = config.impactPrompt;
 
   questionsContainer.innerHTML = config.questions.map((question, index) => `
