@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Y-BOCS / CY-BOCS | Clinical Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screening.css"><link rel="stylesheet" href="ybocs.css">
+</head>
+<body>
+<main class="page-shell">
+  <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+  <h1 id="page-title">Y-BOCS</h1>
+  <section class="card version-card">
+    <div><h2>Version</h2><p id="version-note" class="helper-text"></p></div>
+    <div class="segmented-options" role="group" aria-label="Choose age version">
+      <button type="button" class="segment-button selected" data-version="adult">Adult - Y-BOCS</button>
+      <button type="button" class="segment-button" data-version="child">Child/Adolescent - CY-BOCS</button>
+    </div>
+    <div class="button-row"><button type="button" id="reset-button">↺ Reset to Normal</button></div>
+  </section>
+  <nav class="section-nav card"><a href="#checklist">Symptoms</a><a href="#targets">Targets</a><a href="#severity">Severity</a><a href="#results">Results</a><a href="#documentation">Documentation</a></nav>
+  <section id="checklist" class="card"><h2>Symptom Checklist</h2><p class="helper-text">Mark symptoms as current, past, or both. Cover each symptom area while distinguishing OCD phenomena from worries, rumination, phobias, tics, and developmentally typical behavior.</p><div id="symptom-checklist"></div></section>
+  <section id="targets" class="card"><h2>Primary Target Symptoms</h2><p class="helper-text">List the most clinically significant current symptoms in order of severity.</p><div class="target-grid"><div><h3>Obsessions</h3><div id="obsession-targets"></div></div><div><h3>Compulsions</h3><div id="compulsion-targets"></div></div></div></section>
+  <section id="severity" class="card"><h2>Severity Ratings</h2><p id="severity-guidance" class="helper-text"></p><div id="severity-items"></div></section>
+  <section id="results" class="card results-card"><div class="score-grid"><div><span class="small-label">Obsessions</span><strong id="obsession-score">0 / 20</strong></div><div><span class="small-label">Compulsions</span><strong id="compulsion-score">0 / 20</strong></div><div><span class="small-label">Total</span><strong id="total-score">0 / 40</strong></div><div><span class="small-label">Severity</span><strong id="severity-label">Subclinical</strong></div></div><div class="information-alert">The Y-BOCS and CY-BOCS measure OCD symptom severity after clinical identification of relevant symptoms. Scores do not independently establish an OCD diagnosis.</div></section>
+  <section id="documentation" class="card output-card"><h2>Generated Documentation</h2><div class="output-style-row"><span class="small-label">Output style</span><label class="inline-option"><input type="radio" name="outputStyle" value="summary" checked> Summary</label><label class="inline-option"><input type="radio" name="outputStyle" value="detailed"> Detailed list</label></div><textarea id="output" readonly></textarea><div class="button-row"><button type="button" id="copy-button">Copy</button><button type="button" class="secondary" id="select-button">Select text</button><span id="copy-status" aria-live="polite"></span></div></section>
+  <section class="card"><h2>Clinical Reference</h2><p id="reference-note"></p><p class="helper-text">First-edition Y-BOCS/CY-BOCS framework. Items 1–10 determine the total; symptom-free interval items are not included here because they do not contribute to the scored total.</p></section>
+</main>
+<script src="ybocs.js"></script><script src="embed-resize.js"></script>
+</body></html>
