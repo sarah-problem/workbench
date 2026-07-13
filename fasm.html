@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FASM | Clinical Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screening.css">
+  <link rel="stylesheet" href="fasm.css">
+</head>
+<body>
+  <main class="page-shell">
+    <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+    <h1>FASM</h1>
+
+    <section class="card intro-card">
+      <h2>Functional Assessment of Self-Mutilation</h2>
+      <p>Document methods, frequency, medical treatment, contextual features, and functions of deliberate self-harm during the past year.</p>
+      <p class="helper-text">The measure’s original title is retained. Current clinical terminology generally uses nonsuicidal self-injury (NSSI) when the behavior occurs without intent to die.</p>
+      <div class="button-row"><button type="button" id="reset-button">↺ Reset to Normal</button></div>
+    </section>
+
+    <nav class="section-nav card" aria-label="FASM sections">
+      <a href="#behaviors">Behaviors</a>
+      <a href="#context">Context</a>
+      <a href="#reasons">Reasons</a>
+      <a href="#results">Results</a>
+      <a href="#documentation">Documentation</a>
+    </nav>
+
+    <section id="behaviors" class="card">
+      <h2>A. Past-Year Behaviors</h2>
+      <p class="helper-text">Select each behavior used deliberately to cause self-harm during the past year, then document frequency and whether medical treatment was received.</p>
+      <div id="behavior-list" class="behavior-list"></div>
+      <div class="lifetime-question">
+        <h3>B. If not in the past year, have any of the above acts ever occurred?</h3>
+        <div id="lifetime-options" class="segmented-options"></div>
+      </div>
+    </section>
+
+    <section id="context" class="card">
+      <h2>C-G. Contextual Features</h2>
+      <div id="context-fields" class="context-fields"></div>
+      <div id="intent-alert" class="safety-alert" hidden>
+        <strong>Suicidal intent was endorsed.</strong>
+        <span>Complete a direct suicide risk assessment. The FASM alone does not determine current risk.</span>
+        <a href="quick-risk.html" target="_blank" rel="noopener">Open Quick Risk Assessment →</a>
+      </div>
+    </section>
+
+    <section id="reasons">
+      <div class="card reason-intro">
+        <h2>H. Reasons for Self-Harm</h2>
+        <p>Rate how often self-harm occurred for each reason.</p>
+        <div class="response-key"><span><strong>0</strong> Never</span><span><strong>1</strong> Rarely</span><span><strong>2</strong> Some</span><span><strong>3</strong> Often</span></div>
+      </div>
+      <div id="reason-list"></div>
+    </section>
+
+    <section id="results" class="card results-card">
+      <h2>Results</h2>
+      <div class="results-summary">
+        <div><span class="small-label">Past-year methods</span><div id="method-count" class="score-display">0</div></div>
+        <div><span class="small-label">Reported incidents</span><div id="incident-count" class="score-display">0</div></div>
+      </div>
+      <div id="function-results" class="function-results"></div>
+      <div class="ranked-reasons"><h3>Highest Endorsed Reasons</h3><div id="highest-reasons"></div></div>
+      <div class="information-alert"><strong>No diagnostic cutoff is established.</strong> Function scores are mean item ratings from 0-3, allowing comparison across subscales of different lengths. They describe reported reasons and should be integrated with interview, antecedents, consequences, context, and safety assessment.</div>
+    </section>
+
+    <section id="documentation" class="card output-card">
+      <h2>Generated Documentation</h2>
+      <div class="output-style-row"><span class="small-label">Output style</span><label class="inline-option"><input type="radio" name="outputStyle" value="summary" checked> Summary</label><label class="inline-option"><input type="radio" name="outputStyle" value="detailed"> Detailed list</label></div>
+      <textarea id="output" readonly></textarea>
+      <div class="button-row"><button type="button" id="copy-button">Copy</button><button type="button" class="secondary" id="select-button">Select text</button><span id="copy-status" aria-live="polite"></span></div>
+    </section>
+
+    <section class="card">
+      <h2>Clinical Note</h2>
+      <p>The FASM is a functional self-report assessment, not a diagnosis or a substitute for direct suicide risk assessment. The four function profiles reflect the reinforcement model studied in adolescent samples; the client’s own explanation and clinical context remain central.</p>
+      <p class="helper-text">Measure: Lloyd, Kelley, and Hope (1997). Four-function scoring: Nock and Prinstein (2004, 2005).</p>
+    </section>
+  </main>
+  <script src="fasm.js"></script>
+  <script src="embed-resize.js"></script>
+</body>
+</html>
