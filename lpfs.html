@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LPFS-SR | Clinical Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screening.css">
+  <link rel="stylesheet" href="lpfs.css">
+</head>
+<body>
+  <main class="page-shell">
+    <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+    <h1>LPFS-SR</h1>
+
+    <section class="card intro-card">
+      <h2>Level of Personality Functioning Scale - Self Report</h2>
+      <p>An 80-item self-report measure for adults age 18 and older. Rate how well each statement describes the client generally.</p>
+      <p class="helper-text">The published weighted scoring produces Identity, Self-Direction, Empathy, Intimacy, and Total scores. Some positively worded items have negative weights; they are not reverse-coded.</p>
+      <div class="button-row"><button type="button" id="reset-button">↺ Reset to Normal</button></div>
+    </section>
+
+    <nav class="section-nav card" aria-label="LPFS-SR sections">
+      <a href="#items">Items</a>
+      <a href="#results">Results</a>
+      <a href="#documentation">Documentation</a>
+      <a href="#reference">Scoring Reference</a>
+    </nav>
+
+    <section id="items">
+      <div class="response-key card">
+        <strong>Response scale</strong>
+        <span>1 Totally false, not at all true</span>
+        <span>2 Slightly true</span>
+        <span>3 Mainly true</span>
+        <span>4 Very true</span>
+      </div>
+      <div id="questions"></div>
+    </section>
+
+    <section id="results" class="card results-card">
+      <h2>Results</h2>
+      <div class="overall-result">
+        <span class="small-label">Total weighted score</span>
+        <div id="total-score" class="score-display"></div>
+        <div id="total-marker" class="marker-text"></div>
+      </div>
+      <div id="domain-results" class="domain-results"></div>
+      <div class="information-alert"><strong>Interpret as a severity reference, not a diagnosis.</strong> The published markers are based on 306 non-clinical respondents. Scores above +1.0 SD may reflect subclinical problems; scores above +1.5 to +2.0 SD may indicate clinically significant dysfunction meriting further assessment, treatment, and follow-up. Clinical judgment should guide interpretation.</div>
+    </section>
+
+    <section id="documentation" class="card output-card">
+      <h2>Generated Documentation</h2>
+      <div class="output-style-row">
+        <span class="small-label">Output style</span>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="summary" checked> Summary</label>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="detailed"> Detailed list</label>
+      </div>
+      <textarea id="output" readonly></textarea>
+      <div class="button-row"><button type="button" id="copy-button">Copy</button><button type="button" class="secondary" id="select-button">Select text</button><span id="copy-status" aria-live="polite"></span></div>
+    </section>
+
+    <section id="reference" class="card reference-card">
+      <h2>Published Scoring Reference</h2>
+      <div class="reference-table" role="table" aria-label="LPFS-SR normative score markers">
+        <div class="reference-row header" role="row"><span>Scale</span><span>Average</span><span>+1.0 SD</span><span>+1.5 SD</span><span>+2.0 SD</span></div>
+        <div id="reference-rows"></div>
+      </div>
+      <p class="helper-text">Higher weighted scores indicate greater impairment in personality functioning. This measure supports assessment and does not independently establish a personality disorder diagnosis.</p>
+      <p class="helper-text">Source: Morey, L. C. (2016), Level of Personality Functioning Scale - Self Report (LPFS-SR).</p>
+    </section>
+  </main>
+  <script src="lpfs.js"></script>
+  <script src="embed-resize.js"></script>
+</body>
+</html>
