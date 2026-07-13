@@ -62,7 +62,8 @@ const MEASURES = {
   }
 };
 
-let currentMeasure = "phq9";
+const requestedMeasure = new URLSearchParams(window.location.search).get("measure");
+let currentMeasure = Object.hasOwn(MEASURES, requestedMeasure) ? requestedMeasure : "phq9";
 let answers = [];
 let impact = "Not difficult at all";
 
@@ -80,6 +81,8 @@ function resetAnswers() {
 
 function renderMeasure() {
   const config = measure();
+  document.title = `${config.title} | Clinical Workbench`;
+  document.getElementById("page-title").textContent = config.title;
   document.getElementById("measure-title").textContent = config.title;
   document.getElementById("measure-instructions").textContent = config.instructions;
   document.getElementById("impact-prompt").textContent = config.impactPrompt;
@@ -210,15 +213,6 @@ function updateResults() {
   const style = document.querySelector('input[name="outputStyle"]:checked').value;
   output.value = style === "summary" ? summaryOutput() : detailedOutput();
 }
-
-document.querySelectorAll("[data-measure]").forEach(button => {
-  button.addEventListener("click", () => {
-    currentMeasure = button.dataset.measure;
-    document.querySelectorAll("[data-measure]").forEach(item => item.classList.toggle("selected", item === button));
-    resetAnswers();
-    renderMeasure();
-  });
-});
 
 document.getElementById("reset-button").addEventListener("click", () => {
   resetAnswers();
