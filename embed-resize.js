@@ -22,6 +22,21 @@
       type: "clinical-workbench-height",
       height: 900
     }, "*");
+
+    window.parent.postMessage({
+      type: "clinical-workbench-scroll",
+      top: 0
+    }, "*");
+  }
+
+  function handlePageLink(event) {
+    const link = event.target.closest("a[href]");
+    if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+    requestNavigationReset();
   }
 
   function handleSectionLink(event) {
@@ -48,6 +63,7 @@
   }
 
   window.addEventListener("beforeunload", requestNavigationReset);
+  document.addEventListener("click", handlePageLink);
   document.addEventListener("click", handleSectionLink);
 
   reportHeight();
