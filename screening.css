@@ -20,9 +20,10 @@ body {
 }
 
 .page-shell {
-  max-width: 950px;
-  margin: 40px auto;
-  padding: 24px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(28px, 4vw, 64px);
 }
 
 h1, h2 { font-family: var(--heading-font); }
@@ -172,7 +173,7 @@ textarea {
 #copy-status { color: var(--yellow); }
 
 @media (max-width: 760px) {
-  .page-shell { margin: 20px auto; padding: 14px; }
+  .page-shell { margin: 0; padding: 14px; }
   h1 { font-size: 34px; }
   .response-grid { grid-template-columns: 1fr 1fr; }
   .results-summary { grid-template-columns: 1fr; }

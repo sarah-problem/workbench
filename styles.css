@@ -26,9 +26,10 @@ body {
 }
 
 .page-shell {
-    max-width: 950px;
-    margin: 40px auto;
-    padding: 24px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: clamp(28px, 4vw, 64px);
 }
 
 h1,
@@ -371,7 +372,7 @@ textarea {
 
 @media (max-width: 700px) {
     .page-shell {
-        margin: 20px auto;
+        margin: 0;
         padding: 14px;
     }
 

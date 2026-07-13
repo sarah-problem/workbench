@@ -21,9 +21,10 @@ body.risk-app {
 }
 
 .risk-shell {
-  max-width: 950px;
-  margin: 40px auto;
-  padding: 24px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(28px, 4vw, 64px);
 }
 
 .risk-back { color: var(--risk-pink); }
@@ -239,7 +240,7 @@ body.risk-app {
 #copy-status { color: var(--risk-yellow); font-weight: 700; }
 
 @media (max-width: 700px) {
-  .risk-shell { margin: 20px auto; padding: 14px; }
+  .risk-shell { margin: 0; padding: 14px; }
   .risk-app h1 { font-size: 34px; }
   .risk-section-heading,
   .risk-level-header { display: block; }
