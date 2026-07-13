@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screening Measures</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screening.css">
+</head>
+<body>
+  <main class="page-shell">
+    <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+    <h1>Screening Measures</h1>
+
+    <section class="card measure-switcher">
+      <div>
+        <h2>Measure</h2>
+        <p class="helper-text">Choose a measure. PHQ-9 and GAD-7 answers reset when you switch between them.</p>
+      </div>
+      <div class="segmented-options" role="group" aria-label="Choose screening measure">
+        <button type="button" class="segment-button selected" data-measure="phq9">PHQ-9</button>
+        <button type="button" class="segment-button" data-measure="gad7">GAD-7</button>
+        <a class="segment-button measure-link" href="isas.html">ISAS</a>
+      </div>
+      <div class="button-row">
+        <button type="button" id="reset-button">↺ Reset to Normal</button>
+      </div>
+    </section>
+
+    <section class="card intro-card">
+      <h2 id="measure-title">PHQ-9</h2>
+      <p id="measure-instructions"></p>
+      <p class="helper-text">Select one response for every item. The total score updates automatically.</p>
+    </section>
+
+    <div id="questions"></div>
+
+    <section class="card impact-card">
+      <h2>Functional Impact</h2>
+      <p id="impact-prompt"></p>
+      <div id="impact-options" class="segmented-options"></div>
+    </section>
+
+    <section class="card results-card">
+      <div class="results-summary">
+        <div>
+          <span class="small-label">Total score</span>
+          <div id="score-display" class="score-display">0 / 27</div>
+        </div>
+        <div>
+          <span class="small-label">Interpretation</span>
+          <div id="severity-display" class="severity-display">Minimal depression</div>
+        </div>
+      </div>
+
+      <div id="safety-alert" class="safety-alert" hidden>
+        <strong>PHQ-9 item 9 was endorsed.</strong>
+        <span>This requires direct suicide-risk assessment; the screening score alone does not determine acute risk.</span>
+        <a href="quick-risk.html" target="_blank" rel="noopener">Open Quick Risk Assessment →</a>
+      </div>
+
+      <h3>Interpretation Ranges</h3>
+      <div id="interpretation-table" class="interpretation-table"></div>
+
+      <p class="screening-note">This is a screening measure, not a diagnosis. Interpret results with clinical interview, functional impairment, history, context, and safety assessment.</p>
+    </section>
+
+    <section class="card output-card">
+      <h2>Generated Documentation</h2>
+      <div class="output-style-row">
+        <span class="small-label">Output style</span>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="summary" checked> Summary</label>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="detailed"> Detailed list</label>
+      </div>
+      <textarea id="output" readonly></textarea>
+      <div class="button-row">
+        <button type="button" id="copy-button">Copy</button>
+        <button type="button" class="secondary" id="select-button">Select text</button>
+        <span id="copy-status" aria-live="polite"></span>
+      </div>
+    </section>
+  </main>
+
+  <script src="screening.js"></script>
+</body>
+</html>

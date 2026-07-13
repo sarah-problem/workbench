@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screening.css">
+  <link rel="stylesheet" href="isas.css">
+</head>
+<body>
+  <main class="page-shell isas-shell">
+    <a class="back-link" href="screening.html">← Back to Screening Measures</a>
+    <h1>ISAS</h1>
+
+    <section class="card measure-switcher">
+      <div>
+        <h2>Inventory of Statements About Self-Injury</h2>
+        <p class="helper-text">Document lifetime non-suicidal self-injury behaviors and score the 13 function scales.</p>
+      </div>
+      <div class="button-row">
+        <button type="button" id="reset-button">↺ Reset to Normal</button>
+      </div>
+    </section>
+
+    <nav class="section-nav card" aria-label="ISAS sections">
+      <a href="#behaviors">Section I: Behaviors</a>
+      <a href="#functions">Section II: Functions</a>
+      <a href="#results">Results</a>
+      <a href="#documentation">Documentation</a>
+    </nav>
+
+    <section id="behaviors" class="card">
+      <h2>Section I: Behaviors</h2>
+      <p>This section applies only to behaviors performed intentionally and without suicidal intent.</p>
+      <p class="helper-text">Enter an estimated lifetime count. Select the main form or forms of self-injury separately.</p>
+
+      <div id="behavior-grid" class="behavior-grid"></div>
+
+      <div class="other-behavior-row">
+        <label>
+          <span class="small-label">Other behavior</span>
+          <input id="other-behavior-name" type="text" placeholder="Describe another behavior">
+        </label>
+        <label>
+          <span class="small-label">Lifetime count</span>
+          <input id="other-behavior-count" type="number" min="0" step="1" value="0">
+        </label>
+        <label class="main-check">
+          <input id="other-behavior-main" type="checkbox">
+          <span>Main form</span>
+        </label>
+      </div>
+
+      <div id="no-behavior-note" class="information-alert">
+        No lifetime NSSI behaviors are currently entered. The original measure directs respondents to stop before Section II when no behaviors are endorsed.
+      </div>
+
+      <div class="detail-grid">
+        <label>
+          <span class="small-label">Age first self-harmed</span>
+          <input id="age-first" type="number" min="0" max="120" step="1" placeholder="Age">
+        </label>
+        <label>
+          <span class="small-label">Most recent self-harm</span>
+          <input id="most-recent" type="date">
+        </label>
+      </div>
+
+      <div class="choice-section">
+        <h3>Physical pain during self-harm</h3>
+        <div class="segmented-options" data-choice-group="pain">
+          <button type="button" class="segment-button selected" data-value="Not documented">Not documented</button>
+          <button type="button" class="segment-button" data-value="Yes">Yes</button>
+          <button type="button" class="segment-button" data-value="Sometimes">Sometimes</button>
+          <button type="button" class="segment-button" data-value="No">No</button>
+        </div>
+      </div>
+
+      <div class="choice-section">
+        <h3>Usually alone when self-harming</h3>
+        <div class="segmented-options" data-choice-group="alone">
+          <button type="button" class="segment-button selected" data-value="Not documented">Not documented</button>
+          <button type="button" class="segment-button" data-value="Yes">Yes</button>
+          <button type="button" class="segment-button" data-value="Sometimes">Sometimes</button>
+          <button type="button" class="segment-button" data-value="No">No</button>
+        </div>
+      </div>
+
+      <div class="choice-section">
+        <h3>Typical time from urge to behavior</h3>
+        <div class="segmented-options" data-choice-group="delay">
+          <button type="button" class="segment-button selected" data-value="Not documented">Not documented</button>
+          <button type="button" class="segment-button" data-value="Less than 1 hour">&lt; 1 hour</button>
+          <button type="button" class="segment-button" data-value="1–3 hours">1–3 hours</button>
+          <button type="button" class="segment-button" data-value="3–6 hours">3–6 hours</button>
+          <button type="button" class="segment-button" data-value="6–12 hours">6–12 hours</button>
+          <button type="button" class="segment-button" data-value="12–24 hours">12–24 hours</button>
+          <button type="button" class="segment-button" data-value="More than 1 day">&gt; 1 day</button>
+        </div>
+      </div>
+
+      <div class="choice-section">
+        <h3>Wants or wanted to stop self-harming</h3>
+        <div class="segmented-options" data-choice-group="stop">
+          <button type="button" class="segment-button selected" data-value="Not documented">Not documented</button>
+          <button type="button" class="segment-button" data-value="Yes">Yes</button>
+          <button type="button" class="segment-button" data-value="No">No</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="functions" class="card">
+      <h2>Section II: Functions</h2>
+      <p>For each statement, select how relevant it is to the person’s experience of self-harm.</p>
+      <div class="response-key">
+        <span><strong>0</strong> Not relevant</span>
+        <span><strong>1</strong> Somewhat relevant</span>
+        <span><strong>2</strong> Very relevant</span>
+      </div>
+      <div id="function-items"></div>
+
+      <div class="optional-statements">
+        <label>
+          <span class="small-label">More accurate statements</span>
+          <textarea id="more-accurate" class="short-textarea" placeholder="Optional statements that better describe this person’s experience"></textarea>
+        </label>
+        <label>
+          <span class="small-label">Suggested additional statements</span>
+          <textarea id="suggested-items" class="short-textarea" placeholder="Optional statements that should be added to the measure"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <section id="results" class="card results-card">
+      <h2>Results</h2>
+      <div class="results-summary isas-summary">
+        <div>
+          <span class="small-label">Function total</span>
+          <div id="total-display" class="score-display">0 / 78</div>
+        </div>
+        <div>
+          <span class="small-label">Highest function score</span>
+          <div id="highest-display" class="severity-display">0 / 6</div>
+        </div>
+      </div>
+
+      <div id="suicide-function-alert" class="safety-alert" hidden>
+        <strong>Anti-Suicide items were endorsed.</strong>
+        <span>These items describe self-injury in relation to suicidal thoughts or impulses. Complete a direct suicide-risk assessment rather than interpreting the ISAS score as a risk determination.</span>
+        <a href="quick-risk.html" target="_blank" rel="noopener">Open Quick Risk Assessment →</a>
+      </div>
+
+      <h3>Function Scores</h3>
+      <p class="helper-text">Each function is the sum of three items and ranges from 0–6. The measure does not provide diagnostic severity cutoffs.</p>
+      <div id="function-scores" class="function-scores"></div>
+
+      <h3>Highest Endorsed Functions</h3>
+      <div id="ranked-functions" class="ranked-functions"></div>
+    </section>
+
+    <section id="documentation" class="card output-card">
+      <h2>Generated Documentation</h2>
+      <div class="output-style-row">
+        <span class="small-label">Output style</span>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="summary" checked> Summary</label>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="detailed"> Detailed list</label>
+      </div>
+      <textarea id="output" readonly></textarea>
+      <div class="button-row">
+        <button type="button" id="copy-button">Copy</button>
+        <button type="button" class="secondary" id="select-button">Select text</button>
+        <span id="copy-status" aria-live="polite"></span>
+      </div>
+    </section>
+  </main>
+
+  <script src="isas.js"></script>
+</body>
+</html>
