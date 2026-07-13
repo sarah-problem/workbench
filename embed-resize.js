@@ -24,6 +24,22 @@
     }, "*");
   }
 
+  function handleSectionLink(event) {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link) return;
+
+    const targetId = decodeURIComponent(link.getAttribute("href").slice(1));
+    const target = document.getElementById(targetId);
+    if (!target) return;
+
+    event.preventDefault();
+    history.replaceState(null, "", `#${encodeURIComponent(targetId)}`);
+    window.parent.postMessage({
+      type: "clinical-workbench-scroll",
+      top: Math.max(0, Math.round(target.getBoundingClientRect().top + window.scrollY - 16))
+    }, "*");
+  }
+
   window.addEventListener("load", reportHeight);
   window.addEventListener("resize", reportHeight);
 
@@ -32,6 +48,7 @@
   }
 
   window.addEventListener("beforeunload", requestNavigationReset);
+  document.addEventListener("click", handleSectionLink);
 
   reportHeight();
 })();
