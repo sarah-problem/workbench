@@ -27,6 +27,29 @@ const riskLabels = {
   high: "High"
 };
 
+const cssrsIdeationLevels = {
+  "No current suicidal ideation": { level: 0, label: "No suicidal ideation" },
+  "Wish to be dead or not wake up": { level: 1, label: "Wish to be dead" },
+  "Non-specific active suicidal thoughts": { level: 2, label: "Nonspecific active suicidal thoughts" },
+  "Suicidal thoughts with a method but without current intent": { level: 3, label: "Suicidal thoughts with method, without intent" },
+  "Suicidal thoughts with intent but without a specific plan": { level: 4, label: "Suicidal thoughts with intent, without specific plan" },
+  "Suicidal thoughts with a specific plan and intent": { level: 5, label: "Suicidal thoughts with specific plan and intent" }
+};
+
+const cssrsBehaviorLabels = {
+  "an actual suicide attempt": "Actual attempt",
+  "an interrupted attempt": "Interrupted attempt",
+  "an aborted attempt": "Aborted/self-interrupted attempt",
+  "preparatory behavior": "Preparatory behavior"
+};
+
+const recentBehaviorTimings = new Set([
+  "within the past 24 hours",
+  "within the past week",
+  "within the past month",
+  "within the past three months"
+]);
+
 const riskClasses = Object.keys(riskLabels).map(level => `risk-${level}`);
 
 function selectedValue(name) {
@@ -83,13 +106,114 @@ function getAssessmentData() {
   };
 }
 
-function narrativeOutput(data) {
+function maxIdeationLevel(data) {
+  let result = cssrsIdeationLevels[data.ideation] || cssrsIdeationLevels["No current suicidal ideation"];
+
+  // Reconcile the dedicated severity response with the already-collected plan
+  // and intent fields, using the highest classification supported by any answer.
+  if (data.plan !== "none" && result.level < 3) result = cssrsIdeationLevels["Suicidal thoughts with a method but without current intent"];
+  if (data.intent === "present" && result.level < 4) result = cssrsIdeationLevels["Suicidal thoughts with intent but without a specific plan"];
+  if (data.intent === "present" && data.plan === "specific and developed") {
+    result = cssrsIdeationLevels["Suicidal thoughts with a specific plan and intent"];
+  }
+
+  return result;
+}
+
+function deriveCssrs(data) {
+  const ideation = maxIdeationLevel(data);
+  const behaviors = Object.keys(cssrsBehaviorLabels)
+    .filter(value => data.behaviors.includes(value))
+    .map(value => cssrsBehaviorLabels[value]);
+  const activePreparation = data.preparation === "active preparatory behavior";
+  if (activePreparation && !behaviors.includes("Preparatory behavior")) behaviors.push("Preparatory behavior");
+
+  const nssi = data.behaviors.includes("non-suicidal self-injury");
+  const behaviorText = listText(behaviors, "None identified");
+  const ideationDisplay = ideation.level
+    ? `Level ${ideation.level}: ${ideation.label}`
+    : "None endorsed (score 0)";
+
+  const lifetimeIdeation = ideation.level
+    ? `at least Level ${ideation.level} based on the current endorsement; lifetime maximum not separately collected`
+    : "lifetime maximum not derivable from the current-only ideation item";
+  const lifetimeBehavior = behaviors.length ? behaviorText : "none identified";
+  const lifetime = `Ideation: ${lifetimeIdeation}. Behavior: ${lifetimeBehavior}.`;
+
+  let recentBehavior;
+  if (behaviors.length && recentBehaviorTimings.has(data.behaviorTiming)) {
+    recentBehavior = behaviorText;
+  } else if (activePreparation) {
+    recentBehavior = "Preparatory behavior";
+  } else if (behaviors.length && data.behaviorTiming === "more than three months ago") {
+    recentBehavior = "none within the past 3 months (most recent behavior was earlier)";
+  } else if (behaviors.length) {
+    recentBehavior = "timeframe not derivable";
+  } else {
+    recentBehavior = "none identified";
+  }
+
+  const recentIdeation = ideation.level
+    ? `Level ${ideation.level} (current endorsement)`
+    : "not derivable beyond the absence of current ideation";
+  const recent = `Ideation: ${recentIdeation}. Behavior: ${recentBehavior}.`;
+
+  const ideationDocumentation = ideation.level
+    ? `current suicidal ideation is classified as C-SSRS Level ${ideation.level} (${ideation.label.toLowerCase()})`
+    : "no current suicidal ideation was endorsed (C-SSRS ideation score 0)";
+  let behaviorDocumentation;
+  if (!behaviors.length) {
+    behaviorDocumentation = "no suicidal behavior was identified";
+  } else if (recentBehaviorTimings.has(data.behaviorTiming)) {
+    behaviorDocumentation = `suicidal behavior categories include ${behaviorText}, with behavior identified within the past three months`;
+  } else if (activePreparation) {
+    behaviorDocumentation = `lifetime suicidal behavior categories include ${behaviorText}, with current preparatory behavior identified within the past three months`;
+  } else if (data.behaviorTiming === "more than three months ago") {
+    behaviorDocumentation = `lifetime suicidal behavior categories include ${behaviorText}, with no behavior identified within the past three months`;
+  } else {
+    behaviorDocumentation = `lifetime suicidal behavior categories include ${behaviorText}; past-three-month behavior is not derivable from the recorded timing`;
+  }
+
+  const timeframeNote = ideation.level
+    ? `The current ideation endorsement also establishes at least Level ${ideation.level} for lifetime and past-three-month classification, but the lifetime maximum was not separately assessed.`
+    : "Ideation during the remainder of the past three months and the lifetime maximum are not derivable from the current-only ideation item.";
+  const nssiDocumentation = nssi
+    ? "Non-suicidal self-injury was endorsed and is reported separately from suicidal behavior."
+    : "Non-suicidal self-injury was not identified and is reported separately from suicidal behavior.";
+  const documentation = `Based on responses obtained during today's risk assessment, ${ideationDocumentation}, and ${behaviorDocumentation}. ${timeframeNote} ${nssiDocumentation}`;
+
+  return {
+    ideation,
+    ideationDisplay,
+    behaviors,
+    behaviorText,
+    lifetime,
+    recent,
+    nssi,
+    nssiText: nssi
+      ? "Endorsed; reported separately from suicidal behavior"
+      : "Not identified; reported separately from suicidal behavior",
+    documentation
+  };
+}
+
+function updateCssrsDisplay(cssrs) {
+  document.getElementById("cssrs-highest-ideation").textContent = cssrs.ideationDisplay;
+  document.getElementById("cssrs-behavior-categories").textContent = cssrs.behaviorText;
+  document.getElementById("cssrs-lifetime").textContent = cssrs.lifetime;
+  document.getElementById("cssrs-recent").textContent = cssrs.recent;
+  document.getElementById("cssrs-nssi").textContent = cssrs.nssiText;
+  document.getElementById("cssrs-documentation").textContent = cssrs.documentation;
+}
+
+function narrativeOutput(data, cssrs) {
   const parts = [
     `Acute risk factors include ${listText(data.acuteFactors)}; chronic or historical risk factors include ${listText(data.chronicFactors)}.`,
     `Internal protective factors include ${listText(data.internalProtective)}; external protective factors include ${listText(data.externalProtective)}.`,
     `${data.ideation}. When present, ideation occurs ${data.frequency}, lasts ${data.duration}, is ${data.controllability}, and ${data.deterrents}. The primary reason for ideation is described as ${data.reason}.`,
     `Suicidal or self-injurious behavior includes ${listText(data.behaviors)}, with the most recent behavior identified as ${data.behaviorTiming}.`,
     `Current intent is ${data.intent}; the current plan is ${data.plan}; access to means is ${data.means}; and preparation is ${data.preparation}.`,
+    cssrs.documentation,
     `Acute suicide risk is assessed as ${data.acuteLevel}, and chronic risk as ${data.chronicLevel}. Interventions include ${listText(data.interventions)}. The clinical recommendation is ${data.recommendation}.`
   ];
 
@@ -101,7 +225,7 @@ function narrativeOutput(data) {
   return parts.join(" ");
 }
 
-function listOutput(data) {
+function listOutput(data, cssrs) {
   const sections = [
     ["Risk Factors",
       `Acute: ${listText(data.acuteFactors)}`,
@@ -127,6 +251,13 @@ function listOutput(data) {
       `Means: ${data.means}`,
       `Preparation: ${data.preparation}`,
       ...(data.meansDetails ? [`Details: ${data.meansDetails}`] : [])],
+    ["C-SSRS Classification (Generated)",
+      `Highest current ideation: ${cssrs.ideationDisplay}`,
+      `Suicidal behavior categories: ${cssrs.behaviorText}`,
+      `Lifetime: ${cssrs.lifetime}`,
+      `Past 3 months: ${cssrs.recent}`,
+      `Non-suicidal self-injury: ${cssrs.nssiText}`,
+      `Documentation: ${cssrs.documentation}`],
     ["Assessment",
       `Acute: ${data.acuteLevel}`,
       `Chronic: ${data.chronicLevel}`,
@@ -141,7 +272,9 @@ function listOutput(data) {
 
 function generateAssessment() {
   const data = getAssessmentData();
-  output.value = outputStyle === "list" ? listOutput(data) : narrativeOutput(data);
+  const cssrs = deriveCssrs(data);
+  updateCssrsDisplay(cssrs);
+  output.value = outputStyle === "list" ? listOutput(data, cssrs) : narrativeOutput(data, cssrs);
 }
 
 function setOutputStyle(style) {

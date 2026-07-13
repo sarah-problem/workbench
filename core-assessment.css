@@ -1,0 +1,30 @@
+.intro-card, .reference-card { display: grid; gap: 11px; }
+.intro-card p, .reference-card p { margin: 0; line-height: 1.55; }
+.intro-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+.completion-badge { flex: 0 0 auto; padding: 6px 10px; border: 1px solid var(--yellow); border-radius: 999px; color: var(--yellow); font-weight: 700; font-size: 13px; }
+.measure-alert { padding: 13px 15px; border-left: 4px solid var(--pink); border-radius: 12px; background: #1b1117; line-height: 1.5; }
+.measure-section { padding: 0; overflow: hidden; }
+.measure-section > h2 { margin: 0; padding: 18px; border-bottom: 1px solid var(--border); background: #161616; }
+.measure-section-note { margin: 0; padding: 0 18px 16px; color: #ccc; line-height: 1.45; background: #161616; }
+.question-row { display: grid; gap: 12px; padding: 17px 18px; border-top: 1px solid #292929; }
+.question-row:first-of-type { border-top: 0; }
+.question-row h3 { display: flex; gap: 8px; margin: 0; color: var(--text); font-size: 16px; line-height: 1.45; }
+.question-number { flex: 0 0 auto; color: var(--pink); }
+.response-grid { grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); }
+.response-option span { min-height: 50px; height: 100%; font-size: 14px; }
+.text-response { width: 100%; min-height: 84px; padding: 13px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-2); color: var(--text); font: inherit; resize: vertical; }
+.subscale-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 9px; margin-top: 16px; }
+.subscale-result { padding: 12px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface-2); }
+.subscale-result span { display: block; color: var(--yellow); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.subscale-result strong { display: block; margin-top: 4px; font-size: 18px; }
+.information-alert { margin-top: 18px; padding: 15px; border: 1px solid var(--yellow); border-radius: 20px; background: #1c1b0b; line-height: 1.5; }
+.reference-card { border-color: #555; }
+.source-link { width: fit-content; font-weight: 700; }
+.question-row[hidden] { display: none; }
+
+@media (max-width: 700px) {
+  .intro-heading { display: block; }
+  .completion-badge { display: inline-flex; margin-top: 10px; }
+  .response-grid { grid-template-columns: 1fr 1fr; }
+  .question-row { padding: 15px 14px; }
+}

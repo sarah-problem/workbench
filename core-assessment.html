@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment | Clinical Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screening.css">
+  <link rel="stylesheet" href="core-assessment.css">
+</head>
+<body>
+  <main class="page-shell">
+    <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+    <h1 id="page-title">Assessment</h1>
+
+    <section class="card intro-card">
+      <div class="intro-heading">
+        <div>
+          <h2 id="full-title"></h2>
+          <p id="age-note" class="helper-text"></p>
+        </div>
+        <span id="completion-badge" class="completion-badge">0 answered</span>
+      </div>
+      <p id="instructions"></p>
+      <div id="measure-alert" class="measure-alert" hidden></div>
+      <div class="button-row"><button type="button" id="reset-button">↺ Reset</button></div>
+    </section>
+
+    <div id="questions"></div>
+
+    <section class="card results-card" aria-live="polite">
+      <div class="results-summary">
+        <div><span class="small-label">Score</span><div id="score-display" class="score-display">Incomplete</div></div>
+        <div><span class="small-label">Result</span><div id="result-display" class="severity-display">Complete the measure to score</div></div>
+      </div>
+      <div id="subscale-results" class="subscale-results"></div>
+      <div id="result-note" class="information-alert"></div>
+    </section>
+
+    <section class="card output-card">
+      <h2>Generated Documentation</h2>
+      <div class="output-style-row">
+        <span class="small-label">Output style</span>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="summary" checked> Summary</label>
+        <label class="inline-option"><input type="radio" name="outputStyle" value="detailed"> Detailed list</label>
+      </div>
+      <textarea id="output" readonly></textarea>
+      <div class="button-row">
+        <button type="button" id="copy-button">Copy</button>
+        <button type="button" class="secondary" id="select-button">Select text</button>
+        <span id="copy-status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="card reference-card">
+      <h2>Clinical Note</h2>
+      <p id="clinical-note"></p>
+      <p id="attribution" class="helper-text"></p>
+      <a id="source-link" class="source-link" target="_blank" rel="noreferrer">Official source and guidance ↗</a>
+    </section>
+  </main>
+  <script src="core-assessment.js"></script>
+  <script src="embed-resize.js"></script>
+</body>
+</html>
