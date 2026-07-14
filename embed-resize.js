@@ -74,6 +74,18 @@
     html[data-workbench-theme="light"] .risk-level-explainer.risk-moderate-high { color: #9a3f00 !important; }
     html[data-workbench-theme="light"] .risk-level-result.risk-high,
     html[data-workbench-theme="light"] .risk-level-explainer.risk-high { color: #a3202a !important; }
+    html[data-workbench-theme="light"] .cssrs-classification {
+      border-color: #a79452 !important;
+      background: linear-gradient(145deg, #ffffff 0%, #fff8dc 100%) !important;
+    }
+    html[data-workbench-theme="light"] .cssrs-summary-item {
+      background: #f0ebe5 !important;
+      color: #201d24 !important;
+    }
+    html[data-workbench-theme="light"] .cssrs-documentation {
+      background: #f0ebe5 !important;
+      color: #201d24 !important;
+    }
     html[data-workbench-theme="light"] .information-alert,
     html[data-workbench-theme="light"] .measure-alert { background: #fff8d8 !important; }
     html[data-workbench-theme="light"] .measure-section > h2,
