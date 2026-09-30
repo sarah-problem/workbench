@@ -1,3 +1,10 @@
+/**
+ * lpfs.js
+ * LPFS-SR: multiplies each response by its item weight and groups the results by domain.
+ * Loaded by lpfs.html after the page markup is available.
+ * See README.md for the file map and a guide to following the code.
+ */
+
 const ITEMS = [
   "Across many different situations, I manage to behave in a manner appropriate to that situation.",
   "All I can really understand about other people are their weaknesses.",
@@ -44,7 +51,7 @@ const ITEMS = [
   "I'm only interested in relationships that can provide me with some comfort.",
   "I'm very aware of the impact I'm having on other people.",
   "In a close relationship, it's as if I can't live without the other person.",
-  "In close relationships I tend to be torn between being afraid and being \"clingy\".",
+  'In close relationships I tend to be torn between being afraid and being "clingy".',
   "In many situations I feel quite differently than others seem to expect me to feel.",
   "In very trying times, I sometimes lose sight of what is important to me.",
   "Interacting with other people usually leaves me feeling confused.",
@@ -78,88 +85,250 @@ const ITEMS = [
   "When I'm not doing well at something, I might get very angry or feel ashamed about my abilities.",
   "When I'm successful I tend to feel like an imposter.",
   "When others disapprove of me, it's difficult to keep my emotions under control.",
-  "When thinking about myself, I can get pretty narrow in my focus."
+  "When thinking about myself, I can get pretty narrow in my focus.",
 ];
 
-const WEIGHTS = [-.5,2.5,2.5,-.5,2.5,.5,2.5,1.5,3.5,3.5,-.5,1.5,1.5,-.5,3.5,3.5,2.5,2.5,3.5,1.5,3.5,3.5,1.5,2.5,2.5,-.5,1.5,.5,.5,3.5,1.5,3.5,2.5,.5,2.5,1.5,-.5,1.5,-.5,-.5,1.5,2.5,3.5,-.5,2.5,2.5,3.5,.5,3.5,1.5,-.5,.5,2.5,2.5,2.5,2.5,3.5,3.5,3.5,.5,-.5,3.5,3.5,.5,.5,2.5,.5,.5,3.5,1.5,3.5,2.5,2.5,.5,.5,-.5,1.5,1.5,1.5,.5];
-const DOMAINS = ["Self-Direction","Empathy","Intimacy","Identity","Intimacy","Intimacy","Identity","Identity","Intimacy","Intimacy","Empathy","Intimacy","Intimacy","Self-Direction","Identity","Self-Direction","Empathy","Empathy","Intimacy","Empathy","Empathy","Self-Direction","Identity","Self-Direction","Self-Direction","Intimacy","Intimacy","Self-Direction","Self-Direction","Self-Direction","Empathy","Empathy","Identity","Self-Direction","Identity","Self-Direction","Intimacy","Empathy","Intimacy","Identity","Self-Direction","Self-Direction","Intimacy","Empathy","Intimacy","Intimacy","Identity","Identity","Empathy","Identity","Self-Direction","Intimacy","Self-Direction","Empathy","Identity","Identity","Identity","Self-Direction","Self-Direction","Empathy","Empathy","Identity","Intimacy","Self-Direction","Identity","Identity","Intimacy","Empathy","Intimacy","Self-Direction","Identity","Identity","Intimacy","Identity","Empathy","Identity","Identity","Self-Direction","Identity","Self-Direction"];
-const OPTIONS = [
-  {value:1,label:"Totally false, not at all true"},
-  {value:2,label:"Slightly true"},
-  {value:3,label:"Mainly true"},
-  {value:4,label:"Very true"}
+// ITEMS, WEIGHTS, and DOMAINS share the same positions. Moving an item requires moving its weight and domain too.
+const WEIGHTS = [
+  -0.5, 2.5, 2.5, -0.5, 2.5, 0.5, 2.5, 1.5, 3.5, 3.5, -0.5, 1.5, 1.5, -0.5, 3.5, 3.5, 2.5, 2.5, 3.5,
+  1.5, 3.5, 3.5, 1.5, 2.5, 2.5, -0.5, 1.5, 0.5, 0.5, 3.5, 1.5, 3.5, 2.5, 0.5, 2.5, 1.5, -0.5, 1.5,
+  -0.5, -0.5, 1.5, 2.5, 3.5, -0.5, 2.5, 2.5, 3.5, 0.5, 3.5, 1.5, -0.5, 0.5, 2.5, 2.5, 2.5, 2.5, 3.5,
+  3.5, 3.5, 0.5, -0.5, 3.5, 3.5, 0.5, 0.5, 2.5, 0.5, 0.5, 3.5, 1.5, 3.5, 2.5, 2.5, 0.5, 0.5, -0.5,
+  1.5, 1.5, 1.5, 0.5,
 ];
+const DOMAINS = [
+  "Self-Direction",
+  "Empathy",
+  "Intimacy",
+  "Identity",
+  "Intimacy",
+  "Intimacy",
+  "Identity",
+  "Identity",
+  "Intimacy",
+  "Intimacy",
+  "Empathy",
+  "Intimacy",
+  "Intimacy",
+  "Self-Direction",
+  "Identity",
+  "Self-Direction",
+  "Empathy",
+  "Empathy",
+  "Intimacy",
+  "Empathy",
+  "Empathy",
+  "Self-Direction",
+  "Identity",
+  "Self-Direction",
+  "Self-Direction",
+  "Intimacy",
+  "Intimacy",
+  "Self-Direction",
+  "Self-Direction",
+  "Self-Direction",
+  "Empathy",
+  "Empathy",
+  "Identity",
+  "Self-Direction",
+  "Identity",
+  "Self-Direction",
+  "Intimacy",
+  "Empathy",
+  "Intimacy",
+  "Identity",
+  "Self-Direction",
+  "Self-Direction",
+  "Intimacy",
+  "Empathy",
+  "Intimacy",
+  "Intimacy",
+  "Identity",
+  "Identity",
+  "Empathy",
+  "Identity",
+  "Self-Direction",
+  "Intimacy",
+  "Self-Direction",
+  "Empathy",
+  "Identity",
+  "Identity",
+  "Identity",
+  "Self-Direction",
+  "Self-Direction",
+  "Empathy",
+  "Empathy",
+  "Identity",
+  "Intimacy",
+  "Self-Direction",
+  "Identity",
+  "Identity",
+  "Intimacy",
+  "Empathy",
+  "Intimacy",
+  "Self-Direction",
+  "Identity",
+  "Identity",
+  "Intimacy",
+  "Identity",
+  "Empathy",
+  "Identity",
+  "Identity",
+  "Self-Direction",
+  "Identity",
+  "Self-Direction",
+];
+const OPTIONS = [
+  { value: 1, label: "Totally false, not at all true" },
+  { value: 2, label: "Slightly true" },
+  { value: 3, label: "Mainly true" },
+  { value: 4, label: "Very true" },
+];
+// Reference values are stored as [mean, +1 SD, +1.5 SD, +2 SD] for each domain and the total.
 const NORMS = {
-  "Total": [232.4,308.8,347.1,385.3],
-  "Identity": [75.8,101.0,113.6,126.2],
-  "Self-Direction": [53.4,73.6,83.7,93.7],
-  "Empathy": [39.1,53.3,60.5,67.6],
-  "Intimacy": [64.1,87.1,98.6,110.1]
+  Total: [232.4, 308.8, 347.1, 385.3],
+  Identity: [75.8, 101.0, 113.6, 126.2],
+  "Self-Direction": [53.4, 73.6, 83.7, 93.7],
+  Empathy: [39.1, 53.3, 60.5, 67.6],
+  Intimacy: [64.1, 87.1, 98.6, 110.1],
 };
-const DOMAIN_ORDER = ["Identity","Self-Direction","Empathy","Intimacy"];
-const $ = id => document.getElementById(id);
+const DOMAIN_ORDER = ["Identity", "Self-Direction", "Empathy", "Intimacy"];
+const $ = (id) => document.getElementById(id);
 let answers = [];
 
-function normalAnswers(){return WEIGHTS.map(weight=>weight<0?4:1)}
-function reset(){answers=normalAnswers();renderQuestions();update()}
-
-function renderQuestions(){
-  $("questions").innerHTML=ITEMS.map((text,i)=>`<section class="card question-card"><h2><span class="question-number">${i+1}.</span>${text}</h2><div class="response-grid">${OPTIONS.map(option=>`<label class="response-option"><input type="radio" name="item-${i}" value="${option.value}" ${answers[i]===option.value?"checked":""}><span>${option.value}<br>${option.label}</span></label>`).join("")}</div></section>`).join("");
-  document.querySelectorAll('[name^="item-"]').forEach(input=>input.onchange=()=>{answers[Number(input.name.split("-")[1])]=Number(input.value);update()});
+// Choose 4 for negatively weighted items and 1 for the others as the existing starting profile.
+function normalAnswers() {
+  return WEIGHTS.map((weight) => (weight < 0 ? 4 : 1));
 }
 
-function scores(){
-  const result={Identity:0,"Self-Direction":0,Empathy:0,Intimacy:0};
-  answers.forEach((answer,i)=>result[DOMAINS[i]]+=answer*WEIGHTS[i]);
-  Object.keys(result).forEach(key=>result[key]=round(result[key]));
-  result.Total=round(DOMAIN_ORDER.reduce((total,key)=>total+result[key],0));
+// Restore the starting answers, rebuild the controls, and refresh the results.
+function reset() {
+  answers = normalAnswers();
+  renderQuestions();
+  update();
+}
+
+// Build the question controls and connect answer changes to result updates.
+function renderQuestions() {
+  $("questions").innerHTML = ITEMS.map(
+    (text, i) =>
+      `<section class="card question-card"><h2><span class="question-number">${i + 1}.</span>${text}</h2><div class="response-grid">${OPTIONS.map((option) => `<label class="response-option"><input type="radio" name="item-${i}" value="${option.value}" ${answers[i] === option.value ? "checked" : ""}><span>${option.value}<br>${option.label}</span></label>`).join("")}</div></section>`,
+  ).join("");
+  document.querySelectorAll('[name^="item-"]').forEach(
+    (input) =>
+      (input.onchange = () => {
+        answers[Number(input.name.split("-")[1])] = Number(input.value);
+        update();
+      }),
+  );
+}
+
+// Multiply answers by matching WEIGHTS, add them into DOMAINS, and round domain and total scores.
+function scores() {
+  const result = { Identity: 0, "Self-Direction": 0, Empathy: 0, Intimacy: 0 };
+  answers.forEach((answer, i) => (result[DOMAINS[i]] += answer * WEIGHTS[i]));
+  Object.keys(result).forEach((key) => (result[key] = round(result[key])));
+  result.Total = round(DOMAIN_ORDER.reduce((total, key) => total + result[key], 0));
   return result;
 }
 
-function marker(name,score){
-  const [,sd1,sd15,sd2]=NORMS[name];
-  if(score>=sd2)return "At or above the +2.0 SD marker";
-  if(score>=sd15)return "At or above the +1.5 SD marker";
-  if(score>=sd1)return "At or above the +1.0 SD marker";
+// Compare a score with the configured +1, +1.5, and +2 SD reference markers.
+function marker(name, score) {
+  const [, sd1, sd15, sd2] = NORMS[name];
+  if (score >= sd2) return "At or above the +2.0 SD marker";
+  if (score >= sd15) return "At or above the +1.5 SD marker";
+  if (score >= sd1) return "At or above the +1.0 SD marker";
   return "Below the +1.0 SD marker";
 }
 
-function benchmarkLevel(name,score){return NORMS[name].filter(value=>score>=value).length}
-
-function update(){
-  const result=scores();
-  $("total-score").textContent=format(result.Total);
-  $("total-marker").textContent=marker("Total",result.Total);
-  $("domain-results").innerHTML=DOMAIN_ORDER.map(name=>domainCard(name,result[name])).join("");
-  $("reference-rows").innerHTML=Object.entries(NORMS).map(([name,values])=>`<div class="reference-row ${name==="Total"?"current":""}" role="row"><span>${name}</span>${values.map(format).map(value=>`<span>${value}</span>`).join("")}</div>`).join("");
-  const detailed=document.querySelector('[name="outputStyle"]:checked').value==="detailed";
-  $("output").value=detailed?detailedOutput(result):summaryOutput(result);
+// Count crossed reference markers to determine how many segments of the display bar light up.
+function benchmarkLevel(name, score) {
+  return NORMS[name].filter((value) => score >= value).length;
 }
 
-function domainCard(name,score){
-  const active=benchmarkLevel(name,score);
-  return `<div class="domain-card"><h3>${name}</h3><div class="domain-score">${format(score)}</div><div class="domain-marker">${marker(name,score)}</div><div class="benchmark-bar" aria-hidden="true">${[1,2,3,4].map(level=>`<span class="${level<=active?"active":""}"></span>`).join("")}</div></div>`;
+// Recalculate the displayed results and regenerate the selected output format.
+function update() {
+  const result = scores();
+  $("total-score").textContent = format(result.Total);
+  $("total-marker").textContent = marker("Total", result.Total);
+  $("domain-results").innerHTML = DOMAIN_ORDER.map((name) => domainCard(name, result[name])).join(
+    "",
+  );
+  $("reference-rows").innerHTML = Object.entries(NORMS)
+    .map(
+      ([name, values]) =>
+        `<div class="reference-row ${name === "Total" ? "current" : ""}" role="row"><span>${name}</span>${values
+          .map(format)
+          .map((value) => `<span>${value}</span>`)
+          .join("")}</div>`,
+    )
+    .join("");
+  const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
+  $("output").value = detailed ? detailedOutput(result) : summaryOutput(result);
 }
 
-function summaryOutput(result){
-  const domains=DOMAIN_ORDER.map(name=>`${name} ${format(result[name])} (${marker(name,result[name]).toLowerCase()})`).join(", ");
-  return `LPFS-SR completed with a total weighted score of ${format(result.Total)}, ${marker("Total",result.Total).toLowerCase()}. Domain scores were ${domains}. Scores were interpreted using the published non-clinical reference markers. The LPFS-SR supports assessment of personality functioning and does not independently establish a diagnosis.`;
+// Build one domain result card with its score, reference label, and segmented bar.
+function domainCard(name, score) {
+  const active = benchmarkLevel(name, score);
+  return `<div class="domain-card"><h3>${name}</h3><div class="domain-score">${format(score)}</div><div class="domain-marker">${marker(name, score)}</div><div class="benchmark-bar" aria-hidden="true">${[1, 2, 3, 4].map((level) => `<span class="${level <= active ? "active" : ""}"></span>`).join("")}</div></div>`;
 }
 
-function detailedOutput(result){
-  const lines=["Level of Personality Functioning Scale - Self Report (LPFS-SR)","","Weighted Scores",`Total: ${format(result.Total)} - ${marker("Total",result.Total)}`];
-  DOMAIN_ORDER.forEach(name=>lines.push(`${name}: ${format(result[name])} - ${marker(name,result[name])}`));
-  lines.push("","Item Responses");
-  ITEMS.forEach((text,i)=>lines.push("",`${i+1}. ${text}`,`${answers[i]} - ${OPTIONS.find(option=>option.value===answers[i]).label}`));
-  lines.push("","Interpretation","Higher weighted scores indicate greater impairment in personality functioning. Published score markers are based on a non-clinical reference sample and should be integrated with clinical interview, history, context, and clinical judgment.");
+// Build the paragraph version of the note from the current results.
+function summaryOutput(result) {
+  const domains = DOMAIN_ORDER.map(
+    (name) => `${name} ${format(result[name])} (${marker(name, result[name]).toLowerCase()})`,
+  ).join(", ");
+  return `LPFS-SR completed with a total weighted score of ${format(result.Total)}, ${marker("Total", result.Total).toLowerCase()}. Domain scores were ${domains}. Scores were interpreted using the published non-clinical reference markers. The LPFS-SR supports assessment of personality functioning and does not independently establish a diagnosis.`;
+}
+
+// Build the detailed note, including individual answers and scores.
+function detailedOutput(result) {
+  const lines = [
+    "Level of Personality Functioning Scale - Self Report (LPFS-SR)",
+    "",
+    "Weighted Scores",
+    `Total: ${format(result.Total)} - ${marker("Total", result.Total)}`,
+  ];
+  DOMAIN_ORDER.forEach((name) =>
+    lines.push(`${name}: ${format(result[name])} - ${marker(name, result[name])}`),
+  );
+  lines.push("", "Item Responses");
+  ITEMS.forEach((text, i) =>
+    lines.push(
+      "",
+      `${i + 1}. ${text}`,
+      `${answers[i]} - ${OPTIONS.find((option) => option.value === answers[i]).label}`,
+    ),
+  );
+  lines.push(
+    "",
+    "Interpretation",
+    "Higher weighted scores indicate greater impairment in personality functioning. Published score markers are based on a non-clinical reference sample and should be integrated with clinical interview, history, context, and clinical judgment.",
+  );
   return lines.join("\n");
 }
 
-function round(value){return Math.round((value+Number.EPSILON)*10)/10}
-function format(value){return Number(value).toFixed(1)}
+// Round a calculated score to one decimal place.
+function round(value) {
+  return Math.round((value + Number.EPSILON) * 10) / 10;
+}
 
-$("reset-button").onclick=reset;
-document.querySelectorAll('[name="outputStyle"]').forEach(input=>input.onchange=update);
-$("copy-button").onclick=async()=>{await navigator.clipboard.writeText($("output").value);$("copy-status").textContent="Copied";setTimeout(()=>$("copy-status").textContent="",1500)};
-$("select-button").onclick=()=>{$("output").focus();$("output").select()};
+// Display a number with exactly one decimal place.
+function format(value) {
+  return Number(value).toFixed(1);
+}
+
+// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+$("reset-button").onclick = reset;
+document.querySelectorAll('[name="outputStyle"]').forEach((input) => (input.onchange = update));
+$("copy-button").onclick = async () => {
+  await navigator.clipboard.writeText($("output").value);
+  $("copy-status").textContent = "Copied";
+  setTimeout(() => ($("copy-status").textContent = ""), 1500);
+};
+$("select-button").onclick = () => {
+  $("output").focus();
+  $("output").select();
+};
+// Initial page setup: populate the form and show its starting results.
 reset();

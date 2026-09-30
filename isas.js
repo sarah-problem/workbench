@@ -1,3 +1,10 @@
+/**
+ * isas.js
+ * ISAS: records lifetime behaviors and calculates the 13 self-injury function scores.
+ * Loaded by isas.html after the page markup is available.
+ * See README.md for the file map and a guide to following the code.
+ */
+
 const BEHAVIORS = [
   "Cutting",
   "Severe scratching",
@@ -10,130 +17,137 @@ const BEHAVIORS = [
   "Pinching",
   "Sticking self with needles",
   "Pulling hair",
-  "Swallowing dangerous substances"
+  "Swallowing dangerous substances",
 ];
 
+// Each function lists its numbered items. The function score is the sum of those three responses.
 const FUNCTIONS = [
   {
     name: "Affect Regulation",
     items: [
       [1, "calming myself down"],
       [14, "releasing emotional pressure that has built up inside of me"],
-      [27, "reducing anxiety, frustration, anger, or other overwhelming emotions"]
-    ]
+      [27, "reducing anxiety, frustration, anger, or other overwhelming emotions"],
+    ],
   },
   {
     name: "Interpersonal Boundaries",
     items: [
       [2, "creating a boundary between myself and others"],
       [15, "demonstrating that I am separate from other people"],
-      [28, "establishing a barrier between myself and others"]
-    ]
+      [28, "establishing a barrier between myself and others"],
+    ],
   },
   {
     name: "Self-Punishment",
     items: [
       [3, "punishing myself"],
       [16, "expressing anger towards myself for being worthless or stupid"],
-      [29, "reacting to feeling unhappy with myself or disgusted with myself"]
-    ]
+      [29, "reacting to feeling unhappy with myself or disgusted with myself"],
+    ],
   },
   {
     name: "Self-Care",
     items: [
       [4, "giving myself a way to care for myself by attending to the wound"],
       [17, "creating a physical injury that is easier to care for than my emotional distress"],
-      [30, "allowing myself to focus on treating the injury, which can be gratifying or satisfying"]
-    ]
+      [
+        30,
+        "allowing myself to focus on treating the injury, which can be gratifying or satisfying",
+      ],
+    ],
   },
   {
     name: "Anti-Dissociation/Feeling-Generation",
     items: [
       [5, "causing pain so I will stop feeling numb"],
       [18, "trying to feel something, as opposed to nothing, even if it is physical pain"],
-      [31, "making sure I am still alive when I do not feel real"]
-    ]
+      [31, "making sure I am still alive when I do not feel real"],
+    ],
   },
   {
     name: "Anti-Suicide",
     items: [
       [6, "avoiding the impulse to attempt suicide"],
       [19, "responding to suicidal thoughts without actually attempting suicide"],
-      [32, "putting a stop to suicidal thoughts"]
-    ]
+      [32, "putting a stop to suicidal thoughts"],
+    ],
   },
   {
     name: "Sensation-Seeking",
     items: [
       [7, "doing something to generate excitement or exhilaration"],
       [20, "entertaining myself or others by doing something extreme"],
-      [33, "pushing my limits in a manner akin to skydiving or other extreme activities"]
-    ]
+      [33, "pushing my limits in a manner akin to skydiving or other extreme activities"],
+    ],
   },
   {
     name: "Peer-Bonding",
     items: [
       [8, "bonding with peers"],
       [21, "fitting in with others"],
-      [34, "creating a sign of friendship or kinship with friends or loved ones"]
-    ]
+      [34, "creating a sign of friendship or kinship with friends or loved ones"],
+    ],
   },
   {
     name: "Interpersonal Influence",
     items: [
       [9, "letting others know the extent of my emotional pain"],
       [22, "seeking care or help from others"],
-      [35, "keeping a loved one from leaving or abandoning me"]
-    ]
+      [35, "keeping a loved one from leaving or abandoning me"],
+    ],
   },
   {
     name: "Toughness",
     items: [
       [10, "seeing if I can stand the pain"],
       [23, "demonstrating I am tough or strong"],
-      [36, "proving I can take the physical pain"]
-    ]
+      [36, "proving I can take the physical pain"],
+    ],
   },
   {
     name: "Marking Distress",
     items: [
       [11, "creating a physical sign that I feel awful"],
       [24, "proving to myself that my emotional pain is real"],
-      [37, "signifying the emotional distress I am experiencing"]
-    ]
+      [37, "signifying the emotional distress I am experiencing"],
+    ],
   },
   {
     name: "Revenge",
     items: [
       [12, "getting back at someone"],
       [25, "getting revenge against others"],
-      [38, "trying to hurt someone close to me"]
-    ]
+      [38, "trying to hurt someone close to me"],
+    ],
   },
   {
     name: "Autonomy",
     items: [
       [13, "ensuring that I am self-sufficient"],
       [26, "demonstrating that I do not need to rely on others for help"],
-      [39, "establishing that I am autonomous or independent"]
-    ]
-  }
+      [39, "establishing that I am autonomous or independent"],
+    ],
+  },
 ];
 
 const RESPONSE_LABELS = ["Not relevant", "Somewhat relevant", "Very relevant"];
 
-let behaviorCounts = Object.fromEntries(BEHAVIORS.map(name => [name, 0]));
+let behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, 0]));
 let mainBehaviors = new Set();
+// Use printed item numbers 1–39 as indexes; index 0 is intentionally unused.
 let responses = Array(40).fill(0);
 let choices = {
   pain: "Not documented",
   alone: "Not documented",
   delay: "Not documented",
-  stop: "Not documented"
+  stop: "Not documented",
 };
 
+// Build behavior fields and attach handlers that keep the stored answers current.
 function renderBehaviors() {
-  document.getElementById("behavior-grid").innerHTML = BEHAVIORS.map((name, index) => `
+  document.getElementById("behavior-grid").innerHTML = BEHAVIORS.map(
+    (name, index) => `
     <div class="behavior-row">
       <div class="behavior-name">${name}</div>
       <label>
@@ -145,9 +159,10 @@ function renderBehaviors() {
         <span>Main form</span>
       </label>
     </div>
-  `).join("");
+  `,
+  ).join("");
 
-  document.querySelectorAll("[data-behavior-count]").forEach(input => {
+  document.querySelectorAll("[data-behavior-count]").forEach((input) => {
     input.addEventListener("input", () => {
       const name = BEHAVIORS[Number(input.dataset.behaviorCount)];
       behaviorCounts[name] = Math.max(0, Number(input.value) || 0);
@@ -155,7 +170,7 @@ function renderBehaviors() {
     });
   });
 
-  document.querySelectorAll("[data-main-behavior]").forEach(input => {
+  document.querySelectorAll("[data-main-behavior]").forEach((input) => {
     input.addEventListener("change", () => {
       const name = BEHAVIORS[Number(input.dataset.mainBehavior)];
       if (input.checked) mainBehaviors.add(name);
@@ -165,32 +180,40 @@ function renderBehaviors() {
   });
 }
 
+// Flatten the grouped questions and sort them by printed item number for the form.
 function orderedFunctionItems() {
-  return FUNCTIONS
-    .flatMap(group => group.items.map(([number, text]) => ({ number, text, functionName: group.name })))
-    .sort((a, b) => a.number - b.number);
+  return FUNCTIONS.flatMap((group) =>
+    group.items.map(([number, text]) => ({ number, text, functionName: group.name })),
+  ).sort((a, b) => a.number - b.number);
 }
 
+// Build function-rating controls. responses uses printed item numbers, so index zero is unused.
 function renderFunctions() {
   document.getElementById("function-items").innerHTML = `
     <div class="function-list">
-      ${orderedFunctionItems().map(({ number, text }) => `
+      ${orderedFunctionItems()
+        .map(
+          ({ number, text }) => `
         <div class="function-item">
           <div class="function-item-text"><span class="function-item-number">${number}.</span> When I self-harm, I am ${text}.</div>
           <div class="function-response">
-            ${RESPONSE_LABELS.map((label, score) => `
+            ${RESPONSE_LABELS.map(
+              (label, score) => `
               <label title="${label}">
                 <input type="radio" name="item-${number}" value="${score}" ${responses[number] === score ? "checked" : ""}>
                 <span>${score}</span>
               </label>
-            `).join("")}
+            `,
+            ).join("")}
           </div>
         </div>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 
-  document.querySelectorAll('#function-items input[type="radio"]').forEach(input => {
+  document.querySelectorAll('#function-items input[type="radio"]').forEach((input) => {
     input.addEventListener("change", () => {
       const number = Number(input.name.replace("item-", ""));
       responses[number] = Number(input.value);
@@ -199,81 +222,111 @@ function renderFunctions() {
   });
 }
 
+// Add the three item responses assigned to one function (each response is 0–2).
 function scoreFor(group) {
   return group.items.reduce((sum, [number]) => sum + responses[number], 0);
 }
 
+// Calculate the scores for each function from its assigned question responses.
 function functionScores() {
-  return FUNCTIONS.map(group => ({
+  return FUNCTIONS.map((group) => ({
     name: group.name,
     score: scoreFor(group),
-    items: group.items
+    items: group.items,
   }));
 }
 
+// Sum the 13 function scores to produce the displayed total out of 78.
 function totalFunctionScore() {
   return functionScores().reduce((sum, group) => sum + group.score, 0);
 }
 
+// Add standard behavior counts and the separate other-behavior count.
 function lifetimeBehaviorTotal() {
   const standard = Object.values(behaviorCounts).reduce((sum, count) => sum + count, 0);
   const other = Math.max(0, Number(document.getElementById("other-behavior-count").value) || 0);
   return standard + other;
 }
 
+// Collect behaviors with positive counts, including a named other behavior when provided.
 function behaviorSummary() {
-  const entries = BEHAVIORS
-    .filter(name => behaviorCounts[name] > 0)
-    .map(name => ({ name, count: behaviorCounts[name], main: mainBehaviors.has(name) }));
+  const entries = BEHAVIORS.filter((name) => behaviorCounts[name] > 0).map((name) => ({
+    name,
+    count: behaviorCounts[name],
+    main: mainBehaviors.has(name),
+  }));
 
   const otherName = document.getElementById("other-behavior-name").value.trim();
-  const otherCount = Math.max(0, Number(document.getElementById("other-behavior-count").value) || 0);
+  const otherCount = Math.max(
+    0,
+    Number(document.getElementById("other-behavior-count").value) || 0,
+  );
   if (otherName && otherCount > 0) {
-    entries.push({ name: otherName, count: otherCount, main: document.getElementById("other-behavior-main").checked });
+    entries.push({
+      name: otherName,
+      count: otherCount,
+      main: document.getElementById("other-behavior-main").checked,
+    });
   }
   return entries;
 }
 
+// Refresh function totals, score bars, ranked functions, and the Anti-Suicide endorsement alert.
 function updateFunctionResults() {
   const scores = functionScores();
-  scores.forEach(group => {
+  scores.forEach((group) => {
     const domain = document.querySelector(`[data-domain-score="${CSS.escape(group.name)}"]`);
     if (domain) domain.textContent = `${group.score} / 6`;
   });
 
-  const highest = Math.max(...scores.map(group => group.score));
+  const highest = Math.max(...scores.map((group) => group.score));
   document.getElementById("total-display").textContent = `${totalFunctionScore()} / 78`;
   document.getElementById("highest-display").textContent = `${highest} / 6`;
 
-  document.getElementById("function-scores").innerHTML = scores.map(group => `
+  document.getElementById("function-scores").innerHTML = scores
+    .map(
+      (group) => `
     <div class="score-row score-${group.score}">
       <span class="score-name">${group.name}</span>
       <div class="score-track" aria-hidden="true"><div class="score-fill" style="width:${(group.score / 6) * 100}%"></div></div>
       <span class="score-value">${group.score} / 6</span>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 
-  const ranked = [...scores].sort((a, b) => b.score - a.score || FUNCTIONS.findIndex(group => group.name === a.name) - FUNCTIONS.findIndex(group => group.name === b.name));
-  const highestGroups = ranked.filter(group => group.score === highest);
-  const shown = highest === 0 ? ranked.slice(0, 3) : ranked.filter(group => group.score > 0).slice(0, 5);
+  const ranked = [...scores].sort(
+    (a, b) =>
+      b.score - a.score ||
+      FUNCTIONS.findIndex((group) => group.name === a.name) -
+        FUNCTIONS.findIndex((group) => group.name === b.name),
+  );
+  const highestGroups = ranked.filter((group) => group.score === highest);
+  const shown =
+    highest === 0 ? ranked.slice(0, 3) : ranked.filter((group) => group.score > 0).slice(0, 5);
 
-  document.getElementById("ranked-functions").innerHTML = highest === 0
-    ? '<div class="ranked-function">No functions are currently endorsed.</div>'
-    : shown.map((group, index) => {
-        const endorsed = group.items
-          .filter(([number]) => responses[number] > 0)
-          .map(([number, text]) => `${number}: ${text} (${responses[number]})`);
-        return `
+  document.getElementById("ranked-functions").innerHTML =
+    highest === 0
+      ? '<div class="ranked-function">No functions are currently endorsed.</div>'
+      : shown
+          .map((group, index) => {
+            const endorsed = group.items
+              .filter(([number]) => responses[number] > 0)
+              .map(([number, text]) => `${number}: ${text} (${responses[number]})`);
+            return `
           <div class="ranked-function">
             <strong>${index + 1}. ${group.name} — ${group.score}/6</strong>
             <p>${endorsed.join("; ")}</p>
           </div>
         `;
-      }).join("");
+          })
+          .join("");
 
-  document.getElementById("suicide-function-alert").hidden = scoreFor(FUNCTIONS.find(group => group.name === "Anti-Suicide")) === 0;
+  document.getElementById("suicide-function-alert").hidden =
+    scoreFor(FUNCTIONS.find((group) => group.name === "Anti-Suicide")) === 0;
 }
 
+// Join choices into readable English, handling empty, one-item, and longer lists.
 function sentenceList(items) {
   if (items.length === 0) return "";
   if (items.length === 1) return items[0];
@@ -281,16 +334,18 @@ function sentenceList(items) {
   return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
 }
 
+// Format a supplied date for the note; use the existing missing-date fallback when blank.
 function dateText(value) {
   if (!value) return "not documented";
   const [year, month, day] = value.split("-");
   return `${month}/${day}/${year}`;
 }
 
+// Build the paragraph version of the note from the current results.
 function summaryOutput() {
   const behaviors = behaviorSummary();
   const scores = [...functionScores()].sort((a, b) => b.score - a.score);
-  const positiveScores = scores.filter(group => group.score > 0);
+  const positiveScores = scores.filter((group) => group.score > 0);
   const highest = positiveScores.slice(0, 3);
 
   let text = "ISAS completed.";
@@ -298,10 +353,13 @@ function summaryOutput() {
   if (behaviors.length === 0) {
     text += " No lifetime non-suicidal self-injury behaviors were entered.";
   } else {
-    const main = behaviors.filter(item => item.main).map(item => item.name.toLowerCase());
-    const behaviorText = behaviors.map(item => `${item.name.toLowerCase()} (${item.count} lifetime)`).join(", ");
+    const main = behaviors.filter((item) => item.main).map((item) => item.name.toLowerCase());
+    const behaviorText = behaviors
+      .map((item) => `${item.name.toLowerCase()} (${item.count} lifetime)`)
+      .join(", ");
     text += ` Endorsed behaviors included ${behaviorText}.`;
-    if (main.length) text += ` Main form${main.length === 1 ? "" : "s"} identified: ${sentenceList(main)}.`;
+    if (main.length)
+      text += ` Main form${main.length === 1 ? "" : "s"} identified: ${sentenceList(main)}.`;
   }
 
   const age = document.getElementById("age-first").value;
@@ -309,25 +367,31 @@ function summaryOutput() {
   if (age) text += ` Age at first self-injury was approximately ${age}.`;
   if (recent) text += ` Most recent self-injury was ${dateText(recent)}.`;
 
-  if (choices.pain !== "Not documented") text += ` Physical pain during self-harm was reported as ${choices.pain.toLowerCase()}.`;
-  if (choices.alone !== "Not documented") text += ` Being alone during self-harm was reported as ${choices.alone.toLowerCase()}.`;
-  if (choices.delay !== "Not documented") text += ` Typical delay from urge to behavior was ${choices.delay.toLowerCase()}.`;
-  if (choices.stop !== "Not documented") text += ` Desire to stop self-harming was reported as ${choices.stop.toLowerCase()}.`;
+  if (choices.pain !== "Not documented")
+    text += ` Physical pain during self-harm was reported as ${choices.pain.toLowerCase()}.`;
+  if (choices.alone !== "Not documented")
+    text += ` Being alone during self-harm was reported as ${choices.alone.toLowerCase()}.`;
+  if (choices.delay !== "Not documented")
+    text += ` Typical delay from urge to behavior was ${choices.delay.toLowerCase()}.`;
+  if (choices.stop !== "Not documented")
+    text += ` Desire to stop self-harming was reported as ${choices.stop.toLowerCase()}.`;
 
   text += ` Function total was ${totalFunctionScore()}/78.`;
   if (highest.length === 0) {
     text += " No self-injury functions were endorsed.";
   } else {
-    text += ` Highest endorsed functions were ${sentenceList(highest.map(group => `${group.name} (${group.score}/6)`))}.`;
+    text += ` Highest endorsed functions were ${sentenceList(highest.map((group) => `${group.name} (${group.score}/6)`))}.`;
   }
 
-  if (scoreFor(FUNCTIONS.find(group => group.name === "Anti-Suicide")) > 0) {
-    text += " Anti-Suicide items were endorsed and require direct assessment of suicidal thoughts and behavior.";
+  if (scoreFor(FUNCTIONS.find((group) => group.name === "Anti-Suicide")) > 0) {
+    text +=
+      " Anti-Suicide items were endorsed and require direct assessment of suicidal thoughts and behavior.";
   }
 
   return text;
 }
 
+// Build the detailed note, including individual answers and scores.
 function detailedOutput() {
   const lines = ["ISAS", "", "Section I: Behaviors", ""];
   const behaviors = behaviorSummary();
@@ -335,12 +399,16 @@ function detailedOutput() {
   if (behaviors.length === 0) {
     lines.push("No lifetime NSSI behaviors entered.");
   } else {
-    behaviors.forEach(item => lines.push(`${item.name}: ${item.count} lifetime${item.main ? " — main form" : ""}`));
+    behaviors.forEach((item) =>
+      lines.push(`${item.name}: ${item.count} lifetime${item.main ? " — main form" : ""}`),
+    );
     lines.push(`Lifetime behavior total: ${lifetimeBehaviorTotal()}`);
   }
 
   lines.push("");
-  lines.push(`Age first self-harmed: ${document.getElementById("age-first").value || "Not documented"}`);
+  lines.push(
+    `Age first self-harmed: ${document.getElementById("age-first").value || "Not documented"}`,
+  );
   lines.push(`Most recent self-harm: ${dateText(document.getElementById("most-recent").value)}`);
   lines.push(`Physical pain: ${choices.pain}`);
   lines.push(`Usually alone: ${choices.alone}`);
@@ -350,11 +418,13 @@ function detailedOutput() {
   lines.push("", "Section II: Item Responses", "");
   orderedFunctionItems().forEach(({ number, text }) => {
     lines.push(`${number}. ${text}`);
-    lines.push(`${RESPONSE_LABELS[responses[number]]} — ${responses[number]} ${responses[number] === 1 ? "point" : "points"}`);
+    lines.push(
+      `${RESPONSE_LABELS[responses[number]]} — ${responses[number]} ${responses[number] === 1 ? "point" : "points"}`,
+    );
   });
 
   lines.push("", "Function Scores", "");
-  FUNCTIONS.forEach(group => lines.push(`${group.name}: ${scoreFor(group)} / 6`));
+  FUNCTIONS.forEach((group) => lines.push(`${group.name}: ${scoreFor(group)} / 6`));
   lines.push("", `Function total: ${totalFunctionScore()} / 78`);
 
   const accurate = document.getElementById("more-accurate").value.trim();
@@ -362,50 +432,77 @@ function detailedOutput() {
   if (accurate) lines.push("", `More accurate statements: ${accurate}`);
   if (suggested) lines.push("", `Suggested additional statements: ${suggested}`);
 
-  if (scoreFor(FUNCTIONS.find(group => group.name === "Anti-Suicide")) > 0) {
-    lines.push("", "Safety note: Anti-Suicide items were endorsed and require direct suicide-risk assessment.");
+  if (scoreFor(FUNCTIONS.find((group) => group.name === "Anti-Suicide")) > 0) {
+    lines.push(
+      "",
+      "Safety note: Anti-Suicide items were endorsed and require direct suicide-risk assessment.",
+    );
   }
 
   return lines.join("\n");
 }
 
+// Regenerate the note using the currently selected output style.
 function updateOutput() {
   const style = document.querySelector('input[name="outputStyle"]:checked').value;
-  document.getElementById("output").value = style === "summary" ? summaryOutput() : detailedOutput();
+  document.getElementById("output").value =
+    style === "summary" ? summaryOutput() : detailedOutput();
 }
 
+// Refresh the behavior notice, function results, and note after an answer changes.
 function updateAll() {
-  document.getElementById("no-behavior-note").classList.toggle("hidden", lifetimeBehaviorTotal() > 0);
+  document
+    .getElementById("no-behavior-note")
+    .classList.toggle("hidden", lifetimeBehaviorTotal() > 0);
   updateFunctionResults();
   updateOutput();
 }
 
+// Connect the grouped context buttons to the choices object and selected-button appearance.
 function wireChoiceGroups() {
-  document.querySelectorAll("[data-choice-group]").forEach(group => {
-    group.querySelectorAll("button").forEach(button => {
+  document.querySelectorAll("[data-choice-group]").forEach((group) => {
+    group.querySelectorAll("button").forEach((button) => {
       button.addEventListener("click", () => {
         const name = group.dataset.choiceGroup;
         choices[name] = button.dataset.value;
-        group.querySelectorAll("button").forEach(item => item.classList.toggle("selected", item === button));
+        group
+          .querySelectorAll("button")
+          .forEach((item) => item.classList.toggle("selected", item === button));
         updateAll();
       });
     });
   });
 }
 
+// Connect free-text fields and output-style controls to the update functions.
 function wireInputs() {
-  ["other-behavior-name", "other-behavior-count", "age-first", "most-recent", "more-accurate", "suggested-items"].forEach(id => {
+  [
+    "other-behavior-name",
+    "other-behavior-count",
+    "age-first",
+    "most-recent",
+    "more-accurate",
+    "suggested-items",
+  ].forEach((id) => {
     document.getElementById(id).addEventListener("input", updateAll);
   });
   document.getElementById("other-behavior-main").addEventListener("change", updateAll);
-  document.querySelectorAll('input[name="outputStyle"]').forEach(input => input.addEventListener("change", updateOutput));
+  document
+    .querySelectorAll('input[name="outputStyle"]')
+    .forEach((input) => input.addEventListener("change", updateOutput));
 }
 
+// Clear behavior counts, function responses, context choices, and optional text, then rebuild the form.
 function resetAll() {
-  behaviorCounts = Object.fromEntries(BEHAVIORS.map(name => [name, 0]));
+  behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, 0]));
   mainBehaviors = new Set();
   responses = Array(40).fill(0);
-  choices = { pain: "Not documented", alone: "Not documented", delay: "Not documented", stop: "Not documented" };
+  choices = {
+    pain: "Not documented",
+    alone: "Not documented",
+    delay: "Not documented",
+    stop: "Not documented",
+  };
 
   document.getElementById("other-behavior-name").value = "";
   document.getElementById("other-behavior-count").value = 0;
@@ -415,8 +512,12 @@ function resetAll() {
   document.getElementById("more-accurate").value = "";
   document.getElementById("suggested-items").value = "";
 
-  document.querySelectorAll("[data-choice-group]").forEach(group => {
-    group.querySelectorAll("button").forEach(button => button.classList.toggle("selected", button.dataset.value === "Not documented"));
+  document.querySelectorAll("[data-choice-group]").forEach((group) => {
+    group
+      .querySelectorAll("button")
+      .forEach((button) =>
+        button.classList.toggle("selected", button.dataset.value === "Not documented"),
+      );
   });
 
   renderBehaviors();
@@ -424,12 +525,15 @@ function resetAll() {
   updateAll();
 }
 
+// Connect page controls: reset answers, change output style, copy the note, or select it manually.
 document.getElementById("reset-button").addEventListener("click", resetAll);
 document.getElementById("copy-button").addEventListener("click", async () => {
   await navigator.clipboard.writeText(document.getElementById("output").value);
   const status = document.getElementById("copy-status");
   status.textContent = "Copied";
-  setTimeout(() => { status.textContent = ""; }, 1500);
+  setTimeout(() => {
+    status.textContent = "";
+  }, 1500);
 });
 document.getElementById("select-button").addEventListener("click", () => {
   const output = document.getElementById("output");
@@ -437,6 +541,7 @@ document.getElementById("select-button").addEventListener("click", () => {
   output.select();
 });
 
+// Initial page setup: populate the form and show its starting results.
 renderBehaviors();
 renderFunctions();
 wireChoiceGroups();

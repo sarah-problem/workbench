@@ -1,16 +1,26 @@
+/* workbench.css
+ * Home page only (index.html).
+ * CSS controls appearance. JavaScript controls responses and generated notes.
+ * Rules later in the file can override earlier rules with equal specificity.
+ */
+
+/* Theme variables: change these values to adjust the main colors and fonts used below. */
 :root {
   --wb-bg: #000000;
   --wb-text: #ffffff;
-  --wb-pink: #FF42A7;
-  --wb-yellow: #FFEC1A;
+  --wb-pink: #ff42a7;
+  --wb-yellow: #ffec1a;
   --wb-surface: #111111;
   --wb-border: #333333;
   --wb-heading: "Cutive", serif;
   --wb-body: "Asap", sans-serif;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
+/* Page-wide defaults for the background, text, and font. */
 body {
   margin: 0;
   min-height: 100vh;
@@ -19,6 +29,7 @@ body {
   font-family: var(--wb-body);
 }
 
+/* Outer spacing for the home page. */
 .workbench-shell {
   width: 100%;
   margin: 0;
@@ -60,6 +71,7 @@ body {
   line-height: 1.25;
 }
 
+/* Arrange tool links into a grid; smaller-screen rules below change the column count. */
 .workbench-grid {
   display: grid;
   gap: clamp(18px, 2vw, 28px);
@@ -73,6 +85,7 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Clickable home-page cards that open individual tools. */
 .tool-card {
   display: block;
   min-height: 230px;
@@ -82,7 +95,11 @@ body {
   background: var(--wb-surface);
   color: var(--wb-text);
   text-decoration: none;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .08s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.08s ease;
 }
 
 .tool-card:hover,
@@ -91,7 +108,9 @@ body {
   outline: none;
 }
 
-.tool-card:active { transform: translateY(1px); }
+.tool-card:active {
+  transform: translateY(1px);
+}
 
 .tool-card h3 {
   margin: 0 0 16px;
@@ -109,6 +128,7 @@ body {
   line-height: 1.6;
 }
 
+/* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 1050px) {
   .assessment-grid,
   .screening-grid {
@@ -116,6 +136,7 @@ body {
   }
 }
 
+/* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 700px) {
   .workbench-shell {
     padding: 24px 16px 36px;

@@ -1,8 +1,15 @@
+/* screening.css
+ * Shared base for screening.html, brief-assessment.html, isas.html, fasm.html, lpfs.html, tsds.html, and ybocs.html.
+ * CSS controls appearance. JavaScript controls responses and generated notes.
+ * Rules later in the file can override earlier rules with equal specificity.
+ */
+
+/* Theme variables: change these values to adjust the main colors and fonts used below. */
 :root {
   --bg: #000000;
   --text: #ffffff;
-  --pink: #FF42A7;
-  --yellow: #FFEC1A;
+  --pink: #ff42a7;
+  --yellow: #ffec1a;
   --surface: #111111;
   --surface-2: #1a1a1a;
   --border: #333333;
@@ -10,8 +17,11 @@
   --body-font: "Asap", sans-serif;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
+/* Page-wide defaults for the background, text, and font. */
 body {
   margin: 0;
   background: var(--bg);
@@ -19,6 +29,7 @@ body {
   font-family: var(--body-font);
 }
 
+/* Outer page spacing and width. */
 .page-shell {
   width: 100%;
   max-width: none;
@@ -26,7 +37,10 @@ body {
   padding: clamp(28px, 4vw, 64px);
 }
 
-h1, h2 { font-family: var(--heading-font); }
+h1,
+h2 {
+  font-family: var(--heading-font);
+}
 
 h1 {
   margin: 24px 0;
@@ -38,10 +52,21 @@ h1 {
   text-underline-offset: 6px;
 }
 
-h2 { margin: 0 0 10px; color: var(--yellow); font-size: 19px; }
-h3 { margin: 20px 0 10px; color: var(--yellow); font-size: 16px; }
-a { color: var(--pink); }
+h2 {
+  margin: 0 0 10px;
+  color: var(--yellow);
+  font-size: 19px;
+}
+h3 {
+  margin: 20px 0 10px;
+  color: var(--yellow);
+  font-size: 16px;
+}
+a {
+  color: var(--pink);
+}
 
+/* Shared panel appearance used by questions, results, and documentation. */
 .card {
   margin: 14px 0;
   padding: 18px;
@@ -50,17 +75,28 @@ a { color: var(--pink); }
   background: var(--surface);
 }
 
-.measure-switcher { display: grid; gap: 12px; }
-.helper-text, .screening-note { color: #cccccc; line-height: 1.45; }
-.helper-text { margin: 4px 0 0; }
+.measure-switcher {
+  display: grid;
+  gap: 12px;
+}
+.helper-text,
+.screening-note {
+  color: #cccccc;
+  line-height: 1.45;
+}
+.helper-text {
+  margin: 4px 0 0;
+}
 
+/* Lay out adjacent answer buttons and allow them to wrap. */
 .segmented-options {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-button, .segment-button {
+button,
+.segment-button {
   border: 1px solid var(--pink);
   border-radius: 20px;
   background: var(--pink);
@@ -68,22 +104,61 @@ button, .segment-button {
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .08s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.08s ease;
 }
 
-button { padding: 10px 16px; }
-.segment-button { padding: 10px 14px; border-color: var(--border); background: var(--surface-2); color: var(--text); }
-button.secondary { border-color: var(--border); background: transparent; color: var(--text); }
+button {
+  padding: 10px 16px;
+}
+.segment-button {
+  padding: 10px 14px;
+  border-color: var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+button.secondary {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text);
+}
 
-button:hover, .segment-button:hover { border-color: var(--yellow); }
-button:focus-visible, .segment-button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
-button:active, .segment-button:active { transform: translateY(1px); }
-.segment-button.selected { border-color: var(--pink); background: var(--pink); color: #000; }
+button:hover,
+.segment-button:hover {
+  border-color: var(--yellow);
+}
+button:focus-visible,
+.segment-button:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+button:active,
+.segment-button:active {
+  transform: translateY(1px);
+}
+/* Show which answer is selected; JavaScript adds and removes the selected class. */
+.segment-button.selected {
+  border-color: var(--pink);
+  background: var(--pink);
+  color: #000;
+}
 
-.question-card h2 { font-size: 18px; }
-.question-number { color: var(--pink); margin-right: 7px; }
-.question-text { margin: 0 0 14px; line-height: 1.45; }
+.question-card h2 {
+  font-size: 18px;
+}
+.question-number {
+  color: var(--pink);
+  margin-right: 7px;
+}
+.question-text {
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
 
+/* Arrange the answer choices within a question. */
 .response-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -95,6 +170,7 @@ button:active, .segment-button:active { transform: translateY(1px); }
   display: block;
 }
 
+/* Keep the actual radio control while styling the adjacent label as the visible choice. */
 .response-option input {
   position: absolute;
   opacity: 0;
@@ -116,20 +192,41 @@ button:active, .segment-button:active { transform: translateY(1px); }
   cursor: pointer;
 }
 
-.response-option:hover span { border-color: var(--yellow); }
-.response-option input:focus-visible + span { outline: 2px solid var(--yellow); outline-offset: 2px; }
-.response-option input:checked + span { border-color: var(--pink); background: var(--pink); color: #000; }
+.response-option:hover span {
+  border-color: var(--yellow);
+}
+.response-option input:focus-visible + span {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+.response-option input:checked + span {
+  border-color: var(--pink);
+  background: var(--pink);
+  color: #000;
+}
 
+/* Group the current score and interpretation into a results area. */
 .results-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
-.small-label { color: var(--yellow); font-weight: 700; }
-.score-display, .severity-display { margin-top: 6px; font-size: 24px; font-weight: 700; }
+.small-label {
+  color: var(--yellow);
+  font-weight: 700;
+}
+.score-display,
+.severity-display {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 700;
+}
 
-.safety-alert[hidden] { display: none; }
+/* Honor the hidden attribute that JavaScript toggles for the alert. */
+.safety-alert[hidden] {
+  display: none;
+}
 
 .safety-alert {
   display: grid;
@@ -141,7 +238,11 @@ button:active, .segment-button:active { transform: translateY(1px); }
   background: var(--surface-2);
 }
 
-.interpretation-table { display: grid; gap: 7px; }
+/* Lay out interpretation ranges; the current class identifies the active band. */
+.interpretation-table {
+  display: grid;
+  gap: 7px;
+}
 .interpretation-row {
   display: grid;
   grid-template-columns: 90px 1fr;
@@ -151,12 +252,25 @@ button:active, .segment-button:active { transform: translateY(1px); }
   border-radius: 14px;
   background: var(--surface-2);
 }
-.interpretation-row.current { border-color: var(--pink); background: var(--pink); color: #000; }
-.interpretation-range { font-weight: 700; }
+.interpretation-row.current {
+  border-color: var(--pink);
+  background: var(--pink);
+  color: #000;
+}
+.interpretation-range {
+  font-weight: 700;
+}
 
-.output-style-row { margin-bottom: 12px; }
-.inline-option { display: inline-flex; align-items: center; margin: 8px 18px 0 0; }
+.output-style-row {
+  margin-bottom: 12px;
+}
+.inline-option {
+  display: inline-flex;
+  align-items: center;
+  margin: 8px 18px 0 0;
+}
 
+/* Size and style the note and free-text fields. */
 textarea {
   width: 100%;
   min-height: 280px;
@@ -169,14 +283,36 @@ textarea {
   resize: vertical;
 }
 
-.button-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-#copy-status { color: var(--yellow); }
-
-@media (max-width: 760px) {
-  .page-shell { margin: 0; padding: 14px; }
-  h1 { font-size: 34px; }
-  .response-grid { grid-template-columns: 1fr 1fr; }
-  .results-summary { grid-template-columns: 1fr; }
+.button-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+#copy-status {
+  color: var(--yellow);
 }
 
-.measure-link { display: inline-flex; align-items: center; text-decoration: none; }
+/* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
+@media (max-width: 760px) {
+  .page-shell {
+    margin: 0;
+    padding: 14px;
+  }
+  h1 {
+    font-size: 34px;
+  }
+  .response-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .results-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.measure-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

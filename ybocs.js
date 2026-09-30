@@ -1,80 +1,598 @@
-const SYMPTOMS={
-  Obsessions:{
-    Contamination:["Dirt, germs, or illness","Bodily waste or secretions","Environmental contaminants","Household chemicals or items","Animals or insects","Sticky substances or residues","Getting ill from contamination","Spreading contamination to others"],
-    Aggressive:["Fear of harming self","Fear of harming others","Fear harm will come to self","Fear harm will come to others","Violent or horrific images","Fear of blurting obscenities or insults","Fear of doing something embarrassing","Fear of acting on unwanted impulses","Fear of stealing","Fear of responsibility for something terrible"],
-    Sexual:["Forbidden or disturbing sexual thoughts, images, or impulses","Sexual content involving others or identity concerns","Fear of sexually aggressive behavior"],
-    "Hoarding/Saving":["Fear of losing things"],
-    "Magical/Superstitious":["Lucky or unlucky numbers, colors, or words"],
-    Somatic:["Excessive concern with illness or disease","Excessive concern with a body part or appearance"],
-    "Religious/Scrupulosity":["Fear of offending religious objects or figures","Excessive concern with right, wrong, or morality"],
-    Miscellaneous:["Need to know or remember","Fear of saying certain things","Fear of not saying exactly the right thing","Intrusive nonviolent images","Intrusive sounds, words, music, or numbers"]
+/**
+ * ybocs.js
+ * Y-BOCS / CY-BOCS: keeps separate adult and child answers, symptom checklists, and severity ratings.
+ * Loaded by ybocs.html after the page markup is available.
+ * See README.md for the file map and a guide to following the code.
+ */
+
+// Checklist categories describe symptom content. Checking more symptoms does not add severity points.
+const SYMPTOMS = {
+  Obsessions: {
+    Contamination: [
+      "Dirt, germs, or illness",
+      "Bodily waste or secretions",
+      "Environmental contaminants",
+      "Household chemicals or items",
+      "Animals or insects",
+      "Sticky substances or residues",
+      "Getting ill from contamination",
+      "Spreading contamination to others",
+    ],
+    Aggressive: [
+      "Fear of harming self",
+      "Fear of harming others",
+      "Fear harm will come to self",
+      "Fear harm will come to others",
+      "Violent or horrific images",
+      "Fear of blurting obscenities or insults",
+      "Fear of doing something embarrassing",
+      "Fear of acting on unwanted impulses",
+      "Fear of stealing",
+      "Fear of responsibility for something terrible",
+    ],
+    Sexual: [
+      "Forbidden or disturbing sexual thoughts, images, or impulses",
+      "Sexual content involving others or identity concerns",
+      "Fear of sexually aggressive behavior",
+    ],
+    "Hoarding/Saving": ["Fear of losing things"],
+    "Magical/Superstitious": ["Lucky or unlucky numbers, colors, or words"],
+    Somatic: [
+      "Excessive concern with illness or disease",
+      "Excessive concern with a body part or appearance",
+    ],
+    "Religious/Scrupulosity": [
+      "Fear of offending religious objects or figures",
+      "Excessive concern with right, wrong, or morality",
+    ],
+    Miscellaneous: [
+      "Need to know or remember",
+      "Fear of saying certain things",
+      "Fear of not saying exactly the right thing",
+      "Intrusive nonviolent images",
+      "Intrusive sounds, words, music, or numbers",
+    ],
   },
-  Compulsions:{
-    "Washing/Cleaning":["Excessive or ritualized handwashing","Ritualized bathing, grooming, toothbrushing, or toileting","Excessive cleaning of personal or important items","Other measures to prevent or remove contaminants"],
-    Checking:["Checking locks, possessions, school or work items","Checking while washing, dressing, or undressing","Checking that harm did not or will not occur","Checking that nothing terrible happened or will happen","Checking for mistakes","Checking tied to health concerns"],
-    Repeating:["Rereading, erasing, or rewriting","Repeating routine activities"],
-    Counting:["Counting objects, numbers, words, or actions"],
-    "Ordering/Arranging":["Need for symmetry, evening up, or arranging"],
-    "Hoarding/Saving":["Difficulty discarding items without ordinary value"],
-    "Games/Superstitious":["Ritualized stepping, touching, or other magical behavior"],
-    "Involving Others":["Reassurance seeking or requiring another person to participate in rituals"],
-    Miscellaneous:["Mental rituals","Need to tell, ask, or confess","Measures to prevent harm or terrible consequences","Ritualized eating","Excessive list making","Need to touch, tap, or rub","Doing things until they feel just right","Rituals involving blinking or staring"]
-  }
+  Compulsions: {
+    "Washing/Cleaning": [
+      "Excessive or ritualized handwashing",
+      "Ritualized bathing, grooming, toothbrushing, or toileting",
+      "Excessive cleaning of personal or important items",
+      "Other measures to prevent or remove contaminants",
+    ],
+    Checking: [
+      "Checking locks, possessions, school or work items",
+      "Checking while washing, dressing, or undressing",
+      "Checking that harm did not or will not occur",
+      "Checking that nothing terrible happened or will happen",
+      "Checking for mistakes",
+      "Checking tied to health concerns",
+    ],
+    Repeating: ["Rereading, erasing, or rewriting", "Repeating routine activities"],
+    Counting: ["Counting objects, numbers, words, or actions"],
+    "Ordering/Arranging": ["Need for symmetry, evening up, or arranging"],
+    "Hoarding/Saving": ["Difficulty discarding items without ordinary value"],
+    "Games/Superstitious": ["Ritualized stepping, touching, or other magical behavior"],
+    "Involving Others": [
+      "Reassurance seeking or requiring another person to participate in rituals",
+    ],
+    Miscellaneous: [
+      "Mental rituals",
+      "Need to tell, ask, or confess",
+      "Measures to prevent harm or terrible consequences",
+      "Ritualized eating",
+      "Excessive list making",
+      "Need to touch, tap, or rub",
+      "Doing things until they feel just right",
+      "Rituals involving blinking or staring",
+    ],
+  },
 };
 
-const ITEMS=[
-  {domain:"Obsessions",name:"Time occupied by obsessive thoughts",adult:"How much time is occupied by obsessive thoughts, considering frequency and hours affected?",child:"How much time is spent on thoughts that are hard to stop? How often do they occur?",anchors:["None","<1 hour/day or occasional","1–3 hours/day or frequent",">3–8 hours/day or very frequent",">8 hours/day or near constant"]},
-  {domain:"Obsessions",name:"Interference from obsessive thoughts",adult:"How much do obsessions interfere with work, relationships, or daily functioning?",child:"How much do the thoughts get in the way of school, home, or friends?",anchors:["None","Slight; performance intact","Definite but manageable","Substantial impairment","Incapacitating"]},
-  {domain:"Obsessions",name:"Distress from obsessive thoughts",adult:"How much distress is specifically triggered by obsessions?",child:"How much do these thoughts bother or upset the child?",anchors:["None","Infrequent and mild","Frequent but manageable","Very frequent and disturbing","Near constant and disabling"]},
-  {domain:"Obsessions",name:"Resistance against obsessions",adult:"Rate effort to resist, not success controlling the thoughts.",child:"How hard does the child try to stop or ignore the thoughts?",anchors:["Always resists / minimal symptoms","Resists most of the time","Makes some effort","Usually yields reluctantly","Completely and willingly yields"]},
-  {domain:"Obsessions",name:"Control over obsessive thoughts",adult:"How much control does the person have when attempting to redirect or stop obsessions?",child:"When the child fights the thoughts, can they redirect or stop them?",anchors:["Complete control","Much control","Moderate control","Little control","No control"]},
-  {domain:"Compulsions",name:"Time spent performing compulsions",adult:"How much time is spent performing compulsions, considering frequency and hours affected?",child:"How much time is spent doing habits that are hard to stop?",anchors:["None","<1 hour/day or occasional","1–3 hours/day or frequent",">3–8 hours/day or very frequent",">8 hours/day or near constant"]},
-  {domain:"Compulsions",name:"Interference from compulsions",adult:"How much do compulsions interfere with work, relationships, or daily functioning?",child:"How much do the habits get in the way of school, home, or friends?",anchors:["None","Slight; performance intact","Definite but manageable","Substantial impairment","Incapacitating"]},
-  {domain:"Compulsions",name:"Distress associated with compulsions",adult:"How distressed would the person become if compulsions were prevented or interrupted?",child:"How upset would the child become if prevented from completing the habits?",anchors:["None","Slight","Mounts but manageable","Prominent and very disturbing","Incapacitating"]},
-  {domain:"Compulsions",name:"Resistance against compulsions",adult:"Rate effort to resist, not success controlling the behavior.",child:"How much does the child try to fight the habits?",anchors:["Always resists / minimal symptoms","Resists most of the time","Makes some effort","Usually yields reluctantly","Completely and willingly yields"]},
-  {domain:"Compulsions",name:"Control over compulsions",adult:"How much voluntary control is possible over the drive to perform compulsions?",child:"How strong is the drive, and what happens when the child tries to delay?",anchors:["Complete control","Much control","Moderate control","Little control","No control"]}
+// Only these 10 items contribute to the 0–40 severity total: five obsession items and five compulsion items.
+const ITEMS = [
+  {
+    domain: "Obsessions",
+    name: "Time occupied by obsessive thoughts",
+    adult:
+      "How much time is occupied by obsessive thoughts, considering frequency and hours affected?",
+    child: "How much time is spent on thoughts that are hard to stop? How often do they occur?",
+    anchors: [
+      "None",
+      "<1 hour/day or occasional",
+      "1–3 hours/day or frequent",
+      ">3–8 hours/day or very frequent",
+      ">8 hours/day or near constant",
+    ],
+  },
+  {
+    domain: "Obsessions",
+    name: "Interference from obsessive thoughts",
+    adult: "How much do obsessions interfere with work, relationships, or daily functioning?",
+    child: "How much do the thoughts get in the way of school, home, or friends?",
+    anchors: [
+      "None",
+      "Slight; performance intact",
+      "Definite but manageable",
+      "Substantial impairment",
+      "Incapacitating",
+    ],
+  },
+  {
+    domain: "Obsessions",
+    name: "Distress from obsessive thoughts",
+    adult: "How much distress is specifically triggered by obsessions?",
+    child: "How much do these thoughts bother or upset the child?",
+    anchors: [
+      "None",
+      "Infrequent and mild",
+      "Frequent but manageable",
+      "Very frequent and disturbing",
+      "Near constant and disabling",
+    ],
+  },
+  {
+    domain: "Obsessions",
+    name: "Resistance against obsessions",
+    adult: "Rate effort to resist, not success controlling the thoughts.",
+    child: "How hard does the child try to stop or ignore the thoughts?",
+    anchors: [
+      "Always resists / minimal symptoms",
+      "Resists most of the time",
+      "Makes some effort",
+      "Usually yields reluctantly",
+      "Completely and willingly yields",
+    ],
+  },
+  {
+    domain: "Obsessions",
+    name: "Control over obsessive thoughts",
+    adult: "How much control does the person have when attempting to redirect or stop obsessions?",
+    child: "When the child fights the thoughts, can they redirect or stop them?",
+    anchors: [
+      "Complete control",
+      "Much control",
+      "Moderate control",
+      "Little control",
+      "No control",
+    ],
+  },
+  {
+    domain: "Compulsions",
+    name: "Time spent performing compulsions",
+    adult:
+      "How much time is spent performing compulsions, considering frequency and hours affected?",
+    child: "How much time is spent doing habits that are hard to stop?",
+    anchors: [
+      "None",
+      "<1 hour/day or occasional",
+      "1–3 hours/day or frequent",
+      ">3–8 hours/day or very frequent",
+      ">8 hours/day or near constant",
+    ],
+  },
+  {
+    domain: "Compulsions",
+    name: "Interference from compulsions",
+    adult: "How much do compulsions interfere with work, relationships, or daily functioning?",
+    child: "How much do the habits get in the way of school, home, or friends?",
+    anchors: [
+      "None",
+      "Slight; performance intact",
+      "Definite but manageable",
+      "Substantial impairment",
+      "Incapacitating",
+    ],
+  },
+  {
+    domain: "Compulsions",
+    name: "Distress associated with compulsions",
+    adult: "How distressed would the person become if compulsions were prevented or interrupted?",
+    child: "How upset would the child become if prevented from completing the habits?",
+    anchors: [
+      "None",
+      "Slight",
+      "Mounts but manageable",
+      "Prominent and very disturbing",
+      "Incapacitating",
+    ],
+  },
+  {
+    domain: "Compulsions",
+    name: "Resistance against compulsions",
+    adult: "Rate effort to resist, not success controlling the behavior.",
+    child: "How much does the child try to fight the habits?",
+    anchors: [
+      "Always resists / minimal symptoms",
+      "Resists most of the time",
+      "Makes some effort",
+      "Usually yields reluctantly",
+      "Completely and willingly yields",
+    ],
+  },
+  {
+    domain: "Compulsions",
+    name: "Control over compulsions",
+    adult: "How much voluntary control is possible over the drive to perform compulsions?",
+    child: "How strong is the drive, and what happens when the child tries to delay?",
+    anchors: [
+      "Complete control",
+      "Much control",
+      "Moderate control",
+      "Little control",
+      "No control",
+    ],
+  },
 ];
 
-const ADDITIONAL_ITEMS=[
-  {name:"1b. Obsession-free interval",probe:"Longest consecutive waking interval per day without obsessive thoughts.",anchors:["No symptoms","More than 8 hours","More than 3–8 hours","1–3 hours","Less than 1 hour"]},
-  {name:"6b. Compulsion-free interval",probe:"Longest consecutive interval per day without compulsive behavior.",anchors:["No symptoms","More than 8 hours","More than 3–8 hours","1–3 hours","Less than 1 hour"]},
-  {name:"11. Insight into obsessions and compulsions",probe:"Rate recognition that obsessive concerns or compulsive behavior are unreasonable or excessive.",anchors:["Excellent insight","Good insight","Fair insight","Poor insight","Absent insight / delusional conviction"]},
-  {name:"12. Avoidance",probe:"Rate deliberate avoidance of people, places, activities, or triggers because of obsessions or concern about compulsions.",anchors:["None","Mild","Moderate","Severe","Extreme"]},
-  {name:"13. Indecisiveness",probe:"Rate difficulty making minor decisions that others would not ordinarily find difficult.",anchors:["None","Mild","Moderate","Severe","Extreme / disabling"]},
-  {name:"14. Overvalued sense of responsibility",probe:"Rate excessive responsibility for events outside reasonable control.",anchors:["None","Mild","Moderate","Severe","Extreme / delusional"]},
-  {name:"15. Pervasive slowness / disturbance of inertia",probe:"Rate difficulty initiating or completing routine activities, apart from depressive psychomotor slowing.",anchors:["None","Mild","Moderate","Severe","Extreme / needs full assistance"]},
-  {name:"16. Pathological doubting",probe:"Rate persistent doubt about perceptions, memory, or whether routine activities were completed correctly.",anchors:["None","Mild","Moderate","Severe","Extreme / incapacitating"]},
-  {name:"17. Global severity",probe:"Clinician judgment of overall illness severity, considering distress, observed symptoms, function, and data reliability.",anchors:["No illness","Slight / doubtful","Mild","Moderate","Moderate–severe","Severe","Extremely severe"]},
-  {name:"18. Global improvement",probe:"Overall change since the initial rating.",anchors:["Very much worse","Much worse","Minimally worse","No change","Minimally improved","Much improved","Very much improved"]},
-  {name:"19. Reliability",probe:"Overall reliability of information obtained during the interview.",anchors:["Excellent","Good","Fair","Poor"]}
+// Additional clinical ratings appear in the note but do not contribute to the severity total.
+const ADDITIONAL_ITEMS = [
+  {
+    name: "1b. Obsession-free interval",
+    probe: "Longest consecutive waking interval per day without obsessive thoughts.",
+    anchors: [
+      "No symptoms",
+      "More than 8 hours",
+      "More than 3–8 hours",
+      "1–3 hours",
+      "Less than 1 hour",
+    ],
+  },
+  {
+    name: "6b. Compulsion-free interval",
+    probe: "Longest consecutive interval per day without compulsive behavior.",
+    anchors: [
+      "No symptoms",
+      "More than 8 hours",
+      "More than 3–8 hours",
+      "1–3 hours",
+      "Less than 1 hour",
+    ],
+  },
+  {
+    name: "11. Insight into obsessions and compulsions",
+    probe:
+      "Rate recognition that obsessive concerns or compulsive behavior are unreasonable or excessive.",
+    anchors: [
+      "Excellent insight",
+      "Good insight",
+      "Fair insight",
+      "Poor insight",
+      "Absent insight / delusional conviction",
+    ],
+  },
+  {
+    name: "12. Avoidance",
+    probe:
+      "Rate deliberate avoidance of people, places, activities, or triggers because of obsessions or concern about compulsions.",
+    anchors: ["None", "Mild", "Moderate", "Severe", "Extreme"],
+  },
+  {
+    name: "13. Indecisiveness",
+    probe:
+      "Rate difficulty making minor decisions that others would not ordinarily find difficult.",
+    anchors: ["None", "Mild", "Moderate", "Severe", "Extreme / disabling"],
+  },
+  {
+    name: "14. Overvalued sense of responsibility",
+    probe: "Rate excessive responsibility for events outside reasonable control.",
+    anchors: ["None", "Mild", "Moderate", "Severe", "Extreme / delusional"],
+  },
+  {
+    name: "15. Pervasive slowness / disturbance of inertia",
+    probe:
+      "Rate difficulty initiating or completing routine activities, apart from depressive psychomotor slowing.",
+    anchors: ["None", "Mild", "Moderate", "Severe", "Extreme / needs full assistance"],
+  },
+  {
+    name: "16. Pathological doubting",
+    probe:
+      "Rate persistent doubt about perceptions, memory, or whether routine activities were completed correctly.",
+    anchors: ["None", "Mild", "Moderate", "Severe", "Extreme / incapacitating"],
+  },
+  {
+    name: "17. Global severity",
+    probe:
+      "Clinician judgment of overall illness severity, considering distress, observed symptoms, function, and data reliability.",
+    anchors: [
+      "No illness",
+      "Slight / doubtful",
+      "Mild",
+      "Moderate",
+      "Moderate–severe",
+      "Severe",
+      "Extremely severe",
+    ],
+  },
+  {
+    name: "18. Global improvement",
+    probe: "Overall change since the initial rating.",
+    anchors: [
+      "Very much worse",
+      "Much worse",
+      "Minimally worse",
+      "No change",
+      "Minimally improved",
+      "Much improved",
+      "Very much improved",
+    ],
+  },
+  {
+    name: "19. Reliability",
+    probe: "Overall reliability of information obtained during the interview.",
+    anchors: ["Excellent", "Good", "Fair", "Poor"],
+  },
 ];
 
-let version="adult";
-const states={adult:blankState(),child:blankState()};
-function blankState(){const additional=Array(ADDITIONAL_ITEMS.length).fill(0);additional[9]=3;return{symptoms:{},others:{},targets:{Obsessions:Array(4).fill(""),Compulsions:Array(4).fill("")},scores:Array(10).fill(0),additional}}
-const $=id=>document.getElementById(id);
-function state(){return states[version]}
-function render(){
-  const child=version==="child";$("page-title").textContent=child?"CY-BOCS":"Y-BOCS";document.title=`${child?"CY-BOCS":"Y-BOCS"} | Clinical Workbench`;
-  $("version-note").textContent=child?"For ages 6–17. Combine child and caregiver information; final ratings reflect clinician judgment over the past week.":"Clinician-administered adult symptom checklist and severity rating based on the past week.";
-  $("severity-guidance").textContent=child?"Use child and caregiver reports together. Rate the interviewer’s best estimate for the past week, emphasizing current target symptoms.":"Rate the average severity over the past week, emphasizing current target symptoms rather than the number or type of symptoms.";
-  $("reference-note").textContent=child?"Define obsessions and compulsions developmentally, assess child and caregiver together when feasible, and distinguish symptoms from age-typical behavior.":"Use a semi-structured clinical interview and distinguish obsessions and compulsions from generalized worries, depressive rumination, phobias, tics, and other repetitive phenomena.";
-  renderChecklist();renderTargets();renderSeverity();renderAdditional();update();
+let version = "adult";
+// Keep adult and child entries separate while switching versions during this page visit.
+const states = { adult: blankState(), child: blankState() };
+
+// Create empty answers for one version. Global improvement starts at index 3 (No change).
+function blankState() {
+  const additional = Array(ADDITIONAL_ITEMS.length).fill(0);
+  additional[9] = 3;
+  return {
+    symptoms: {},
+    others: {},
+    targets: { Obsessions: Array(4).fill(""), Compulsions: Array(4).fill("") },
+    scores: Array(10).fill(0),
+    additional,
+  };
 }
-function renderChecklist(){
-  let html="";for(const [domain,categories] of Object.entries(SYMPTOMS)){html+=`<div class="symptom-domain"><h2>${domain}</h2>`;for(const [cat,items] of Object.entries(categories)){const otherId=`${domain}|${cat}`,other=state().others[otherId]||{};html+=`<div class="symptom-group"><h3>${cat}</h3>`;for(const text of items){const id=`${domain}|${cat}|${text}`,v=state().symptoms[id]||{};html+=`<div class="symptom-row"><span>${text}</span><label><input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="current" ${v.current?"checked":""}>Current</label><label><input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="past" ${v.past?"checked":""}>Past</label></div>`}html+=`<div class="other-symptom-row"><input type="text" data-other-text="${escapeAttr(otherId)}" value="${escapeAttr(other.text||"")}" placeholder="Other ${cat.toLowerCase()} symptom"><label><input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="current" ${other.current?"checked":""}>Current</label><label><input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="past" ${other.past?"checked":""}>Past</label></div></div>`}html+="</div>"}$("symptom-checklist").innerHTML=html;
-  document.querySelectorAll("[data-symptom]").forEach(x=>x.onchange=()=>{const v=state().symptoms[x.dataset.symptom]||{};v[x.dataset.time]=x.checked;state().symptoms[x.dataset.symptom]=v;update()});
-  document.querySelectorAll("[data-other-text]").forEach(x=>x.oninput=()=>{const v=state().others[x.dataset.otherText]||{};v.text=x.value;state().others[x.dataset.otherText]=v;update()});
-  document.querySelectorAll("[data-other]").forEach(x=>x.onchange=()=>{const v=state().others[x.dataset.other]||{};v[x.dataset.time]=x.checked;state().others[x.dataset.other]=v;update()});
+const $ = (id) => document.getElementById(id);
+
+// Return the answers for the currently selected adult or child version.
+function state() {
+  return states[version];
 }
-function renderTargets(){for(const domain of ["Obsessions","Compulsions"]){const id=domain==="Obsessions"?"obsession-targets":"compulsion-targets";$(id).innerHTML=state().targets[domain].map((v,i)=>`<input class="target-input" data-target="${domain}" data-index="${i}" value="${escapeAttr(v)}" placeholder="${i+1}. Target ${domain.toLowerCase().slice(0,-1)}">`).join("")}document.querySelectorAll("[data-target]").forEach(x=>x.oninput=()=>{state().targets[x.dataset.target][+x.dataset.index]=x.value;update()})}
-function renderSeverity(){$("severity-items").innerHTML=ITEMS.map((item,i)=>`<div class="severity-item"><h3>${i+1}. ${item.name}</h3><p class="severity-probe">${item[version]}</p><div class="anchor-grid">${item.anchors.map((a,n)=>`<label class="anchor-option"><input type="radio" name="severity-${i}" value="${n}" ${state().scores[i]===n?"checked":""}><span><strong>${n}</strong> - ${a}</span></label>`).join("")}</div></div>`).join("");document.querySelectorAll('[name^="severity-"]').forEach(x=>x.onchange=()=>{state().scores[+x.name.split("-")[1]]=+x.value;update()})}
-function renderAdditional(){$("additional-items").innerHTML=ADDITIONAL_ITEMS.map((item,i)=>`<div class="severity-item"><h3>${item.name} <span class="helper-text">(not scored)</span></h3><p class="severity-probe">${item.probe}</p><div class="anchor-grid">${item.anchors.map((a,n)=>`<label class="anchor-option"><input type="radio" name="additional-${i}" value="${n}" ${state().additional[i]===n?"checked":""}><span><strong>${n}</strong> - ${a}</span></label>`).join("")}</div></div>`).join("");document.querySelectorAll('[name^="additional-"]').forEach(x=>x.onchange=()=>{state().additional[+x.name.split("-")[1]]=+x.value;update()})}
-function severity(total){if(total<=7)return"Subclinical";if(total<=15)return"Mild";if(total<=23)return"Moderate";if(total<=31)return"Severe";return"Extreme"}
-function update(){const o=state().scores.slice(0,5).reduce(sum,0),c=state().scores.slice(5).reduce(sum,0),t=o+c,label=severity(t);$("obsession-score").textContent=`${o} / 20`;$("compulsion-score").textContent=`${c} / 20`;$("total-score").textContent=`${t} / 40`;$("severity-label").textContent=label;$("output").value=document.querySelector('[name="outputStyle"]:checked').value==="detailed"?detailed(o,c,t,label):summary(o,c,t,label)}
-function summary(o,c,t,label){const current=currentSymptoms();const targets=[...state().targets.Obsessions,...state().targets.Compulsions].filter(Boolean);const additional=ADDITIONAL_ITEMS.map((x,i)=>`${x.name.replace(/^\d+[a-z]?\. /,"")} ${state().additional[i]} (${x.anchors[state().additional[i]].toLowerCase()})`);return`${version==="child"?"CY-BOCS":"Y-BOCS"} completed. Total severity score was ${t}/40 (${label.toLowerCase()}), with an obsession subtotal of ${o}/20 and compulsion subtotal of ${c}/20. ${current.length?`Current symptom checklist endorsements included ${list(current)}.`:"No current checklist symptoms were selected."}${targets.length?` Primary target symptoms included ${list(targets)}.`:""} Non-scored clinical ratings were: ${additional.join("; ")}. Results reflect symptom severity and should be interpreted with the clinical interview.`}
-function detailed(o,c,t,label){const lines=[version==="child"?"CY-BOCS":"Y-BOCS","",`Obsession subtotal: ${o} / 20`,`Compulsion subtotal: ${c} / 20`,`Total: ${t} / 40`,`Severity: ${label}`,"","Current Symptoms",...currentSymptoms(),"","Past Symptoms",...pastSymptoms(),"","Target Obsessions",...state().targets.Obsessions.filter(Boolean),"","Target Compulsions",...state().targets.Compulsions.filter(Boolean),"","Scored Severity Items"];ITEMS.forEach((x,i)=>lines.push(`${i+1}. ${x.name}: ${state().scores[i]} - ${x.anchors[state().scores[i]]}`));lines.push("","Additional Clinical Items (not included in total)");ADDITIONAL_ITEMS.forEach((x,i)=>lines.push(`${x.name}: ${state().additional[i]} - ${x.anchors[state().additional[i]]}`));return lines.join("\n")}
-function symptomsAt(time){const standard=Object.entries(state().symptoms).filter(([,v])=>v[time]).map(([k])=>k.split("|").at(-1));const other=Object.entries(state().others).filter(([,v])=>v[time]&&v.text?.trim()).map(([k,v])=>`Other ${k.split("|")[1]}: ${v.text.trim()}`);return[...standard,...other]}
-function currentSymptoms(){return symptomsAt("current")}function pastSymptoms(){return symptomsAt("past")}
-function list(a){return a.length<2?a[0]||"":`${a.slice(0,-1).join(", ")}, and ${a.at(-1)}`}function sum(a,b){return a+b}function escapeAttr(s){return String(s).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;")}
-document.querySelectorAll("[data-version]").forEach(b=>b.onclick=()=>{version=b.dataset.version;document.querySelectorAll("[data-version]").forEach(x=>x.classList.toggle("selected",x===b));render()});$("reset-button").onclick=()=>{states[version]=blankState();render()};document.querySelectorAll('[name="outputStyle"]').forEach(x=>x.onchange=update);$("copy-button").onclick=async()=>{await navigator.clipboard.writeText($("output").value);$("copy-status").textContent="Copied";setTimeout(()=>$("copy-status").textContent="",1500)};$("select-button").onclick=()=>{$("output").focus();$("output").select()};render();
+
+// Build the visible form from the current answers and refresh its results.
+function render() {
+  const child = version === "child";
+  $("page-title").textContent = child ? "CY-BOCS" : "Y-BOCS";
+  document.title = `${child ? "CY-BOCS" : "Y-BOCS"} | Clinical Workbench`;
+  $("version-note").textContent = child
+    ? "For ages 6–17. Combine child and caregiver information; final ratings reflect clinician judgment over the past week."
+    : "Clinician-administered adult symptom checklist and severity rating based on the past week.";
+  $("severity-guidance").textContent = child
+    ? "Use child and caregiver reports together. Rate the interviewer’s best estimate for the past week, emphasizing current target symptoms."
+    : "Rate the average severity over the past week, emphasizing current target symptoms rather than the number or type of symptoms.";
+  $("reference-note").textContent = child
+    ? "Define obsessions and compulsions developmentally, assess child and caregiver together when feasible, and distinguish symptoms from age-typical behavior."
+    : "Use a semi-structured clinical interview and distinguish obsessions and compulsions from generalized worries, depressive rumination, phobias, tics, and other repetitive phenomena.";
+  renderChecklist();
+  renderTargets();
+  renderSeverity();
+  renderAdditional();
+  update();
+}
+
+// Build current/past symptom checkboxes and custom entries, then connect them to this version’s answers.
+function renderChecklist() {
+  let html = "";
+  for (const [domain, categories] of Object.entries(SYMPTOMS)) {
+    html += `<div class="symptom-domain"><h2>${domain}</h2>`;
+    for (const [cat, items] of Object.entries(categories)) {
+      const otherId = `${domain}|${cat}`,
+        other = state().others[otherId] || {};
+      html += `<div class="symptom-group"><h3>${cat}</h3>`;
+      for (const text of items) {
+        const id = `${domain}|${cat}|${text}`,
+          v = state().symptoms[id] || {};
+        html += `<div class="symptom-row"><span>${text}</span><label><input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="current" ${v.current ? "checked" : ""}>Current</label><label><input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="past" ${v.past ? "checked" : ""}>Past</label></div>`;
+      }
+      html += `<div class="other-symptom-row"><input type="text" data-other-text="${escapeAttr(otherId)}" value="${escapeAttr(other.text || "")}" placeholder="Other ${cat.toLowerCase()} symptom"><label><input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="current" ${other.current ? "checked" : ""}>Current</label><label><input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="past" ${other.past ? "checked" : ""}>Past</label></div></div>`;
+    }
+    html += "</div>";
+  }
+  $("symptom-checklist").innerHTML = html;
+  document.querySelectorAll("[data-symptom]").forEach(
+    (x) =>
+      (x.onchange = () => {
+        const v = state().symptoms[x.dataset.symptom] || {};
+        v[x.dataset.time] = x.checked;
+        state().symptoms[x.dataset.symptom] = v;
+        update();
+      }),
+  );
+  document.querySelectorAll("[data-other-text]").forEach(
+    (x) =>
+      (x.oninput = () => {
+        const v = state().others[x.dataset.otherText] || {};
+        v.text = x.value;
+        state().others[x.dataset.otherText] = v;
+        update();
+      }),
+  );
+  document.querySelectorAll("[data-other]").forEach(
+    (x) =>
+      (x.onchange = () => {
+        const v = state().others[x.dataset.other] || {};
+        v[x.dataset.time] = x.checked;
+        state().others[x.dataset.other] = v;
+        update();
+      }),
+  );
+}
+
+// Build four target-symptom fields per domain and save edits to the current version.
+function renderTargets() {
+  for (const domain of ["Obsessions", "Compulsions"]) {
+    const id = domain === "Obsessions" ? "obsession-targets" : "compulsion-targets";
+    $(id).innerHTML = state()
+      .targets[domain].map(
+        (v, i) =>
+          `<input class="target-input" data-target="${domain}" data-index="${i}" value="${escapeAttr(v)}" placeholder="${i + 1}. Target ${domain.toLowerCase().slice(0, -1)}">`,
+      )
+      .join("");
+  }
+  document.querySelectorAll("[data-target]").forEach(
+    (x) =>
+      (x.oninput = () => {
+        state().targets[x.dataset.target][+x.dataset.index] = x.value;
+        update();
+      }),
+  );
+}
+
+// Build the 10 scored items with age-specific prompts and 0–4 response anchors.
+function renderSeverity() {
+  $("severity-items").innerHTML = ITEMS.map(
+    (item, i) =>
+      `<div class="severity-item"><h3>${i + 1}. ${item.name}</h3><p class="severity-probe">${item[version]}</p><div class="anchor-grid">${item.anchors.map((a, n) => `<label class="anchor-option"><input type="radio" name="severity-${i}" value="${n}" ${state().scores[i] === n ? "checked" : ""}><span><strong>${n}</strong> - ${a}</span></label>`).join("")}</div></div>`,
+  ).join("");
+  document.querySelectorAll('[name^="severity-"]').forEach(
+    (x) =>
+      (x.onchange = () => {
+        state().scores[+x.name.split("-")[1]] = +x.value;
+        update();
+      }),
+  );
+}
+
+// Build the additional clinical ratings. These are documented but excluded from the severity total.
+function renderAdditional() {
+  $("additional-items").innerHTML = ADDITIONAL_ITEMS.map(
+    (item, i) =>
+      `<div class="severity-item"><h3>${item.name} <span class="helper-text">(not scored)</span></h3><p class="severity-probe">${item.probe}</p><div class="anchor-grid">${item.anchors.map((a, n) => `<label class="anchor-option"><input type="radio" name="additional-${i}" value="${n}" ${state().additional[i] === n ? "checked" : ""}><span><strong>${n}</strong> - ${a}</span></label>`).join("")}</div></div>`,
+  ).join("");
+  document.querySelectorAll('[name^="additional-"]').forEach(
+    (x) =>
+      (x.onchange = () => {
+        state().additional[+x.name.split("-")[1]] = +x.value;
+        update();
+      }),
+  );
+}
+
+// Map the total to the severity bands currently configured in this tool.
+function severity(total) {
+  if (total <= 7) return "Subclinical";
+  if (total <= 15) return "Mild";
+  if (total <= 23) return "Moderate";
+  if (total <= 31) return "Severe";
+  return "Extreme";
+}
+
+// Recalculate the displayed results and regenerate the selected output format.
+function update() {
+  // First five items are obsessions; last five are compulsions. Checklist and additional ratings are excluded.
+  const o = state().scores.slice(0, 5).reduce(sum, 0),
+    c = state().scores.slice(5).reduce(sum, 0),
+    t = o + c,
+    label = severity(t);
+  $("obsession-score").textContent = `${o} / 20`;
+  $("compulsion-score").textContent = `${c} / 20`;
+  $("total-score").textContent = `${t} / 40`;
+  $("severity-label").textContent = label;
+  $("output").value =
+    document.querySelector('[name="outputStyle"]:checked').value === "detailed"
+      ? detailed(o, c, t, label)
+      : summary(o, c, t, label);
+}
+
+// Build the paragraph version of the note from the current results.
+function summary(o, c, t, label) {
+  const current = currentSymptoms();
+  const targets = [...state().targets.Obsessions, ...state().targets.Compulsions].filter(Boolean);
+  const additional = ADDITIONAL_ITEMS.map(
+    (x, i) =>
+      `${x.name.replace(/^\d+[a-z]?\. /, "")} ${state().additional[i]} (${x.anchors[state().additional[i]].toLowerCase()})`,
+  );
+  return `${version === "child" ? "CY-BOCS" : "Y-BOCS"} completed. Total severity score was ${t}/40 (${label.toLowerCase()}), with an obsession subtotal of ${o}/20 and compulsion subtotal of ${c}/20. ${current.length ? `Current symptom checklist endorsements included ${list(current)}.` : "No current checklist symptoms were selected."}${targets.length ? ` Primary target symptoms included ${list(targets)}.` : ""} Non-scored clinical ratings were: ${additional.join("; ")}. Results reflect symptom severity and should be interpreted with the clinical interview.`;
+}
+
+// Build the detailed note, including individual answers and scores.
+function detailed(o, c, t, label) {
+  const lines = [
+    version === "child" ? "CY-BOCS" : "Y-BOCS",
+    "",
+    `Obsession subtotal: ${o} / 20`,
+    `Compulsion subtotal: ${c} / 20`,
+    `Total: ${t} / 40`,
+    `Severity: ${label}`,
+    "",
+    "Current Symptoms",
+    ...currentSymptoms(),
+    "",
+    "Past Symptoms",
+    ...pastSymptoms(),
+    "",
+    "Target Obsessions",
+    ...state().targets.Obsessions.filter(Boolean),
+    "",
+    "Target Compulsions",
+    ...state().targets.Compulsions.filter(Boolean),
+    "",
+    "Scored Severity Items",
+  ];
+  ITEMS.forEach((x, i) =>
+    lines.push(`${i + 1}. ${x.name}: ${state().scores[i]} - ${x.anchors[state().scores[i]]}`),
+  );
+  lines.push("", "Additional Clinical Items (not included in total)");
+  ADDITIONAL_ITEMS.forEach((x, i) =>
+    lines.push(`${x.name}: ${state().additional[i]} - ${x.anchors[state().additional[i]]}`),
+  );
+  return lines.join("\n");
+}
+
+// Collect checked standard and custom symptom names for either current or past history.
+function symptomsAt(time) {
+  const standard = Object.entries(state().symptoms)
+    .filter(([, v]) => v[time])
+    .map(([k]) => k.split("|").at(-1));
+  const other = Object.entries(state().others)
+    .filter(([, v]) => v[time] && v.text?.trim())
+    .map(([k, v]) => `Other ${k.split("|")[1]}: ${v.text.trim()}`);
+  return [...standard, ...other];
+}
+
+// Collect only symptoms marked current.
+function currentSymptoms() {
+  return symptomsAt("current");
+}
+// Collect only symptoms marked past.
+function pastSymptoms() {
+  return symptomsAt("past");
+}
+
+// Join a list of phrases for inclusion in a sentence.
+function list(a) {
+  return a.length < 2 ? a[0] || "" : `${a.slice(0, -1).join(", ")}, and ${a.at(-1)}`;
+}
+// Add two numbers; used when reducing an array to a total.
+function sum(a, b) {
+  return a + b;
+}
+// Escape special characters before inserting text into a quoted HTML attribute.
+function escapeAttr(s) {
+  return String(s).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
+}
+// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+document.querySelectorAll("[data-version]").forEach(
+  (b) =>
+    (b.onclick = () => {
+      version = b.dataset.version;
+      document
+        .querySelectorAll("[data-version]")
+        .forEach((x) => x.classList.toggle("selected", x === b));
+      render();
+    }),
+);
+$("reset-button").onclick = () => {
+  states[version] = blankState();
+  render();
+};
+document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
+$("copy-button").onclick = async () => {
+  await navigator.clipboard.writeText($("output").value);
+  $("copy-status").textContent = "Copied";
+  setTimeout(() => ($("copy-status").textContent = ""), 1500);
+};
+$("select-button").onclick = () => {
+  $("output").focus();
+  $("output").select();
+};
+// Initial page setup: populate the form and show its starting results.
+render();

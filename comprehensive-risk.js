@@ -1,22 +1,36 @@
+/**
+ * comprehensive-risk.js
+ * Comprehensive Suicide Assessment: collects the full form into one assessment and formats the note.
+ * Loaded by comprehensive-risk.html after the page markup is available.
+ * See README.md for the file map and a guide to following the code.
+ */
+
 const output = document.getElementById("comprehensive-output");
 const copyStatus = document.getElementById("copy-status");
 let outputStyle = "narrative";
 
+// Explanations shown for clinician-selected acute and chronic risk levels.
 const riskDescriptions = {
   acute: {
     low: "Current circumstances are unlikely to result in suicidal behavior. Outpatient care is generally appropriate when otherwise clinically indicated.",
-    "low-moderate": "Current circumstances increase suicide risk but can typically be managed safely in outpatient care with appropriate supports, monitoring, and safety planning.",
-    moderate: "Suicide risk is clinically significant and requires active intervention, close monitoring, and consideration of a higher level of care if risk increases.",
-    "moderate-high": "Suicide risk is substantial. Urgent evaluation, intensive intervention, and careful consideration of the appropriate level of care are indicated.",
-    high: "Suicide risk appears imminent or severe. Immediate intervention and emergency evaluation are generally indicated."
+    "low-moderate":
+      "Current circumstances increase suicide risk but can typically be managed safely in outpatient care with appropriate supports, monitoring, and safety planning.",
+    moderate:
+      "Suicide risk is clinically significant and requires active intervention, close monitoring, and consideration of a higher level of care if risk increases.",
+    "moderate-high":
+      "Suicide risk is substantial. Urgent evaluation, intensive intervention, and careful consideration of the appropriate level of care are indicated.",
+    high: "Suicide risk appears imminent or severe. Immediate intervention and emergency evaluation are generally indicated.",
   },
   chronic: {
     low: "Long-term history suggests little ongoing elevation above baseline suicide risk.",
-    "low-moderate": "Long-term risk is mildly elevated because of enduring risk factors or psychiatric history.",
-    moderate: "Long-term risk remains meaningfully elevated because of persistent risk factors, recurrent suicidal ideation, or previous suicidal behavior.",
-    "moderate-high": "Multiple enduring risk factors substantially increase future suicide risk and warrant ongoing monitoring and intervention.",
-    high: "Long-term history indicates persistently severe suicide risk requiring intensive long-term risk management."
-  }
+    "low-moderate":
+      "Long-term risk is mildly elevated because of enduring risk factors or psychiatric history.",
+    moderate:
+      "Long-term risk remains meaningfully elevated because of persistent risk factors, recurrent suicidal ideation, or previous suicidal behavior.",
+    "moderate-high":
+      "Multiple enduring risk factors substantially increase future suicide risk and warrant ongoing monitoring and intervention.",
+    high: "Long-term history indicates persistently severe suicide risk requiring intensive long-term risk management.",
+  },
 };
 
 const riskLabels = {
@@ -24,42 +38,24 @@ const riskLabels = {
   "low-moderate": "Low–moderate",
   moderate: "Moderate",
   "moderate-high": "Moderate–high",
-  high: "High"
+  high: "High",
 };
 
-const cssrsIdeationLevels = {
-  "No current suicidal ideation": { level: 0, label: "No suicidal ideation" },
-  "Wish to be dead or not wake up": { level: 1, label: "Wish to be dead" },
-  "Non-specific active suicidal thoughts": { level: 2, label: "Nonspecific active suicidal thoughts" },
-  "Suicidal thoughts with a method but without current intent": { level: 3, label: "Suicidal thoughts with method, without intent" },
-  "Suicidal thoughts with intent but without a specific plan": { level: 4, label: "Suicidal thoughts with intent, without specific plan" },
-  "Suicidal thoughts with a specific plan and intent": { level: 5, label: "Suicidal thoughts with specific plan and intent" }
-};
+const riskClasses = Object.keys(riskLabels).map((level) => `risk-${level}`);
 
-const cssrsBehaviorLabels = {
-  "an actual suicide attempt": "Actual attempt",
-  "an interrupted attempt": "Interrupted attempt",
-  "an aborted attempt": "Aborted/self-interrupted attempt",
-  "preparatory behavior": "Preparatory behavior"
-};
-
-const recentBehaviorTimings = new Set([
-  "within the past 24 hours",
-  "within the past week",
-  "within the past month",
-  "within the past three months"
-]);
-
-const riskClasses = Object.keys(riskLabels).map(level => `risk-${level}`);
-
+// Read the value of the selected radio button; return empty text if none is selected.
 function selectedValue(name) {
   return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
 }
 
+// Collect the values of all checked options in the requested group.
 function checkedValues(name) {
-  return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(input => input.value);
+  return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(
+    (input) => input.value,
+  );
 }
 
+// Join choices into readable English, handling empty, one-item, and longer lists.
 function listText(items, emptyText = "none specifically identified") {
   const values = items.filter(Boolean);
   if (!values.length) return emptyText;
@@ -68,15 +64,18 @@ function listText(items, emptyText = "none specifically identified") {
   return `${values.slice(0, -1).join(", ")}, and ${values.at(-1)}`;
 }
 
+// Read a text field and remove leading and trailing spaces.
 function cleanText(id) {
   return document.getElementById(id).value.trim();
 }
 
+// Add ending punctuation when the supplied text needs it.
 function sentence(text) {
   if (!text) return "";
   return /[.!?]$/.test(text) ? text : `${text}.`;
 }
 
+// Read all form fields once and return a named collection used by both output formats.
 function getAssessmentData() {
   return {
     acuteFactors: checkedValues("acuteRisk"),
@@ -102,119 +101,19 @@ function getAssessmentData() {
     additionalRisk: cleanText("additional-risk"),
     behaviorDetails: cleanText("behavior-description"),
     meansDetails: cleanText("means-description"),
-    rationale: cleanText("clinical-rationale")
+    rationale: cleanText("clinical-rationale"),
   };
 }
 
-function maxIdeationLevel(data) {
-  let result = cssrsIdeationLevels[data.ideation] || cssrsIdeationLevels["No current suicidal ideation"];
-
-  // Reconcile the dedicated severity response with the already-collected plan
-  // and intent fields, using the highest classification supported by any answer.
-  if (data.plan !== "none" && result.level < 3) result = cssrsIdeationLevels["Suicidal thoughts with a method but without current intent"];
-  if (data.intent === "present" && result.level < 4) result = cssrsIdeationLevels["Suicidal thoughts with intent but without a specific plan"];
-  if (data.intent === "present" && data.plan === "specific and developed") {
-    result = cssrsIdeationLevels["Suicidal thoughts with a specific plan and intent"];
-  }
-
-  return result;
-}
-
-function deriveCssrs(data) {
-  const ideation = maxIdeationLevel(data);
-  const behaviors = Object.keys(cssrsBehaviorLabels)
-    .filter(value => data.behaviors.includes(value))
-    .map(value => cssrsBehaviorLabels[value]);
-  const activePreparation = data.preparation === "active preparatory behavior";
-  if (activePreparation && !behaviors.includes("Preparatory behavior")) behaviors.push("Preparatory behavior");
-
-  const nssi = data.behaviors.includes("non-suicidal self-injury");
-  const behaviorText = listText(behaviors, "None identified");
-  const ideationDisplay = ideation.level
-    ? `Level ${ideation.level}: ${ideation.label}`
-    : "None endorsed (score 0)";
-
-  const lifetimeIdeation = ideation.level
-    ? `at least Level ${ideation.level} based on the current endorsement; lifetime maximum not separately collected`
-    : "lifetime maximum not derivable from the current-only ideation item";
-  const lifetimeBehavior = behaviors.length ? behaviorText : "none identified";
-  const lifetime = `Ideation: ${lifetimeIdeation}. Behavior: ${lifetimeBehavior}.`;
-
-  let recentBehavior;
-  if (behaviors.length && recentBehaviorTimings.has(data.behaviorTiming)) {
-    recentBehavior = behaviorText;
-  } else if (activePreparation) {
-    recentBehavior = "Preparatory behavior";
-  } else if (behaviors.length && data.behaviorTiming === "more than three months ago") {
-    recentBehavior = "none within the past 3 months (most recent behavior was earlier)";
-  } else if (behaviors.length) {
-    recentBehavior = "timeframe not derivable";
-  } else {
-    recentBehavior = "none identified";
-  }
-
-  const recentIdeation = ideation.level
-    ? `Level ${ideation.level} (current endorsement)`
-    : "not derivable beyond the absence of current ideation";
-  const recent = `Ideation: ${recentIdeation}. Behavior: ${recentBehavior}.`;
-
-  const ideationDocumentation = ideation.level
-    ? `current suicidal ideation is classified as C-SSRS Level ${ideation.level} (${ideation.label.toLowerCase()})`
-    : "no current suicidal ideation was endorsed (C-SSRS ideation score 0)";
-  let behaviorDocumentation;
-  if (!behaviors.length) {
-    behaviorDocumentation = "no suicidal behavior was identified";
-  } else if (recentBehaviorTimings.has(data.behaviorTiming)) {
-    behaviorDocumentation = `suicidal behavior categories include ${behaviorText}, with behavior identified within the past three months`;
-  } else if (activePreparation) {
-    behaviorDocumentation = `lifetime suicidal behavior categories include ${behaviorText}, with current preparatory behavior identified within the past three months`;
-  } else if (data.behaviorTiming === "more than three months ago") {
-    behaviorDocumentation = `lifetime suicidal behavior categories include ${behaviorText}, with no behavior identified within the past three months`;
-  } else {
-    behaviorDocumentation = `lifetime suicidal behavior categories include ${behaviorText}; past-three-month behavior is not derivable from the recorded timing`;
-  }
-
-  const timeframeNote = ideation.level
-    ? `The current ideation endorsement also establishes at least Level ${ideation.level} for lifetime and past-three-month classification, but the lifetime maximum was not separately assessed.`
-    : "Ideation during the remainder of the past three months and the lifetime maximum are not derivable from the current-only ideation item.";
-  const nssiDocumentation = nssi
-    ? "Non-suicidal self-injury was endorsed and is reported separately from suicidal behavior."
-    : "Non-suicidal self-injury was not identified and is reported separately from suicidal behavior.";
-  const documentation = `Based on responses obtained during today's risk assessment, ${ideationDocumentation}, and ${behaviorDocumentation}. ${timeframeNote} ${nssiDocumentation}`;
-
-  return {
-    ideation,
-    ideationDisplay,
-    behaviors,
-    behaviorText,
-    lifetime,
-    recent,
-    nssi,
-    nssiText: nssi
-      ? "Endorsed; reported separately from suicidal behavior"
-      : "Not identified; reported separately from suicidal behavior",
-    documentation
-  };
-}
-
-function updateCssrsDisplay(cssrs) {
-  document.getElementById("cssrs-highest-ideation").textContent = cssrs.ideationDisplay;
-  document.getElementById("cssrs-behavior-categories").textContent = cssrs.behaviorText;
-  document.getElementById("cssrs-lifetime").textContent = cssrs.lifetime;
-  document.getElementById("cssrs-recent").textContent = cssrs.recent;
-  document.getElementById("cssrs-nssi").textContent = cssrs.nssiText;
-  document.getElementById("cssrs-documentation").textContent = cssrs.documentation;
-}
-
-function narrativeOutput(data, cssrs) {
+// Turn the selected findings and optional notes into connected sentences.
+function narrativeOutput(data) {
   const parts = [
     `Acute risk factors include ${listText(data.acuteFactors)}; chronic or historical risk factors include ${listText(data.chronicFactors)}.`,
     `Internal protective factors include ${listText(data.internalProtective)}; external protective factors include ${listText(data.externalProtective)}.`,
     `${data.ideation}. When present, ideation occurs ${data.frequency}, lasts ${data.duration}, is ${data.controllability}, and ${data.deterrents}. The primary reason for ideation is described as ${data.reason}.`,
     `Suicidal or self-injurious behavior includes ${listText(data.behaviors)}, with the most recent behavior identified as ${data.behaviorTiming}.`,
     `Current intent is ${data.intent}; the current plan is ${data.plan}; access to means is ${data.means}; and preparation is ${data.preparation}.`,
-    cssrs.documentation,
-    `Acute suicide risk is assessed as ${data.acuteLevel}, and chronic risk as ${data.chronicLevel}. Interventions include ${listText(data.interventions)}. The clinical recommendation is ${data.recommendation}.`
+    `Acute suicide risk is assessed as ${data.acuteLevel}, and chronic risk as ${data.chronicLevel}. Interventions include ${listText(data.interventions)}. The clinical recommendation is ${data.recommendation}.`,
   ];
 
   if (data.additionalRisk) parts.splice(1, 0, sentence(data.additionalRisk));
@@ -225,72 +124,81 @@ function narrativeOutput(data, cssrs) {
   return parts.join(" ");
 }
 
-function listOutput(data, cssrs) {
+// Arrange the same assessment information under headings for list output.
+function listOutput(data) {
   const sections = [
-    ["Risk Factors",
+    [
+      "Risk Factors",
       `Acute: ${listText(data.acuteFactors)}`,
       `Chronic: ${listText(data.chronicFactors)}`,
-      ...(data.additionalRisk ? [`Additional context: ${data.additionalRisk}`] : [])],
-    ["Protective Factors",
+      ...(data.additionalRisk ? [`Additional context: ${data.additionalRisk}`] : []),
+    ],
+    [
+      "Protective Factors",
       `Internal: ${listText(data.internalProtective)}`,
-      `External: ${listText(data.externalProtective)}`],
-    ["Suicidal Ideation",
+      `External: ${listText(data.externalProtective)}`,
+    ],
+    [
+      "Suicidal Ideation",
       `Severity: ${data.ideation}`,
       `Frequency: ${data.frequency}`,
       `Duration: ${data.duration}`,
       `Controllability: ${data.controllability}`,
       `Deterrents: ${data.deterrents}`,
-      `Primary reason: ${data.reason}`],
-    ["Behavior",
+      `Primary reason: ${data.reason}`,
+    ],
+    [
+      "Behavior",
       `Type: ${listText(data.behaviors)}`,
       `Most recent: ${data.behaviorTiming}`,
-      ...(data.behaviorDetails ? [`Details: ${data.behaviorDetails}`] : [])],
-    ["Plan, Intent, and Means",
+      ...(data.behaviorDetails ? [`Details: ${data.behaviorDetails}`] : []),
+    ],
+    [
+      "Plan, Intent, and Means",
       `Intent: ${data.intent}`,
       `Plan: ${data.plan}`,
       `Means: ${data.means}`,
       `Preparation: ${data.preparation}`,
-      ...(data.meansDetails ? [`Details: ${data.meansDetails}`] : [])],
-    ["C-SSRS Classification (Generated)",
-      `Highest current ideation: ${cssrs.ideationDisplay}`,
-      `Suicidal behavior categories: ${cssrs.behaviorText}`,
-      `Lifetime: ${cssrs.lifetime}`,
-      `Past 3 months: ${cssrs.recent}`,
-      `Non-suicidal self-injury: ${cssrs.nssiText}`,
-      `Documentation: ${cssrs.documentation}`],
-    ["Assessment",
+      ...(data.meansDetails ? [`Details: ${data.meansDetails}`] : []),
+    ],
+    [
+      "Assessment",
       `Acute: ${data.acuteLevel}`,
       `Chronic: ${data.chronicLevel}`,
-      ...(data.rationale ? [`Rationale: ${data.rationale}`] : [])],
-    ["Interventions and Recommendation",
+      ...(data.rationale ? [`Rationale: ${data.rationale}`] : []),
+    ],
+    [
+      "Interventions and Recommendation",
       `Interventions: ${listText(data.interventions)}`,
-      `Recommendation: ${data.recommendation}`]
+      `Recommendation: ${data.recommendation}`,
+    ],
   ];
 
-  return sections.map(section => section.join("\n")).join("\n\n");
+  return sections.map((section) => section.join("\n")).join("\n\n");
 }
 
+// Collect the current assessment and write the selected format to the output field.
 function generateAssessment() {
   const data = getAssessmentData();
-  const cssrs = deriveCssrs(data);
-  updateCssrsDisplay(cssrs);
-  output.value = outputStyle === "list" ? listOutput(data, cssrs) : narrativeOutput(data, cssrs);
+  output.value = outputStyle === "list" ? listOutput(data) : narrativeOutput(data);
 }
 
+// Remember the chosen format, highlight its button, and regenerate the note.
 function setOutputStyle(style) {
   outputStyle = style;
-  document.querySelectorAll(".output-style-button").forEach(button => {
+  document.querySelectorAll(".output-style-button").forEach((button) => {
     button.classList.toggle("selected", button.dataset.style === style);
   });
   generateAssessment();
 }
 
+// Display the clinician-selected risk level and its explanation; no automatic risk calculation occurs here.
 function updateRiskDisplay(kind) {
   const value = selectedValue(`${kind}Level`);
   const result = document.getElementById(`${kind}-result`);
   const explainer = document.getElementById(`${kind}-explainer`);
 
-  [result, explainer].forEach(element => {
+  [result, explainer].forEach((element) => {
     element.classList.remove(...riskClasses);
     element.classList.add(`risk-${value}`);
   });
@@ -299,18 +207,19 @@ function updateRiskDisplay(kind) {
   explainer.textContent = riskDescriptions[kind][value];
 }
 
+// Restore the HTML radio defaults, clear checkboxes and notes, and reset the display.
 function resetAssessment() {
-  document.querySelectorAll('input[type="radio"]').forEach(input => {
+  document.querySelectorAll('input[type="radio"]').forEach((input) => {
     input.checked = input.defaultChecked;
   });
-  document.querySelectorAll('input[type="checkbox"]').forEach(input => {
+  document.querySelectorAll('input[type="checkbox"]').forEach((input) => {
     input.checked = false;
   });
-  document.querySelectorAll('textarea:not([readonly])').forEach(textarea => {
+  document.querySelectorAll("textarea:not([readonly])").forEach((textarea) => {
     textarea.value = "";
   });
-  document.querySelectorAll(".optional-details").forEach(panel => panel.classList.remove("open"));
-  document.querySelectorAll(".toggle-details").forEach(button => {
+  document.querySelectorAll(".optional-details").forEach((panel) => panel.classList.remove("open"));
+  document.querySelectorAll(".toggle-details").forEach((button) => {
     button.textContent = button.dataset.closedLabel;
   });
 
@@ -319,6 +228,7 @@ function resetAssessment() {
   updateRiskDisplay("chronic");
 }
 
+// Copy the note; if the modern clipboard API fails, try the older selected-text method.
 async function copyAssessment() {
   try {
     await navigator.clipboard.writeText(output.value);
@@ -328,15 +238,19 @@ async function copyAssessment() {
     document.execCommand("copy");
     copyStatus.textContent = "Copied";
   }
-  setTimeout(() => { copyStatus.textContent = ""; }, 1800);
+  setTimeout(() => {
+    copyStatus.textContent = "";
+  }, 1800);
 }
 
+// Highlight the generated note so it can be copied manually.
 function selectAssessment() {
   output.focus();
   output.select();
 }
 
-document.querySelectorAll("input, textarea").forEach(control => {
+// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+document.querySelectorAll("input, textarea").forEach((control) => {
   control.addEventListener("input", generateAssessment);
   control.addEventListener("change", () => {
     if (control.name === "acuteLevel") updateRiskDisplay("acute");
@@ -345,7 +259,7 @@ document.querySelectorAll("input, textarea").forEach(control => {
   });
 });
 
-document.querySelectorAll(".toggle-details").forEach(button => {
+document.querySelectorAll(".toggle-details").forEach((button) => {
   button.dataset.closedLabel = button.textContent;
   button.addEventListener("click", () => {
     const panel = document.getElementById(button.dataset.target);
@@ -354,7 +268,7 @@ document.querySelectorAll(".toggle-details").forEach(button => {
   });
 });
 
-document.querySelectorAll(".output-style-button").forEach(button => {
+document.querySelectorAll(".output-style-button").forEach((button) => {
   button.dataset.style = button.id.startsWith("list") ? "list" : "narrative";
   button.addEventListener("click", () => setOutputStyle(button.dataset.style));
 });
@@ -363,6 +277,7 @@ document.getElementById("reset-assessment").addEventListener("click", resetAsses
 document.getElementById("copy-assessment").addEventListener("click", copyAssessment);
 document.getElementById("select-assessment").addEventListener("click", selectAssessment);
 
+// Initial page setup: populate the form and show its starting results.
 updateRiskDisplay("acute");
 updateRiskDisplay("chronic");
 generateAssessment();

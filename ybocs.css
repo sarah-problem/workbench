@@ -1,27 +1,172 @@
-.version-card { display:grid; gap:14px; }
-.section-nav { display:flex; flex-wrap:wrap; gap:20px; position:sticky; top:0; z-index:5; }
-.symptom-group { margin-top:24px; }
-.symptom-group h3 { color:var(--pink); }
-.symptom-row { display:grid; grid-template-columns:minmax(260px,1fr) auto auto; gap:12px; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); }
-.symptom-row label { display:flex; gap:6px; align-items:center; font-weight:700; }
-.target-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-.target-grid h3 { color:var(--yellow); }
-.target-input { width:100%; margin:6px 0; padding:11px 14px; border:1px solid var(--border); border-radius:18px; background:var(--surface-2); color:var(--text); font:inherit; }
-.severity-item { margin-top:18px; padding-top:18px; border-top:1px solid var(--border); }
-.severity-item h3 { margin-top:0; }
-.severity-probe { color:#ccc; line-height:1.5; }
-.anchor-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:8px; }
-.anchor-option { position:relative; }
-.anchor-option input { position:absolute; opacity:0; }
-.anchor-option span { display:block; height:100%; padding:12px; border:1px solid var(--border); border-radius:18px; background:var(--surface-2); cursor:pointer; }
-.anchor-option input:checked + span { background:var(--pink); border-color:var(--pink); color:#000; }
-.anchor-option:hover span { border-color:var(--yellow); }
-.score-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
-.score-grid > div { padding:16px; border:1px solid var(--border); border-radius:20px; background:var(--surface-2); }
-.score-grid strong { display:block; margin-top:8px; color:var(--yellow); font-size:22px; }
-.information-alert { margin-top:18px; padding:15px; border:1px solid var(--yellow); border-radius:20px; background:#1c1b0b; line-height:1.5; }
-.other-symptom-row { display:grid; grid-template-columns:minmax(220px,1fr) auto auto; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); }
-.other-symptom-row input[type="text"] { width:100%; padding:10px 13px; border:1px dashed #666; border-radius:18px; background:#161616; color:var(--text); font:inherit; }
-.other-symptom-row label { display:flex; gap:6px; align-items:center; font-weight:700; }
-@media(max-width:900px){.score-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){.target-grid{grid-template-columns:1fr}.symptom-row,.other-symptom-row{grid-template-columns:1fr auto auto}.section-nav{position:static}.anchor-grid{grid-template-columns:1fr}}
+/* ybocs.css
+ * Extra styling for ybocs.html; loaded after screening.css so these rules can override the shared base.
+ * CSS controls appearance. JavaScript controls responses and generated notes.
+ * Rules later in the file can override earlier rules with equal specificity.
+ */
+
+.version-card {
+  display: grid;
+  gap: 14px;
+}
+/* Navigation links between sections; sticky positioning keeps links visible while scrolling. */
+.section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.symptom-group {
+  margin-top: 24px;
+}
+.symptom-group h3 {
+  color: var(--pink);
+}
+/* Keep a symptom label beside its Current and Past checkboxes. */
+.symptom-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.symptom-row label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 700;
+}
+/* Place obsession and compulsion target fields side by side. */
+.target-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.target-grid h3 {
+  color: var(--yellow);
+}
+.target-input {
+  width: 100%;
+  margin: 6px 0;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+}
+.severity-item {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.severity-item h3 {
+  margin-top: 0;
+}
+.severity-probe {
+  color: #ccc;
+  line-height: 1.5;
+}
+/* Arrange the rating anchors for each severity or additional clinical item. */
+.anchor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 8px;
+}
+.anchor-option {
+  position: relative;
+}
+.anchor-option input {
+  position: absolute;
+  opacity: 0;
+}
+.anchor-option span {
+  display: block;
+  height: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-2);
+  cursor: pointer;
+}
+.anchor-option input:checked + span {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #000;
+}
+.anchor-option:hover span {
+  border-color: var(--yellow);
+}
+/* Group obsession, compulsion, total, and severity results. */
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.score-grid > div {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface-2);
+}
+.score-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--yellow);
+  font-size: 22px;
+}
+.information-alert {
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid var(--yellow);
+  border-radius: 20px;
+  background: #1c1b0b;
+  line-height: 1.5;
+}
+.other-symptom-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.other-symptom-row input[type="text"] {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px dashed #666;
+  border-radius: 18px;
+  background: #161616;
+  color: var(--text);
+  font: inherit;
+}
+.other-symptom-row label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 700;
+}
+/* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
+@media (max-width: 900px) {
+  .score-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
+@media (max-width: 700px) {
+  .target-grid {
+    grid-template-columns: 1fr;
+  }
+  .symptom-row,
+  .other-symptom-row {
+    grid-template-columns: 1fr auto auto;
+  }
+  .section-nav {
+    position: static;
+  }
+  .anchor-grid {
+    grid-template-columns: 1fr;
+  }
+}
