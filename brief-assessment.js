@@ -298,13 +298,9 @@ const $ = (id) => document.getElementById(id);
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
   Workbench.resetReview();
-  // Keep the selected label and numeric score together, including labels sharing a score.
-  answerChoices = allQuestions.map((question) =>
-    Math.max(0, question.options?.findIndex((option) => option.value === 0) ?? 0),
-  );
-  answers = allQuestions.map((question, index) =>
-    question.type === "number" ? 0 : question.options[answerChoices[index]].value,
-  );
+  // A null response is unanswered, including numeric day counts; zero must be entered.
+  answerChoices = allQuestions.map(() => null);
+  answers = allQuestions.map(() => null);
   render();
 }
 
@@ -326,7 +322,7 @@ function render() {
         <span class="question-number">${i + 1}.</span>${q.text}</h2>${q.context ? `<p class="question-context">${q.context}</p>` : ""}${
           q.type === "number"
             ? `<label class="number-answer">
-        <input type="number" min="0" max="366" step="1" aria-label="${q.text}" value="${answers[i]}" data-number="${i}">
+        <input type="number" min="0" max="366" step="1" aria-label="${q.text}" value="${answers[i] ?? ""}" data-number="${i}">
         </label>`
             : `<div class="response-grid compact">${q.options
                 .map(
@@ -343,8 +339,8 @@ function render() {
     (el) =>
       (el.onchange = () => {
         const i = +el.dataset.index;
-        answers[i] = +el.value;
-        answerChoices[i] = +el.dataset.choice;
+        answers[i] = el.checked ? +el.value : null;
+        answerChoices[i] = el.checked ? +el.dataset.choice : null;
         update();
       }),
   );
@@ -352,15 +348,39 @@ function render() {
     (el) =>
       (el.oninput = () => {
         // Keep the last valid score while the native field reports an invalid entry.
-        if (el.validity.valid) answers[+el.dataset.number] = Number(el.value) || 0;
+        if (el.validity.valid)
+          answers[+el.dataset.number] = el.value === "" ? null : Number(el.value);
         update();
       }),
   );
   update();
 }
 
+// Extra context is optional unless it participates in this tool's configured score.
+// A No exposure response skips the PC-PTSD-5 symptom items without inventing answers.
+function requiredIndexes() {
+  if (config === MEASURES.pcptsd5 && answers[0] === 0) return [0];
+  const count = config === MEASURES.mdq ? 15 : config.questions.length;
+  return Array.from({ length: count }, (_, i) => i);
+}
+function completionMessage() {
+  const required = requiredIndexes();
+  const answered = required.filter((i) => Number.isInteger(answers[i])).length;
+  return answered === required.length
+    ? ""
+    : `${answered} of ${required.length} required items answered — complete these items to generate documentation.`;
+}
+
 // Recalculate the displayed results and regenerate the selected output format.
 function update() {
+  const incomplete = completionMessage();
+  if (incomplete) {
+    $("score-display").textContent = "—";
+    $("result-display").textContent = incomplete.split(" — ")[0];
+    $("result-note").textContent = "";
+    Workbench.writeOutput("");
+    return;
+  }
   const r = config.score(answers);
   $("score-display").textContent = r.score;
   $("result-display").textContent = r.result;
@@ -375,6 +395,7 @@ function update() {
 
 // Read the chosen answer label. answerChoices keeps distinct labels that share the same numeric score.
 function labelFor(q, i) {
+  if (answers[i] === null) return "Not answered";
   if (q.type === "number") return `${answers[i]} days`;
   const selected =
     q.options?.[answerChoices[i]] || (q.options || []).find((o) => o.value === answers[i]);
@@ -384,14 +405,17 @@ function labelFor(q, i) {
 // Build the detailed note, including individual answers and scores.
 function detail(r) {
   const lines = [config.title, ""];
-  allQuestions.forEach((q, i) => lines.push(`${i + 1}. ${q.text}`, labelFor(q, i), ""));
+  allQuestions.forEach((q, i) => {
+    if (config === MEASURES.pcptsd5 && answers[0] === 0 && i > 0) return;
+    if (answers[i] !== null) lines.push(`${i + 1}. ${q.text}`, labelFor(q, i), "");
+  });
   lines.push(`Score: ${r.score}`, `Result: ${r.result}`, "", r.note);
   return lines.join("\n");
 }
 // Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 reset();

@@ -502,17 +502,9 @@ body:not(.compact-mode) .more-info .info-content {
 }
 
 /* Other descriptions stay available in both modes and only show when selected. */
-.other-entry[hidden] {
-  display: none;
-}
 .other-entry {
   margin-top: 12px;
 }
 .other-text {
   min-height: 112px;
-}
-/* Explicitly hide conditional observations despite their flex label styling. */
-.context-observations[hidden],
-.context-observations label[hidden] {
-  display: none;
 }

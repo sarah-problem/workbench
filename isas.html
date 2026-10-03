@@ -11,7 +11,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ISAS</title>
+    <title>ISAS | Clinical Workbench</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,12 +19,12 @@
       rel="stylesheet"
     />
     <!-- Page layout first; the shared design system owns common styling. -->
-    <link rel="stylesheet" href="screening.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="isas.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="screening.css?v=20261003-review6" />
+    <link rel="stylesheet" href="isas.css?v=20261003-review6" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-review6" />
     <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body class="spacious-tool">
+  <body data-clearable-answers class="spacious-tool">
     <main class="page-shell isas-shell">
       <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
       <h1>ISAS</h1>
@@ -71,7 +71,7 @@
           </label>
           <label>
             <span class="small-label">Lifetime count</span>
-            <input id="other-behavior-count" type="number" min="0" step="1" value="0" />
+            <input id="other-behavior-count" type="number" min="0" step="1" value="" />
           </label>
           <label class="main-check">
             <input id="other-behavior-main" type="checkbox" />
@@ -98,7 +98,7 @@
         <div class="choice-section">
           <h3>Physical pain during self-harm</h3>
           <div class="segmented-options" data-choice-group="pain">
-            <button type="button" class="segment-button selected" data-value="Not documented">
+            <button type="button" class="segment-button" data-value="Not documented">
               Not documented
             </button>
             <button type="button" class="segment-button" data-value="Yes">Yes</button>
@@ -110,7 +110,7 @@
         <div class="choice-section">
           <h3>Usually alone when self-harming</h3>
           <div class="segmented-options" data-choice-group="alone">
-            <button type="button" class="segment-button selected" data-value="Not documented">
+            <button type="button" class="segment-button" data-value="Not documented">
               Not documented
             </button>
             <button type="button" class="segment-button" data-value="Yes">Yes</button>
@@ -122,7 +122,7 @@
         <div class="choice-section">
           <h3>Typical time from urge to behavior</h3>
           <div class="segmented-options" data-choice-group="delay">
-            <button type="button" class="segment-button selected" data-value="Not documented">
+            <button type="button" class="segment-button" data-value="Not documented">
               Not documented
             </button>
             <button type="button" class="segment-button" data-value="Less than 1 hour">
@@ -143,7 +143,7 @@
         <div class="choice-section">
           <h3>Wants or wanted to stop self-harming</h3>
           <div class="segmented-options" data-choice-group="stop">
-            <button type="button" class="segment-button selected" data-value="Not documented">
+            <button type="button" class="segment-button" data-value="Not documented">
               Not documented
             </button>
             <button type="button" class="segment-button" data-value="Yes">Yes</button>
@@ -191,11 +191,11 @@
         <div class="results-summary isas-summary">
           <div>
             <span class="small-label">Function total</span>
-            <div id="total-display" class="score-display">0 / 78</div>
+            <div id="total-display" class="score-display">—</div>
           </div>
           <div>
             <span class="small-label">Highest function score</span>
-            <div id="highest-display" class="severity-display">0 / 6</div>
+            <div id="highest-display" class="severity-display">0 of 39 answered</div>
           </div>
         </div>
 
@@ -226,7 +226,7 @@
         <div class="output-style-row">
           <span class="small-label">Output style</span>
           <label class="inline-option"
-            ><input type="radio" name="outputStyle" value="summary" checked /> Summary</label
+            ><input type="radio" name="outputStyle" value="summary" checked /> Narrative</label
           >
           <label class="inline-option"
             ><input type="radio" name="outputStyle" value="detailed" /> List</label
@@ -247,8 +247,8 @@
     </main>
 
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="workbench-ui.js?v=20261003-audit4"></script>
-    <script src="isas.js?v=20261003-audit4"></script>
+    <script src="workbench-ui.js?v=20261003-clearable2"></script>
+    <script src="isas.js?v=20261003-clearable"></script>
     <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

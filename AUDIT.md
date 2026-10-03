@@ -4,6 +4,44 @@ Reviewed the 37 production source files individually: 11 HTML pages, 11 styleshe
 
 This is a software review, not a certification that every clinical instrument is reproduced or interpreted correctly. Passing these checks is evidence for the behaviors tested, not proof that all possible defects have been eliminated.
 
+## Remaining questionnaire defaults removed
+
+Extended the blank-start correction to ISAS, FASM, TSDS, Y-BOCS/CY-BOCS, and all seven brief screeners. Ratings, numeric fields, medical-treatment choices, and other context no longer receive preset clinical answers. Required scoring inputs gate total scores and completed documentation; optional context remains optional. Individual ISAS/FASM function scores require all their component responses. Alerts continue to respond to explicit endorsements before completion.
+
+ISAS supports Section I-only documentation when all listed counts are explicitly zero, no other/main behavior is entered, and function ratings are untouched. PC-PTSD-5 uses its existing No-exposure route without requiring symptom responses or inserting zero answers. Y-BOCS optional ratings are omitted unless entered. MSE retains its normal preset; risk forms were already blank.
+
+Added `tests/questionnaire-defaults.cjs` and updated earlier tests to expect unanswered resets. All five automated scripts pass. Browser checks found no initial answer selections, numeric prefills, or generated notes across the 11 newly changed routes; CY-BOCS was checked separately. ISAS full generation/reset, FASM blank follow-ups, Y-BOCS optional-rating omission/version separation, PC-PTSD-5 skip behavior, and TSDS blank percentages were exercised. See [tests/QA.md](tests/QA.md).
+
+## Earlier blank-start correction
+
+After reviewing the preset behavior with the user, changed LPFS-SR, PHQ-9, and GAD-7 to start and reset unanswered. The earlier audit retained those presets; that was a usability issue it should have flagged. Unanswered items now remain distinct from zero-point answers. Scores, interpretations, and completed documentation are withheld until all scored items have responses; progress is shown instead. Functional impact also starts unselected and is omitted from documentation unless answered. PHQ-9 item 9 still triggers its existing alert on a partially completed form.
+
+Added `tests/blank-start.cjs` and a shared generation-gate regression. The earlier verification sections describe the behavior at the time; preset claims there no longer apply to these three questionnaires. The subsequent correction above extends this behavior to the remaining questionnaires.
+
+## Follow-up review after the interrupted session
+
+Revisited the production files and completed the interrupted FASM/TSDS follow-up fields. The file-by-file table below records the original audit; this section records the subsequent corrections rather than treating old work as new.
+
+| Finding                                                                                                                               | Correction                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| FASM frequency and treatment controls looked available before their behavior was selected; the checkbox was separated from its label. | Keep checkbox and label together; reveal enabled follow-up fields only after selection. Other text is conditional too.                                                               |
+| TSDS percentages looked editable for unchecked attributions.                                                                          | Reveal the percentage only for a checked attribution and reveal Other text only when Other is checked; retain entries for reselection while excluding unchecked entries from output. |
+| Shared introduction, question, navigation, and alert styles were repeated in tool stylesheets.                                        | Move common layout rules into `screening.css`; preserve tool-specific differences, including ISAS static navigation. Remove overridden response-grid rules and unused selectors.     |
+| Output labels and generated-note typography varied across apps.                                                                       | Use Generated Documentation and Narrative / List consistently; share 16px regular-weight output text and its box spacing, including MSE Compact.                                     |
+| Quick-risk detail buttons used different wording.                                                                                     | Match the comprehensive form’s Add details label.                                                                                                                                    |
+| MSE observation buttons did not communicate their open state, and some example placeholders still contained instructions.             | Add matching Add/Hide labels and expanded-state attributes; combine plain examples under one Ex.: prefix.                                                                            |
+| MSE repeated context-summary logic and orientation domain names.                                                                      | Use one context-summary helper and read orientation domains from the existing data definition. Rename the choice renderer to reflect support for multiple selections.                |
+| MSE thought-content output could read “with notable for … thought content.”                                                           | Give thought content its own grammatical clause. Remove redundant definition sentences.                                                                                              |
+| ISAS tried to update score elements that no longer exist and retained unused item metadata.                                           | Remove the dead update loop and metadata; use native hidden state for its notice and make count/rating accessible names more specific.                                               |
+| A checked custom Y-BOCS symptom vanished from documentation when its text was blank.                                                  | Include a neutral “not described” fallback; trim blank target entries and fix two-item list punctuation. Add symptom group names for Current/Past controls.                          |
+| FASM called summed method frequencies “incidents.”                                                                                    | Label the result Total across methods and describe it as summed frequency. Arithmetic is unchanged; several methods can occur within one episode.                                    |
+
+Comments now explain the shared ownership of layouts, conditional-field state, example selection, and the distinction between method frequencies and episodes. The fixes preserve configured scoring and existing selections/defaults.
+
+Three automated test scripts pass. The repeated 44-combination browser matrix found no page-level horizontal overflow; sampled answer options remained 14px/400 and generated output was 16px/400 across tools and themes. See [tests/QA.md](tests/QA.md) for the additional interaction checks and the limits of that coverage.
+
+A second pre-edit source snapshot is at `/private/tmp/clinical-review-followup-before`; it already includes the interrupted conditional-field edits. Neither temporary snapshot replaces permanent version control. No files were uploaded or published.
+
 ## Confirmed issues corrected
 
 | Finding                                                                                                                                               | Correction                                                                                                                               |
@@ -84,7 +122,7 @@ Shared concepts remain shared; clinically different calculations and output styl
 
 Remaining boundaries:
 
-- Preset responses are still intentional. A note can reflect unreviewed presets if someone clicks Create without reviewing; the software cannot establish that an assessment occurred.
+- MSE normal preset responses are still intentional; scored questionnaires now start unanswered. A note can reflect unreviewed presets if someone clicks Create without reviewing; the software cannot establish that an assessment occurred.
 - Instrument wording, versions, cutoffs, factor assignments, norms, and reproduction permissions need a separate source-by-source clinical review. This audit did not certify them.
 - Method-frequency totals do not establish a count of unique episodes when several methods occur in one episode.
 - The embedding parent and production deployment are outside this folder and were not changed or tested end to end.

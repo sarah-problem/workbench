@@ -158,9 +158,6 @@
   resize: vertical;
 }
 
-.risk-output {
-  min-height: 240px !important;
-}
 /* Extra risk-assessment notes start hidden; JavaScript toggles the open class. */
 .optional-details {
   display: none;

@@ -328,15 +328,14 @@ let version = "adult";
 // Keep adult and child entries separate while switching versions during this page visit.
 const states = { adult: blankState(), child: blankState() };
 
-// Create empty answers for one version. Global improvement starts at index 3 (No change).
+// Both scored and optional ratings start unanswered; zero is a deliberate rating.
 function blankState() {
-  const additional = Array(ADDITIONAL_ITEMS.length).fill(0);
-  additional[9] = 3;
+  const additional = Array(ADDITIONAL_ITEMS.length).fill(null);
   return {
     symptoms: {},
     others: {},
     targets: { Obsessions: Array(4).fill(""), Compulsions: Array(4).fill("") },
-    scores: Array(10).fill(0),
+    scores: Array(10).fill(null),
     additional,
   };
 }
@@ -375,14 +374,13 @@ function renderChecklist() {
     html += `<div class="symptom-domain">
         <h2>${domain}</h2>`;
     for (const [cat, items] of Object.entries(categories)) {
-      const otherId = `${domain}|${cat}`,
-        other = state().others[otherId] || {};
+      const otherId = `${domain}|${cat}`;
       html += `<div class="symptom-group">
         <h3>${cat}</h3>`;
       for (const text of items) {
         const id = `${domain}|${cat}|${text}`,
           v = state().symptoms[id] || {};
-        html += `<div class="symptom-row">
+        html += `<div class="symptom-row" role="group" aria-label="${escapeAttr(text)}">
         <span>${text}</span>
         <label>
         <input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="current" ${v.current ? "checked" : ""}>Current</label>
@@ -390,14 +388,7 @@ function renderChecklist() {
         <input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="past" ${v.past ? "checked" : ""}>Past</label>
         </div>`;
       }
-      html += `<div class="other-symptom-row">
-        <input type="text" aria-label="Other ${cat.toLowerCase()} ${domain.toLowerCase()}" data-other-text="${escapeAttr(otherId)}" value="${escapeAttr(other.text || "")}" placeholder="Other ${cat.toLowerCase()} symptom">
-        <label>
-        <input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="current" ${other.current ? "checked" : ""}>Current</label>
-        <label>
-        <input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="past" ${other.past ? "checked" : ""}>Past</label>
-        </div>
-        </div>`;
+      html += `<div data-other-group="${escapeAttr(otherId)}"></div></div>`;
     }
     html += "</div>";
   }
@@ -411,24 +402,66 @@ function renderChecklist() {
         update();
       }),
   );
-  document.querySelectorAll("[data-other-text]").forEach(
-    (x) =>
-      (x.oninput = () => {
-        const v = state().others[x.dataset.otherText] || {};
-        v.text = x.value;
-        state().others[x.dataset.otherText] = v;
-        update();
-      }),
-  );
-  document.querySelectorAll("[data-other]").forEach(
-    (x) =>
-      (x.onchange = () => {
-        const v = state().others[x.dataset.other] || {};
-        v[x.dataset.time] = x.checked;
-        state().others[x.dataset.other] = v;
-        update();
-      }),
-  );
+  document.querySelectorAll("[data-other-group]").forEach(renderOtherSymptoms);
+}
+
+// Each category owns a list of custom symptoms within the current age version.
+// Always keep one empty row available, even after removing the final entry.
+function customSymptoms(categoryId) {
+  return (state().others[categoryId] ||= [{}]);
+}
+
+// Rebuild only the affected category after adding/removing a row. Text edits and
+// Current/Past changes update in place so focus and other entries are preserved.
+function renderOtherSymptoms(container) {
+  const categoryId = container.dataset.otherGroup;
+  const [domain, category] = categoryId.split("|");
+  const entries = customSymptoms(categoryId);
+  const description = `${category.toLowerCase()} ${domain.toLowerCase()}`;
+  container.innerHTML =
+    entries
+      .map((entry, index) => {
+        const label = `Other ${description} ${index + 1}`;
+        return `<div class="other-symptom-row" role="group" aria-label="${escapeAttr(label)}">
+      <input type="text" aria-label="${escapeAttr(label)}" data-other-text="${index}" value="${escapeAttr(entry.text || "")}" placeholder="Other ${escapeAttr(category.toLowerCase())} symptom">
+      <label><input type="checkbox" data-other="${index}" data-time="current" ${entry.current ? "checked" : ""}>Current</label>
+      <label><input type="checkbox" data-other="${index}" data-time="past" ${entry.past ? "checked" : ""}>Past</label>
+      <button type="button" class="secondary other-remove" data-remove-other="${index}" aria-label="Remove ${escapeAttr(label.toLowerCase())}">Remove</button>
+    </div>`;
+      })
+      .join("") +
+    `<button type="button" class="secondary other-add" data-add-other aria-label="Add another symptom: ${escapeAttr(description)}">+ Add another symptom</button>`;
+
+  container.querySelectorAll("[data-other-text]").forEach((input) => {
+    input.oninput = () => {
+      entries[Number(input.dataset.otherText)].text = input.value;
+      update();
+    };
+  });
+  container.querySelectorAll("[data-other]").forEach((input) => {
+    input.onchange = () => {
+      entries[Number(input.dataset.other)][input.dataset.time] = input.checked;
+      update();
+    };
+  });
+  container.querySelector("[data-add-other]").onclick = () => {
+    entries.push({});
+    Workbench.resetReview();
+    renderOtherSymptoms(container);
+    update();
+    container.querySelectorAll("[data-other-text]")[entries.length - 1].focus();
+  };
+  container.querySelectorAll("[data-remove-other]").forEach((button) => {
+    button.onclick = () => {
+      const index = Number(button.dataset.removeOther);
+      entries.splice(index, 1);
+      if (!entries.length) entries.push({});
+      Workbench.resetReview();
+      renderOtherSymptoms(container);
+      update();
+      container.querySelectorAll("[data-other-text]")[Math.min(index, entries.length - 1)].focus();
+    };
+  });
 }
 
 // Build four target-symptom fields per domain and save edits to the current version.
@@ -472,7 +505,7 @@ function renderSeverity() {
   document.querySelectorAll('[name^="severity-"]').forEach(
     (x) =>
       (x.onchange = () => {
-        state().scores[+x.name.split("-")[1]] = +x.value;
+        state().scores[+x.name.split("-")[1]] = x.checked ? +x.value : null;
         update();
       }),
   );
@@ -500,7 +533,7 @@ function renderAdditional() {
   document.querySelectorAll('[name^="additional-"]').forEach(
     (x) =>
       (x.onchange = () => {
-        state().additional[+x.name.split("-")[1]] = +x.value;
+        state().additional[+x.name.split("-")[1]] = x.checked ? +x.value : null;
         update();
       }),
   );
@@ -515,8 +548,24 @@ function severity(total) {
   return "Extreme";
 }
 
+function completionMessage() {
+  const answered = state().scores.filter(Number.isInteger).length;
+  return answered === 10
+    ? ""
+    : `${answered} of 10 severity items answered — complete these items to generate documentation.`;
+}
+
 // Recalculate the displayed results and regenerate the selected output format.
 function update() {
+  if (completionMessage()) {
+    ["obsession-score", "compulsion-score", "total-score"].forEach(
+      (id) => ($(id).textContent = "—"),
+    );
+    $("severity-label").textContent =
+      `${state().scores.filter(Number.isInteger).length} of 10 answered`;
+    Workbench.writeOutput("");
+    return;
+  }
   // First five items are obsessions; last five are compulsions. Checklist and additional ratings are excluded.
   const o = state().scores.slice(0, 5).reduce(sum, 0),
     c = state().scores.slice(5).reduce(sum, 0),
@@ -535,17 +584,23 @@ function update() {
 
 // Build the paragraph version of the note from the current results.
 function summary(o, c, t, label) {
+  if (completionMessage()) return "";
   const current = currentSymptoms();
-  const targets = [...state().targets.Obsessions, ...state().targets.Compulsions].filter(Boolean);
-  const additional = ADDITIONAL_ITEMS.map(
-    (x, i) =>
-      `${x.name.replace(/^\d+[a-z]?\. /, "")} ${state().additional[i]} (${x.anchors[state().additional[i]].toLowerCase()})`,
-  );
-  return `${version === "child" ? "CY-BOCS" : "Y-BOCS"} completed. Total severity score was ${t}/40 (${label.toLowerCase()}), with an obsession subtotal of ${o}/20 and compulsion subtotal of ${c}/20. ${current.length ? `Current symptom checklist endorsements included ${list(current)}.` : "No current checklist symptoms were selected."}${targets.length ? ` Primary target symptoms included ${list(targets)}.` : ""} Non-scored clinical ratings were: ${additional.join("; ")}. Results reflect symptom severity and should be interpreted with the clinical interview.`;
+  const past = pastSymptoms();
+  const targets = [...state().targets.Obsessions, ...state().targets.Compulsions]
+    .map((text) => text.trim())
+    .filter(Boolean);
+  const additional = ADDITIONAL_ITEMS.map((x, i) =>
+    state().additional[i] === null
+      ? null
+      : `${x.name.replace(/^\d+[a-z]?\. /, "")} ${state().additional[i]} (${x.anchors[state().additional[i]].toLowerCase()})`,
+  ).filter(Boolean);
+  return `${version === "child" ? "CY-BOCS" : "Y-BOCS"} completed. Total severity score was ${t}/40 (${label.toLowerCase()}), with an obsession subtotal of ${o}/20 and compulsion subtotal of ${c}/20. ${current.length ? `Current symptom checklist endorsements included ${list(current)}.` : "No current checklist symptoms were selected."}${past.length ? ` Past symptom checklist endorsements included ${list(past)}.` : ""}${targets.length ? ` Primary target symptoms included ${list(targets)}.` : ""}${additional.length ? ` Non-scored clinical ratings were: ${additional.join("; ")}.` : ""} Results reflect symptom severity and should be interpreted with the clinical interview.`;
 }
 
 // Build the detailed note, including individual answers and scores.
 function detailed(o, c, t, label) {
+  if (completionMessage()) return "";
   const lines = [
     version === "child" ? "CY-BOCS" : "Y-BOCS",
     "",
@@ -561,19 +616,26 @@ function detailed(o, c, t, label) {
     ...pastSymptoms(),
     "",
     "Target Obsessions",
-    ...state().targets.Obsessions.filter(Boolean),
+    ...state()
+      .targets.Obsessions.map((text) => text.trim())
+      .filter(Boolean),
     "",
     "Target Compulsions",
-    ...state().targets.Compulsions.filter(Boolean),
+    ...state()
+      .targets.Compulsions.map((text) => text.trim())
+      .filter(Boolean),
     "",
     "Scored Severity Items",
   ];
   ITEMS.forEach((x, i) =>
     lines.push(`${i + 1}. ${x.name}: ${state().scores[i]} - ${x.anchors[state().scores[i]]}`),
   );
-  lines.push("", "Additional Clinical Items (not included in total)");
-  ADDITIONAL_ITEMS.forEach((x, i) =>
-    lines.push(`${x.name}: ${state().additional[i]} - ${x.anchors[state().additional[i]]}`),
+  if (state().additional.some((value) => value !== null))
+    lines.push("", "Additional Clinical Items (not included in total)");
+  ADDITIONAL_ITEMS.forEach(
+    (x, i) =>
+      state().additional[i] !== null &&
+      lines.push(`${x.name}: ${state().additional[i]} - ${x.anchors[state().additional[i]]}`),
   );
   return lines.join("\n");
 }
@@ -583,9 +645,13 @@ function symptomsAt(time) {
   const standard = Object.entries(state().symptoms)
     .filter(([, v]) => v[time])
     .map(([k]) => k.split("|").at(-1));
-  const other = Object.entries(state().others)
-    .filter(([, v]) => v[time] && v.text?.trim())
-    .map(([k, v]) => `Other ${k.split("|")[1]}: ${v.text.trim()}`);
+  const other = Object.entries(state().others).flatMap(([categoryId, entries]) =>
+    entries
+      .filter((entry) => entry[time])
+      .map(
+        (entry) => `Other ${categoryId.split("|")[1]}: ${entry.text?.trim() || "not described"}`,
+      ),
+  );
   return [...standard, ...other];
 }
 
@@ -600,7 +666,9 @@ function pastSymptoms() {
 
 // Join a list of phrases for inclusion in a sentence.
 function list(a) {
-  return a.length < 2 ? a[0] || "" : `${a.slice(0, -1).join(", ")}, and ${a.at(-1)}`;
+  if (a.length < 2) return a[0] || "";
+  if (a.length === 2) return `${a[0]} and ${a[1]}`;
+  return `${a.slice(0, -1).join(", ")}, and ${a.at(-1)}`;
 }
 // Add two numbers; used when reducing an array to a total.
 function sum(a, b) {
@@ -629,7 +697,7 @@ $("reset-button").onclick = () => {
   render();
 };
 document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 render();

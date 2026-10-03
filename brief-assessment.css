@@ -4,19 +4,13 @@
  * Rules later in the file can override earlier rules with equal specificity.
  */
 
-.intro-card,
 .reference-card {
   display: grid;
   gap: 10px;
 }
-.intro-card p,
 .reference-card p {
   margin: 0;
   line-height: 1.55;
-}
-.question-card {
-  display: grid;
-  gap: 14px;
 }
 .question-context {
   margin: -5px 0 0;
@@ -39,14 +33,6 @@
   background: var(--surface-2);
   color: var(--text);
   font: inherit;
-}
-.information-alert {
-  margin-top: 18px;
-  padding: 15px;
-  border: 1px solid var(--accent-secondary);
-  border-radius: 20px;
-  background: var(--notice-surface);
-  line-height: 1.5;
 }
 .reference-card {
   border-color: var(--border);

@@ -39,7 +39,7 @@ function renderSections() {
         <h3>${section.title} <span class="dimension-description learning-only">(${mseDimensionDescriptions[section.id]})</span></h3>
         ${
           section.observation
-            ? `<button type="button" class="tiny-button" onclick="toggleObservation('${section.id}')">+ Add observation</button>`
+            ? `<button type="button" class="tiny-button" aria-expanded="false" aria-controls="${section.id}-observation-box" onclick="toggleObservation('${section.id}')">+ Add observation</button>`
             : ""
         }
       </div>
@@ -54,7 +54,7 @@ function renderSections() {
             <textarea
               id="${section.id}-observation"
               class="observation-text"
-              placeholder="Add an observation specific to this section."
+              placeholder=""
             ></textarea>
           </div>
         `
@@ -83,7 +83,7 @@ function renderSections() {
     if (section.type === "orientation") {
       renderOrientation(section, controlArea);
     } else {
-      renderSingleChoice(section, controlArea);
+      renderChoiceButtons(section, controlArea);
     }
 
     if (mseContextSections.includes(section.id)) renderContextModifier(section, controlArea);
@@ -150,13 +150,7 @@ function renderContextModifier(section, controlArea) {
       // Clear source attribution when the comparison is absent or unknown.
       source.disabled = !selected.value || selected.value === "unknown";
       if (source.disabled) source.querySelector('input[value=""]').checked = true;
-      const label = selected.value
-        ? contextOptionsFor(section.id).find((item) => item.value === selected.value).label
-        : "";
-      const custom = panel.querySelector("textarea").value.trim();
-      const hasObservations = panel.querySelector(".context-observation:checked");
-      panel.querySelector("summary").textContent =
-        `Context / baseline${label ? ` · ${label}` : custom ? " · Custom context" : hasObservations ? " · Observations added" : ""}`;
+      updateContextSummary(panel, section.id);
       generateMSE();
     });
   });
@@ -181,15 +175,18 @@ function updateContextObservations() {
     });
     group.hidden = !anyVisible;
     const panel = card.querySelector(".context-panel");
-    const value = panel.querySelector(".context-select:checked")?.value || "";
-    const label = value
-      ? contextOptionsFor(sectionId).find((item) => item.value === value)?.label
-      : "";
-    const custom = panel.querySelector(".context-note").value.trim();
-    const observed = group.querySelector(":checked");
-    panel.querySelector("summary").textContent =
-      `Context / baseline${label ? ` · ${label}` : custom ? " · Custom context" : observed ? " · Observations added" : ""}`;
+    updateContextSummary(panel, sectionId);
   });
+}
+
+// One label rule keeps context changes and automatically cleared observations in sync.
+function updateContextSummary(panel, sectionId) {
+  const value = panel.querySelector(".context-select:checked")?.value || "";
+  const label = contextOptionsFor(sectionId).find((item) => item.value === value)?.label;
+  const custom = panel.querySelector(".context-note").value.trim();
+  const observed = panel.querySelector(".context-observation:checked");
+  const suffix = value ? label : custom ? "Custom context" : observed ? "Observations added" : "";
+  panel.querySelector("summary").textContent = `Context / baseline${suffix ? ` · ${suffix}` : ""}`;
 }
 
 // Read context as plain text. It is written into the output textarea, never interpreted as HTML.
@@ -223,7 +220,7 @@ function getContext(sectionId) {
 }
 
 /* Render the standard button choices used by most sections. */
-function renderSingleChoice(section, controlArea) {
+function renderChoiceButtons(section, controlArea) {
   const group = document.createElement("div");
   group.className = section.multiple
     ? "segmented-options multi-select-options"
@@ -477,17 +474,13 @@ function getSelectedValues(sectionId) {
 
 /* Convert orientation domain selections into a natural sentence. */
 function getOrientationSentence() {
-  const domains = [
-    ["person", "person"],
-    ["place", "place"],
-    ["time", "time"],
-    ["situation", "situation"],
-  ];
+  const domains = mseSections.find((section) => section.id === "orientation").domains;
 
   const oriented = [];
   const disoriented = [];
 
-  domains.forEach(([id, label]) => {
+  domains.forEach(({ id, label: title }) => {
+    const label = title.toLowerCase();
     const row = document.querySelector(`.orientation-row[data-domain="${id}"]`);
     const value = row?.dataset.value || "oriented";
 
@@ -565,15 +558,11 @@ function withObservation(sectionId, sentence) {
   const section = mseSections.find((item) => item.id === sectionId);
   const observation = section ? getObservation(section) : "";
   const context = getContext(sectionId);
+  const domainLabel = section.title.charAt(0) + section.title.slice(1).toLowerCase();
   // Narrative sentences sometimes combine domains. Naming the domain here keeps
   // a modifier for thought process from accidentally modifying thought content too.
-  const contextText = context.phrase
-    ? `${section.title.charAt(0) + section.title.slice(1).toLowerCase()} findings were ${context.phrase}.`
-    : "";
-  const customText = context.note
-    ? `${section.title.charAt(0) + section.title.slice(1).toLowerCase()} context: ${context.note}`
-    : "";
-  const domainLabel = section.title.charAt(0) + section.title.slice(1).toLowerCase();
+  const contextText = context.phrase ? `${domainLabel} findings were ${context.phrase}.` : "";
+  const customText = context.note ? `${domainLabel} context: ${context.note}` : "";
   const baselineText = context.statement ? `${domainLabel}: ${context.statement}` : "";
   const observedText = context.observations
     ? `${domainLabel} observations: ${context.observations}`
@@ -725,14 +714,14 @@ function buildNarrativeOutput() {
 
   const contentText = `${listText(
     thoughtContent.map((value) => contentMap[value]).filter(Boolean),
-  )} thought content`;
+  )}`;
 
   sentences.push(
     withObservation(
       "thoughtProcess",
       withObservation(
         "thoughtContent",
-        `Thought processes were ${processText}, with ${contentText}.`,
+        `Thought processes were ${processText}; thought content was ${contentText}.`,
       ),
     ),
   );
@@ -1017,19 +1006,16 @@ function updateObservationHints() {
   mseSections.forEach((section) => {
     const field = document.getElementById(`${section.id}-observation`);
     if (!field) return;
-    const hints = mseObservationHints[section.id];
-    if (!hints) return;
-    const selectedHints = getSelectedValues(section.id)
+    const hints = mseObservationHints[section.id] || {};
+    const specific = getSelectedValues(section.id)
       .map((value) => hints[value])
       .filter(Boolean);
-    const hintsToShow = selectedHints.length ? selectedHints : [hints.default];
-    // Label examples once, even when several selected findings contribute hints.
-    const hasExamples = hintsToShow.some((hint) => hint.includes("e.g.,"));
-    field.placeholder =
-      (hasExamples ? "Ex.: " : "") +
-      hintsToShow
-        .map((hint) => (hint.includes("e.g.,") ? hint.split("e.g.,")[1].trim() : hint))
-        .join(" / ");
+    const fallback =
+      mseContextNoteExamples[section.id] || mseOtherHints[section.id]?.split(" / ") || [];
+    const examples = [...new Set([...specific, ...fallback])].slice(0, 3);
+    field.placeholder = examples.length
+      ? `Ex.: ${examples.map((text) => text.replace(/\.$/, "")).join(" / ")}`
+      : "";
   });
 }
 
@@ -1082,13 +1068,20 @@ function resetToNormal() {
     box.classList.remove("open");
   });
 
+  document.querySelectorAll(".tiny-button[aria-controls]").forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
+    button.textContent = "+ Add observation";
+  });
   generateMSE();
 }
 
 /* Show or hide one optional observation box. */
 function toggleObservation(sectionId) {
   const box = document.getElementById(`${sectionId}-observation-box`);
-  box.classList.toggle("open");
+  const open = box.classList.toggle("open");
+  const button = document.querySelector(`[aria-controls="${sectionId}-observation-box"]`);
+  button.setAttribute("aria-expanded", String(open));
+  button.textContent = open ? "− Hide observation" : "+ Add observation";
 }
 
 /* Learn keeps expandable teaching panels; Compact hides them and tightens layout. */

@@ -4,47 +4,37 @@
  * Rules later in the file can override earlier rules with equal specificity.
  */
 
-.intro-card {
-  display: grid;
-  gap: 10px;
-}
-.intro-card p {
-  margin: 0;
-  line-height: 1.55;
-}
-/* Navigation links between sections; sticky positioning keeps links visible while scrolling. */
-.section-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-.question-card {
-  display: grid;
-  gap: 14px;
-}
-/* Arrange the answer choices within a question. */
-.response-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
 /* Layout for discrimination attributions and percentage inputs. */
 .type-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
 }
 /* One discrimination attribution with its selection and percentage. */
 .type-row {
   display: grid;
-  grid-template-columns: auto 1fr 100px;
+  grid-template-columns: minmax(0, 1fr) 100px;
   gap: 10px;
   align-items: center;
   padding: 13px;
   border: 1px solid var(--border);
   border-radius: 20px;
   background: var(--surface-2);
+}
+.type-check {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-options);
+  font-size: var(--font-option);
+  font-weight: 400;
+  cursor: pointer;
+}
+.type-check input {
+  flex: none;
+  margin: 0;
+}
+.type-percentage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .type-row input[type="number"] {
   width: 100%;
@@ -56,6 +46,7 @@
   font: inherit;
 }
 .type-row input[type="text"] {
+  grid-column: 1 / -1;
   width: 100%;
   padding: 9px;
   border: 1px dashed var(--border);
@@ -82,21 +73,9 @@
   border-radius: 18px;
   background: var(--surface-2);
 }
-.information-alert {
-  margin-top: 18px;
-  padding: 15px;
-  border: 1px solid var(--accent-secondary);
-  border-radius: 20px;
-  background: var(--notice-surface);
-  line-height: 1.5;
-}
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 760px) {
-  .section-nav {
-    position: static;
-  }
   .response-grid,
-  .type-grid,
   .distribution {
     grid-template-columns: 1fr 1fr;
   }
@@ -104,7 +83,6 @@
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 480px) {
   .response-grid,
-  .type-grid,
   .distribution {
     grid-template-columns: 1fr;
   }

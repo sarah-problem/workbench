@@ -195,3 +195,38 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* Shared scored-tool introductions, prompts, navigation, and interpretation notices. */
+.intro-card {
+  display: grid;
+  gap: 10px;
+}
+.intro-card p {
+  margin: 0;
+  line-height: 1.55;
+}
+.question-card {
+  display: grid;
+  gap: 14px;
+}
+.section-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.information-alert {
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid var(--accent-secondary);
+  border-radius: 20px;
+  background: var(--notice-surface);
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .section-nav {
+    position: static;
+  }
+}

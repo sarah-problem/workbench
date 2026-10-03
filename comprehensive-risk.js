@@ -6,8 +6,6 @@
  */
 
 let outputStyle = "narrative";
-// Remember the prior selection because browsers check radios before click handlers run.
-const detailedSelections = new Map();
 
 // Read the value of the selected radio button; return empty text if none is selected.
 function selectedValue(name) {
@@ -236,7 +234,6 @@ function setOutputStyle(style) {
 
 // Clear the assessment without assigning normal findings or a risk level.
 function resetAssessment() {
-  detailedSelections.clear();
   document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach((input) => {
     input.checked = false;
   });
@@ -257,24 +254,7 @@ function resetAssessment() {
   updateRiskDisplay("chronic", selectedValue("chronicLevel"));
 }
 
-// Optional detail radios can return to unanswered by activating the same choice.
-// Native labels and Space activation both deliver a click to the associated input.
-document.querySelectorAll('.inquiry-details input[type="radio"]').forEach((control) => {
-  control.addEventListener("click", () => {
-    if (detailedSelections.get(control.name) === control.value) {
-      control.checked = false;
-      detailedSelections.delete(control.name);
-      control.dispatchEvent(new Event("change", { bubbles: true }));
-    } else {
-      detailedSelections.set(control.name, control.value);
-    }
-  });
-  // Arrow-key navigation also updates the remembered selection.
-  control.addEventListener("change", () => {
-    if (control.checked) detailedSelections.set(control.name, control.value);
-    else detailedSelections.delete(control.name);
-  });
-});
+// Optional detail radios and other single-answer groups are cleared by workbench-ui.js.
 
 // These values offer a relevant detail panel; opening it never supplies an answer.
 const detailPrompts = {
@@ -299,7 +279,8 @@ document.querySelectorAll("input, textarea:not([readonly])").forEach((control) =
   control.addEventListener("change", () => {
     // Offer relevant detail without making it mandatory or hiding other areas.
     const detail = detailPrompts[control.name];
-    if (detail?.values.includes(control.value)) document.getElementById(detail.id).open = true;
+    if (control.checked && detail?.values.includes(control.value))
+      document.getElementById(detail.id).open = true;
     if (control.name === "acuteLevel") updateRiskDisplay("acute", selectedValue("acuteLevel"));
     if (control.name === "chronicLevel")
       updateRiskDisplay("chronic", selectedValue("chronicLevel"));

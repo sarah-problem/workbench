@@ -46,7 +46,7 @@ const TYPES = [
   "Disability",
   "Other",
 ];
-let answers = Array(ITEMS.length).fill(1),
+let answers = Array(ITEMS.length).fill(null),
   types = {};
 const $ = (id) => document.getElementById(id);
 const sum = (a, b) => a + b;
@@ -54,7 +54,7 @@ const sum = (a, b) => a + b;
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
   Workbench.resetReview();
-  answers = Array(ITEMS.length).fill(1);
+  answers = Array(ITEMS.length).fill(null);
   types = {};
   render();
 }
@@ -77,7 +77,7 @@ function render() {
   document.querySelectorAll('[name^="item-"]').forEach(
     (x) =>
       (x.onchange = () => {
-        answers[+x.name.split("-")[1]] = +x.value;
+        answers[+x.name.split("-")[1]] = x.checked ? +x.value : null;
         update();
       }),
   );
@@ -85,23 +85,29 @@ function render() {
   update();
 }
 
-// Build discrimination-type controls. Checking a type enables its percentage field; inputs update stored attribution data.
+// Build discrimination-type controls. Checking a type reveals and enables its percentage field; inputs update stored attribution data.
 function renderTypes() {
   $("type-grid").innerHTML = TYPES.map((type) => {
-    const v = types[type] || { selected: false, percent: 0, text: "" };
+    const v = types[type] || { selected: false, percent: null, text: "" };
     return `<div class="type-row">
-        <input type="checkbox" aria-label="${type}" data-type-check="${type}" ${v.selected ? "checked" : ""}>${type === "Other" ? `<input type="text" aria-label="Other type of discrimination" data-type-text="Other" value="${escapeAttr(v.text)}" placeholder="Other type">` : `<span>${type}</span>`}<label>
-        <input type="number" min="0" max="100" step="1" aria-label="${type} percentage" data-type-percent="${type}" value="${v.percent}" ${v.selected ? "" : "disabled"}>%</label>
+        <label class="type-check"><input type="checkbox" data-type-check="${type}" ${v.selected ? "checked" : ""}><span>${type}</span></label>
+        <label class="type-percentage" ${v.selected ? "" : "hidden"}>
+        <input type="number" min="0" max="100" step="1" aria-label="${type} percentage" data-type-percent="${type}" value="${v.percent ?? ""}" ${v.selected ? "" : "disabled"}>%</label>
+        ${type === "Other" ? `<input type="text" aria-label="Other type of discrimination" data-type-text="Other" value="${escapeAttr(v.text)}" placeholder="Other type" ${v.selected ? "" : "hidden disabled"}>` : ""}
         </div>`;
   }).join("");
   document.querySelectorAll("[data-type-check]").forEach(
     (x) =>
       (x.onchange = () => {
-        const v = types[x.dataset.typeCheck] || { percent: 0, text: "" };
+        const v = types[x.dataset.typeCheck] || { percent: null, text: "" };
         v.selected = x.checked;
         types[x.dataset.typeCheck] = v;
         // Toggle only this row; rebuilding every row would lose focus and unfinished edits.
-        x.closest(".type-row").querySelector("[data-type-percent]").disabled = !x.checked;
+        const row = x.closest(".type-row");
+        row.querySelector(".type-percentage").hidden = !x.checked;
+        row.querySelector("[data-type-percent]").disabled = !x.checked;
+        const other = row.querySelector("[data-type-text]");
+        if (other) other.hidden = other.disabled = !x.checked;
         update();
       }),
   );
@@ -109,7 +115,7 @@ function renderTypes() {
     (x) =>
       (x.oninput = () => {
         const v = types[x.dataset.typePercent] || { selected: true, text: "" };
-        if (x.validity.valid) v.percent = Number(x.value) || 0;
+        if (x.validity.valid) v.percent = x.value === "" ? null : Number(x.value);
         types[x.dataset.typePercent] = v;
         update();
       }),
@@ -118,12 +124,19 @@ function renderTypes() {
     (x) =>
       (x.oninput = () => {
         // Writing a description does not select its checkbox.
-        const v = types.Other || { selected: false, percent: 0 };
+        const v = types.Other || { selected: false, percent: null };
         v.text = x.value;
         types.Other = v;
         update();
       }),
   );
+}
+
+function completionMessage() {
+  const answered = answers.filter(Number.isInteger).length;
+  return answered === ITEMS.length
+    ? ""
+    : `${answered} of ${ITEMS.length} answered — complete all items to generate documentation.`;
 }
 
 // Recalculate the displayed results and regenerate the selected output format.
@@ -134,8 +147,10 @@ function update() {
     nearest = OPTIONS.reduce((best, o) =>
       Math.abs(o.value - avg) < Math.abs(best.value - avg) ? o : best,
     );
-  $("score-display").textContent = `${total} / 84`;
-  $("average-display").textContent = `${avg.toFixed(2)} - ${nearest.label}`;
+  $("score-display").textContent = completionMessage() ? "—" : `${total} / 84`;
+  $("average-display").textContent = completionMessage()
+    ? `${answers.filter(Number.isInteger).length} of ${ITEMS.length} answered`
+    : `${avg.toFixed(2)} - ${nearest.label}`;
   const counts = OPTIONS.map((o) => answers.filter((v) => v === o.value).length);
   $("distribution").innerHTML = OPTIONS.map(
     (o, i) =>
@@ -144,12 +159,17 @@ function update() {
         <strong>${counts[i]} item${counts[i] === 1 ? "" : "s"}</strong>
         </div>`,
   ).join("");
-  const pct = selectedTypes().reduce((n, x) => n + x.percent, 0);
+  const enteredPercentages = selectedTypes().filter((x) => x.percent !== null);
+  const pct = enteredPercentages.reduce((n, x) => n + x.percent, 0);
   $("percentage-status").textContent = selectedTypes().length
-    ? `Selected percentages total ${pct}%.${pct === 100 ? "" : " Adjust to 100% when the client can reasonably estimate the distribution."}`
+    ? !enteredPercentages.length
+      ? "No percentages entered."
+      : `Entered percentages total ${pct}%.${pct === 100 ? "" : " Adjust to 100% when the client can reasonably estimate the distribution."}`
     : "No discrimination types selected.";
   const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
-  Workbench.writeOutput(detailed ? detail(total, avg) : summary(total, avg, counts));
+  Workbench.writeOutput(
+    completionMessage() ? "" : detailed ? detail(total, avg) : summary(total, avg, counts),
+  );
 }
 
 // Collect checked discrimination types, using the custom Other label when provided.
@@ -158,18 +178,20 @@ function selectedTypes() {
     .filter(([, v]) => v.selected)
     .map(([name, v]) => ({
       name: name === "Other" && v.text?.trim() ? v.text.trim() : name,
-      percent: v.percent || 0,
+      percent: v.percent ?? null,
     }));
 }
 
 // Build the paragraph version of the note from the current results.
 function summary(total, avg, counts) {
+  if (completionMessage()) return "";
   const sources = selectedTypes();
-  return `TSDS completed with a total score of ${total}/84 and an average item response of ${avg.toFixed(2)}/4. Responses included ${counts[0]} Never, ${counts[1]} Rarely, ${counts[2]} Sometimes, and ${counts[3]} Often endorsements. ${sources.length ? `Reported discrimination attributions were ${sources.map((x) => `${x.name} (${x.percent}%)`).join(", ")}.` : "No discrimination attributions were documented."} Higher scores indicate more frequent discrimination-related trauma symptoms; the TSDS does not have an established diagnostic cutoff.`;
+  return `TSDS completed with a total score of ${total}/84 and an average item response of ${avg.toFixed(2)}/4. Responses included ${counts[0]} Never, ${counts[1]} Rarely, ${counts[2]} Sometimes, and ${counts[3]} Often endorsements. ${sources.length ? `Reported discrimination attributions were ${sources.map((x) => `${x.name}${x.percent === null ? "" : ` (${x.percent}%)`}`).join(", ")}.` : "No discrimination attributions were documented."} Higher scores indicate more frequent discrimination-related trauma symptoms; the TSDS does not have an established diagnostic cutoff.`;
 }
 
 // Build the detailed note, including individual answers and scores.
 function detail(total, avg) {
+  if (completionMessage()) return "";
   const lines = ["Trauma Symptoms of Discrimination Scale (TSDS)", ""];
   ITEMS.forEach((text, i) =>
     lines.push(
@@ -186,7 +208,12 @@ function detail(total, avg) {
   );
   const sources = selectedTypes();
   lines.push(
-    ...(sources.length ? sources.map((x) => `${x.name}: ${x.percent}%`) : ["None documented"]),
+    ...(sources.length
+      ? sources.map(
+          (x) =>
+            `${x.name}${x.percent === null ? ": percentage not documented" : `: ${x.percent}%`}`,
+        )
+      : ["None documented"]),
     "",
     "Interpretation",
     "Higher scores indicate more frequent discrimination-related trauma symptoms. No diagnostic cutoff is established.",
@@ -205,7 +232,7 @@ function escapeAttr(s = "") {
 // Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 reset();

@@ -8,15 +8,6 @@
   display: grid;
   gap: 14px;
 }
-/* Navigation links between sections; sticky positioning keeps links visible while scrolling. */
-.section-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
 .symptom-group {
   margin-top: 24px;
 }
@@ -116,21 +107,19 @@
   color: var(--accent-secondary);
   font-size: 22px;
 }
-.information-alert {
-  margin-top: 18px;
-  padding: 15px;
-  border: 1px solid var(--accent-secondary);
-  border-radius: 20px;
-  background: var(--notice-surface);
-  line-height: 1.5;
-}
 .other-symptom-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(220px, 1fr) auto auto auto;
   gap: 12px;
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
+}
+.other-add {
+  margin-top: var(--space-options);
+}
+.other-remove {
+  padding: 6px 10px;
 }
 .other-symptom-row input[type="text"] {
   width: 100%;
@@ -158,12 +147,17 @@
   .target-grid {
     grid-template-columns: 1fr;
   }
-  .symptom-row,
-  .other-symptom-row {
+  .symptom-row {
     grid-template-columns: 1fr auto auto;
   }
-  .section-nav {
-    position: static;
+  .other-symptom-row {
+    grid-template-columns: auto auto 1fr;
+  }
+  .other-symptom-row input[type="text"] {
+    grid-column: 1 / -1;
+  }
+  .other-remove {
+    justify-self: end;
   }
   .anchor-grid {
     grid-template-columns: 1fr;

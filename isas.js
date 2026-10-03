@@ -133,15 +133,15 @@ const FUNCTIONS = [
 
 const RESPONSE_LABELS = ["Not relevant", "Somewhat relevant", "Very relevant"];
 
-let behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, 0]));
+let behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, null]));
 let mainBehaviors = new Set();
 // Use printed item numbers 1–39 as indexes; index 0 is intentionally unused.
-let responses = Array(40).fill(0);
+let responses = Array(40).fill(null);
 let choices = {
-  pain: "Not documented",
-  alone: "Not documented",
-  delay: "Not documented",
-  stop: "Not documented",
+  pain: "",
+  alone: "",
+  delay: "",
+  stop: "",
 };
 
 // Build behavior fields and attach handlers that keep the stored answers current.
@@ -152,10 +152,10 @@ function renderBehaviors() {
       <div class="behavior-name">${name}</div>
       <label>
         <span class="small-label">Lifetime count</span>
-        <input type="number" min="0" step="1" value="${behaviorCounts[name]}" data-behavior-count="${index}">
+        <input type="number" min="0" step="1" value="${behaviorCounts[name] ?? ""}" aria-label="${name}: lifetime count" data-behavior-count="${index}">
       </label>
       <label class="main-check">
-        <input type="checkbox" data-main-behavior="${index}" ${mainBehaviors.has(name) ? "checked" : ""}>
+        <input type="checkbox" aria-label="${name}: main form" data-main-behavior="${index}" ${mainBehaviors.has(name) ? "checked" : ""}>
         <span>Main form</span>
       </label>
     </div>
@@ -165,7 +165,8 @@ function renderBehaviors() {
   document.querySelectorAll("[data-behavior-count]").forEach((input) => {
     input.addEventListener("input", () => {
       const name = BEHAVIORS[Number(input.dataset.behaviorCount)];
-      if (input.validity.valid) behaviorCounts[name] = Number(input.value) || 0;
+      if (input.validity.valid)
+        behaviorCounts[name] = input.value === "" ? null : Number(input.value);
       updateAll();
     });
   });
@@ -182,9 +183,9 @@ function renderBehaviors() {
 
 // Flatten the grouped questions and sort them by printed item number for the form.
 function orderedFunctionItems() {
-  return FUNCTIONS.flatMap((group) =>
-    group.items.map(([number, text]) => ({ number, text, functionName: group.name })),
-  ).sort((a, b) => a.number - b.number);
+  return FUNCTIONS.flatMap((group) => group.items.map(([number, text]) => ({ number, text }))).sort(
+    (a, b) => a.number - b.number,
+  );
 }
 
 // Build function-rating controls. responses uses printed item numbers, so index zero is unused.
@@ -200,7 +201,7 @@ function renderFunctions() {
             ${RESPONSE_LABELS.map(
               (label, score) => `
               <label title="${label}">
-                <input type="radio" name="item-${number}" value="${score}" ${responses[number] === score ? "checked" : ""}>
+                <input type="radio" name="item-${number}" aria-label="${score}: ${label}" value="${score}" ${responses[number] === score ? "checked" : ""}>
                 <span>${score}</span>
               </label>
             `,
@@ -216,14 +217,39 @@ function renderFunctions() {
   document.querySelectorAll('#function-items input[type="radio"]').forEach((input) => {
     input.addEventListener("change", () => {
       const number = Number(input.name.replace("item-", ""));
-      responses[number] = Number(input.value);
+      responses[number] = input.checked ? Number(input.value) : null;
       updateAll();
     });
   });
 }
 
+// Explicit zeros across the behavior list allow Section I-only documentation.
+// Empty counts do not establish an absence of self-injury.
+function noBehaviorsReported() {
+  return (
+    responses.slice(1).every((value) => value === null) &&
+    BEHAVIORS.every((name) => behaviorCounts[name] === 0) &&
+    lifetimeBehaviorTotal() === 0 &&
+    mainBehaviors.size === 0 &&
+    !document.getElementById("other-behavior-main").checked
+  );
+}
+function completionMessage() {
+  if (noBehaviorsReported()) return "";
+  const answered = responses.slice(1).filter(Number.isInteger).length;
+  return answered === 39
+    ? ""
+    : `${answered} of 39 function ratings answered — complete these items, or record zero counts for all listed behaviors if none occurred.`;
+}
+function antiSuicideEndorsed() {
+  return FUNCTIONS.find((group) => group.name === "Anti-Suicide").items.some(
+    ([number]) => responses[number] > 0,
+  );
+}
+
 // Add the three item responses assigned to one function (each response is 0–2).
 function scoreFor(group) {
+  if (group.items.some(([number]) => responses[number] === null)) return null;
   return group.items.reduce((sum, [number]) => sum + responses[number], 0);
 }
 
@@ -238,6 +264,7 @@ function functionScores() {
 
 // Sum the 13 function scores to produce the displayed total out of 78.
 function totalFunctionScore() {
+  if (responses.slice(1).some((value) => value === null)) return null;
   return functionScores().reduce((sum, group) => sum + group.score, 0);
 }
 
@@ -275,22 +302,21 @@ function behaviorSummary() {
 // Refresh function totals, score bars, ranked functions, and the Anti-Suicide endorsement alert.
 function updateFunctionResults() {
   const scores = functionScores();
-  scores.forEach((group) => {
-    const domain = document.querySelector(`[data-domain-score="${CSS.escape(group.name)}"]`);
-    if (domain) domain.textContent = `${group.score} / 6`;
-  });
-
   const highest = Math.max(...scores.map((group) => group.score));
-  document.getElementById("total-display").textContent = `${totalFunctionScore()} / 78`;
-  document.getElementById("highest-display").textContent = `${highest} / 6`;
+  document.getElementById("total-display").textContent =
+    totalFunctionScore() === null ? "—" : `${totalFunctionScore()} / 78`;
+  document.getElementById("highest-display").textContent =
+    totalFunctionScore() === null
+      ? `${responses.slice(1).filter(Number.isInteger).length} of 39 answered`
+      : `${highest} / 6`;
 
   document.getElementById("function-scores").innerHTML = scores
     .map(
       (group) => `
-    <div class="score-row score-${group.score}">
+    <div class="score-row score-${group.score ?? 0}">
       <span class="score-name">${group.name}</span>
       <div class="score-track" aria-hidden="true"><div class="score-fill" style="width:${(group.score / 6) * 100}%"></div></div>
-      <span class="score-value">${group.score} / 6</span>
+      <span class="score-value">${group.score === null ? "—" : `${group.score} / 6`}</span>
     </div>
   `,
     )
@@ -302,28 +328,28 @@ function updateFunctionResults() {
       FUNCTIONS.findIndex((group) => group.name === a.name) -
         FUNCTIONS.findIndex((group) => group.name === b.name),
   );
-  const shown =
-    highest === 0 ? ranked.slice(0, 3) : ranked.filter((group) => group.score > 0).slice(0, 5);
+  const shown = ranked.filter((group) => group.score > 0).slice(0, 5);
 
   document.getElementById("ranked-functions").innerHTML =
-    highest === 0
-      ? '<div class="ranked-function">No functions are currently endorsed.</div>'
-      : shown
-          .map((group, index) => {
-            const endorsed = group.items
-              .filter(([number]) => responses[number] > 0)
-              .map(([number, text]) => `${number}: ${text} (${responses[number]})`);
-            return `
+    totalFunctionScore() === null
+      ? '<div class="ranked-function">Complete the function ratings to compare results.</div>'
+      : highest === 0
+        ? '<div class="ranked-function">No functions are currently endorsed.</div>'
+        : shown
+            .map((group, index) => {
+              const endorsed = group.items
+                .filter(([number]) => responses[number] > 0)
+                .map(([number, text]) => `${number}: ${text} (${responses[number]})`);
+              return `
           <div class="ranked-function">
             <strong>${index + 1}. ${group.name} — ${group.score}/6</strong>
             <p>${endorsed.join("; ")}</p>
           </div>
         `;
-          })
-          .join("");
+            })
+            .join("");
 
-  document.getElementById("suicide-function-alert").hidden =
-    scoreFor(FUNCTIONS.find((group) => group.name === "Anti-Suicide")) === 0;
+  document.getElementById("suicide-function-alert").hidden = !antiSuicideEndorsed();
 }
 
 // Join choices into readable English, handling empty, one-item, and longer lists.
@@ -343,12 +369,15 @@ function dateText(value) {
 
 // Build the paragraph version of the note from the current results.
 function summaryOutput() {
+  if (completionMessage()) return "";
   const behaviors = behaviorSummary();
   const scores = [...functionScores()].sort((a, b) => b.score - a.score);
   const positiveScores = scores.filter((group) => group.score > 0);
   const highest = positiveScores.slice(0, 3);
 
-  let text = "ISAS completed.";
+  let text = noBehaviorsReported()
+    ? "ISAS Section I completed; zero counts were entered for all listed behaviors. Section II was not scored."
+    : "ISAS function ratings completed.";
 
   if (behaviors.length === 0) {
     text += " No lifetime non-suicidal self-injury behaviors were entered.";
@@ -367,23 +396,25 @@ function summaryOutput() {
   if (age) text += ` Age at first self-injury was approximately ${age}.`;
   if (recent) text += ` Most recent self-injury was ${dateText(recent)}.`;
 
-  if (choices.pain !== "Not documented")
+  if (choices.pain && choices.pain !== "Not documented")
     text += ` Physical pain during self-harm was reported as ${choices.pain.toLowerCase()}.`;
-  if (choices.alone !== "Not documented")
+  if (choices.alone && choices.alone !== "Not documented")
     text += ` Being alone during self-harm was reported as ${choices.alone.toLowerCase()}.`;
-  if (choices.delay !== "Not documented")
+  if (choices.delay && choices.delay !== "Not documented")
     text += ` Typical delay from urge to behavior was ${choices.delay.toLowerCase()}.`;
-  if (choices.stop !== "Not documented")
+  if (choices.stop && choices.stop !== "Not documented")
     text += ` Desire to stop self-harming was reported as ${choices.stop.toLowerCase()}.`;
 
-  text += ` Function total was ${totalFunctionScore()}/78.`;
-  if (highest.length === 0) {
-    text += " No self-injury functions were endorsed.";
-  } else {
-    text += ` Highest endorsed functions were ${sentenceList(highest.map((group) => `${group.name} (${group.score}/6)`))}.`;
+  if (!noBehaviorsReported()) {
+    text += ` Function total was ${totalFunctionScore()}/78.`;
+    if (highest.length === 0) {
+      text += " No self-injury functions were endorsed.";
+    } else {
+      text += ` Highest endorsed functions were ${sentenceList(highest.map((group) => `${group.name} (${group.score}/6)`))}.`;
+    }
   }
 
-  if (scoreFor(FUNCTIONS.find((group) => group.name === "Anti-Suicide")) > 0) {
+  if (!noBehaviorsReported() && antiSuicideEndorsed()) {
     text +=
       " Anti-Suicide items were endorsed and require direct assessment of suicidal thoughts and behavior.";
   }
@@ -393,6 +424,7 @@ function summaryOutput() {
 
 // Build the detailed note, including individual answers and scores.
 function detailedOutput() {
+  if (completionMessage()) return "";
   const lines = ["ISAS", "", "Section I: Behaviors", ""];
   const behaviors = behaviorSummary();
 
@@ -410,11 +442,15 @@ function detailedOutput() {
     `Age first self-harmed: ${document.getElementById("age-first").value || "Not documented"}`,
   );
   lines.push(`Most recent self-harm: ${dateText(document.getElementById("most-recent").value)}`);
-  lines.push(`Physical pain: ${choices.pain}`);
-  lines.push(`Usually alone: ${choices.alone}`);
-  lines.push(`Urge-to-behavior delay: ${choices.delay}`);
-  lines.push(`Wanted to stop: ${choices.stop}`);
+  lines.push(`Physical pain: ${choices.pain || "Not documented"}`);
+  lines.push(`Usually alone: ${choices.alone || "Not documented"}`);
+  lines.push(`Urge-to-behavior delay: ${choices.delay || "Not documented"}`);
+  lines.push(`Wanted to stop: ${choices.stop || "Not documented"}`);
 
+  if (noBehaviorsReported()) {
+    lines.push("", "Zero counts entered for all listed behaviors; Section II not scored.");
+    return lines.join("\n");
+  }
   lines.push("", "Section II: Item Responses", "");
   orderedFunctionItems().forEach(({ number, text }) => {
     lines.push(`${number}. ${text}`);
@@ -432,7 +468,7 @@ function detailedOutput() {
   if (accurate) lines.push("", `More accurate statements: ${accurate}`);
   if (suggested) lines.push("", `Suggested additional statements: ${suggested}`);
 
-  if (scoreFor(FUNCTIONS.find((group) => group.name === "Anti-Suicide")) > 0) {
+  if (!noBehaviorsReported() && antiSuicideEndorsed()) {
     lines.push(
       "",
       "Safety note: Anti-Suicide items were endorsed and require direct suicide-risk assessment.",
@@ -450,9 +486,7 @@ function updateOutput() {
 
 // Refresh the behavior notice, function results, and note after an answer changes.
 function updateAll() {
-  document
-    .getElementById("no-behavior-note")
-    .classList.toggle("hidden", lifetimeBehaviorTotal() > 0);
+  document.getElementById("no-behavior-note").hidden = lifetimeBehaviorTotal() > 0;
   updateFunctionResults();
   updateOutput();
 }
@@ -463,10 +497,12 @@ function wireChoiceGroups() {
     group.querySelectorAll("button").forEach((button) => {
       button.addEventListener("click", () => {
         const name = group.dataset.choiceGroup;
-        choices[name] = button.dataset.value;
+        choices[name] = choices[name] === button.dataset.value ? "" : button.dataset.value;
         group
           .querySelectorAll("button")
-          .forEach((item) => item.classList.toggle("selected", item === button));
+          .forEach((item) =>
+            item.classList.toggle("selected", item.dataset.value === choices[name]),
+          );
         updateAll();
       });
     });
@@ -494,18 +530,18 @@ function wireInputs() {
 // Clear behavior counts, function responses, context choices, and optional text, then rebuild the form.
 function resetAll() {
   Workbench.resetReview();
-  behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, 0]));
+  behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, null]));
   mainBehaviors = new Set();
-  responses = Array(40).fill(0);
+  responses = Array(40).fill(null);
   choices = {
-    pain: "Not documented",
-    alone: "Not documented",
-    delay: "Not documented",
-    stop: "Not documented",
+    pain: "",
+    alone: "",
+    delay: "",
+    stop: "",
   };
 
   document.getElementById("other-behavior-name").value = "";
-  document.getElementById("other-behavior-count").value = 0;
+  document.getElementById("other-behavior-count").value = "";
   document.getElementById("other-behavior-main").checked = false;
   document.getElementById("age-first").value = "";
   document.getElementById("most-recent").value = "";
@@ -515,9 +551,7 @@ function resetAll() {
   document.querySelectorAll("[data-choice-group]").forEach((group) => {
     group
       .querySelectorAll("button")
-      .forEach((button) =>
-        button.classList.toggle("selected", button.dataset.value === "Not documented"),
-      );
+      .forEach((button) => button.classList.toggle("selected", false));
   });
 
   renderBehaviors();
@@ -528,7 +562,7 @@ function resetAll() {
 // Connect page controls: reset answers, change output style, and refresh documentation.
 document.getElementById("reset-button").addEventListener("click", resetAll);
 
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 renderBehaviors();

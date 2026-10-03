@@ -82,7 +82,7 @@ const MEASURES = {
 const requestedMeasure = new URLSearchParams(window.location.search).get("measure");
 const currentMeasure = Object.hasOwn(MEASURES, requestedMeasure) ? requestedMeasure : "phq9";
 let answers = [];
-let impact = "Not difficult at all";
+let impact = "";
 
 const questionsContainer = document.getElementById("questions");
 
@@ -91,11 +91,11 @@ function measure() {
   return MEASURES[currentMeasure];
 }
 
-// Set every symptom response to zero and reset the functional impact choice.
+// Null means unanswered; an explicitly selected zero remains a valid response.
 function resetAnswers() {
   Workbench.resetReview();
-  answers = Array(measure().questions.length).fill(0);
-  impact = "Not difficult at all";
+  answers = Array(measure().questions.length).fill(null);
+  impact = "";
 }
 
 // Build the selected measure, attach its controls, and display the initial results.
@@ -137,17 +137,17 @@ function renderMeasure() {
   questionsContainer.querySelectorAll('input[type="radio"]').forEach((input) => {
     input.addEventListener("change", (event) => {
       const index = Number(event.target.name.replace("question-", ""));
-      answers[index] = Number(event.target.value);
+      answers[index] = event.target.checked ? Number(event.target.value) : null;
       updateResults();
     });
   });
 
   document.querySelectorAll("[data-impact]").forEach((button) => {
     button.addEventListener("click", () => {
-      impact = button.dataset.impact;
+      impact = impact === button.dataset.impact ? "" : button.dataset.impact;
       document
         .querySelectorAll("[data-impact]")
-        .forEach((item) => item.classList.toggle("selected", item === button));
+        .forEach((item) => item.classList.toggle("selected", item.dataset.impact === impact));
       updateResults();
     });
   });
@@ -155,14 +155,23 @@ function renderMeasure() {
   updateResults();
 }
 
+// Do not calculate or interpret a partial questionnaire as a completed score.
+function completionMessage() {
+  const answered = answers.filter(Number.isInteger).length;
+  return answered === measure().questions.length
+    ? ""
+    : `${answered} of ${measure().questions.length} answered — complete all items to generate documentation.`;
+}
+
 // Add symptom scores; the separate functional impact choice is not included.
 function totalScore() {
-  return answers.reduce((sum, value) => sum + value, 0);
+  return completionMessage() ? null : answers.reduce((sum, value) => sum + value, 0);
 }
 
 // Find the configured severity band containing the current total.
 function currentRange() {
   const total = totalScore();
+  if (total === null) return null;
   return measure().ranges.find((range) => total >= range.min && total <= range.max);
 }
 
@@ -172,7 +181,7 @@ function renderInterpretation() {
   document.getElementById("interpretation-table").innerHTML = measure()
     .ranges.map(
       (range) => `
-    <div class="interpretation-row ${total >= range.min && total <= range.max ? "current" : ""}">
+    <div class="interpretation-row ${total !== null && total >= range.min && total <= range.max ? "current" : ""}">
       <span class="interpretation-range">${range.min}–${range.max}</span>
       <span>${range.label}</span>
     </div>
@@ -196,6 +205,7 @@ function sentenceList(items) {
 
 // Build the paragraph version of the note from the current results.
 function summaryOutput() {
+  if (completionMessage()) return "";
   const config = measure();
   const total = totalScore();
   const severity = currentRange().label;
@@ -218,7 +228,7 @@ function summaryOutput() {
     text += ` Endorsed symptoms included ${sentenceList(phrases)}.`;
   }
 
-  text += ` Functional impact was rated as ${impact.toLowerCase()}.`;
+  if (impact) text += ` Functional impact was rated as ${impact.toLowerCase()}.`;
 
   if (currentMeasure === "phq9" && answers[8] > 0) {
     text += ` Item 9 was endorsed at ${answerText(answers[8]).toLowerCase()} and requires direct suicide-risk assessment.`;
@@ -229,6 +239,7 @@ function summaryOutput() {
 
 // Build the detailed note, including individual answers and scores.
 function detailedOutput() {
+  if (completionMessage()) return "";
   const config = measure();
   const lines = [config.title, ""];
 
@@ -242,7 +253,7 @@ function detailedOutput() {
 
   lines.push(`Total: ${totalScore()} / ${config.max}`);
   lines.push(`Interpretation: ${currentRange().label}`);
-  lines.push(`Functional impact: ${impact}`);
+  if (impact) lines.push(`Functional impact: ${impact}`);
 
   if (currentMeasure === "phq9" && answers[8] > 0) {
     lines.push("");
@@ -258,8 +269,12 @@ function detailedOutput() {
 function updateResults() {
   const config = measure();
   const total = totalScore();
-  document.getElementById("score-display").textContent = `${total} / ${config.max}`;
-  document.getElementById("severity-display").textContent = currentRange().label;
+  document.getElementById("score-display").textContent =
+    total === null ? "—" : `${total} / ${config.max}`;
+  document.getElementById("severity-display").textContent =
+    total === null
+      ? `${answers.filter(Number.isInteger).length} of ${config.questions.length} answered`
+      : currentRange().label;
   document.getElementById("safety-alert").hidden = !(currentMeasure === "phq9" && answers[8] > 0);
   renderInterpretation();
   const style = document.querySelector('input[name="outputStyle"]:checked').value;
@@ -276,7 +291,7 @@ document
   .querySelectorAll('input[name="outputStyle"]')
   .forEach((input) => input.addEventListener("change", updateResults));
 
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 resetAnswers();

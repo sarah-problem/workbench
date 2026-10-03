@@ -116,16 +116,16 @@ const $ = (id) => document.getElementById(id);
 let behaviors = [],
   reasons = [],
   context = {},
-  lifetime = "No",
+  lifetime = "",
   otherReason = "";
 
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
   Workbench.resetReview();
-  behaviors = BEHAVIORS.map(() => ({ selected: false, count: 0, medical: "No", other: "" }));
-  reasons = REASONS.map(() => 0);
-  context = { intent: "No", delay: "None", substances: "No", pain: "No pain", age: "" };
-  lifetime = "No";
+  behaviors = BEHAVIORS.map(() => ({ selected: false, count: null, medical: "", other: "" }));
+  reasons = REASONS.map(() => null);
+  context = { intent: "", delay: "", substances: "", pain: "", age: "" };
+  lifetime = "";
   otherReason = "";
   render();
 }
@@ -144,29 +144,31 @@ function renderBehaviors() {
   $("behavior-list").innerHTML = BEHAVIORS.map((name, i) => {
     const item = behaviors[i];
     return `<div class="behavior-row">
-        <div class="behavior-name">
-        <label>
-        <input type="checkbox" data-behavior-check="${i}" ${item.selected ? "checked" : ""}> ${i + 1}. ${name}</label>${i === BEHAVIORS.length - 1 ? `<input class="other-input" type="text" aria-label="Other self-harm behavior" data-behavior-other="${i}" value="${escapeAttr(item.other)}" placeholder="Describe other behavior">` : ""}</div>
-        <label class="field-label">How many times?<input type="number" min="1" step="1" required data-behavior-count="${i}" value="${item.selected ? item.count : ""}" ${item.selected ? "" : "disabled"}>
-        </label>
-        <div>
-        <span class="small-label">Medical treatment?</span>
-        </div>
-        <div class="segmented-options">${["No", "Yes"].map((value) => `<button type="button" class="segment-button ${item.medical === value && item.selected ? "selected" : ""}" data-medical="${i}" data-value="${value}" ${item.selected ? "" : "disabled"}>${value}</button>`).join("")}</div>
-        </div>`;
+        <div class="behavior-name"><label class="behavior-check">
+        <input type="checkbox" data-behavior-check="${i}" ${item.selected ? "checked" : ""}><span>${i + 1}. ${name}</span></label>
+        ${i === BEHAVIORS.length - 1 ? `<input class="other-input" type="text" aria-label="Other self-harm behavior" data-behavior-other="${i}" value="${escapeAttr(item.other)}" placeholder="Describe other behavior" ${item.selected ? "" : "hidden disabled"}>` : ""}</div>
+        <div class="behavior-details" ${item.selected ? "" : "hidden"}>
+        <label class="field-label">How many times?<input type="number" min="1" step="1" required data-behavior-count="${i}" value="${item.selected ? (item.count ?? "") : ""}" ${item.selected ? "" : "disabled"}></label>
+        <div class="field-label"><span id="medical-label-${i}">Medical treatment?</span>
+        <div class="segmented-options" role="group" aria-labelledby="medical-label-${i}">${["No", "Yes"].map((value) => `<button type="button" class="segment-button ${item.medical === value && item.selected ? "selected" : ""}" data-medical="${i}" data-value="${value}" ${item.selected ? "" : "disabled"}>${value}</button>`).join("")}</div></div>
+        </div></div>`;
   }).join("");
   document.querySelectorAll("[data-behavior-check]").forEach(
     (input) =>
       (input.onchange = () => {
         const item = behaviors[Number(input.dataset.behaviorCheck)];
         item.selected = input.checked;
-        item.count = input.checked ? Math.max(1, item.count || 0) : 0;
-        if (!input.checked) item.medical = "No";
+        if (!input.checked) item.count = null;
+        if (!input.checked) item.medical = "";
         // Update this row in place so keyboard focus and other in-progress inputs survive.
         const row = input.closest(".behavior-row");
+        // Hidden follow-ups stay disabled so they cannot block documentation validation.
+        row.querySelector(".behavior-details").hidden = !item.selected;
+        const other = row.querySelector("[data-behavior-other]");
+        if (other) other.hidden = other.disabled = !item.selected;
         const count = row.querySelector("[data-behavior-count]");
         count.disabled = !item.selected;
-        count.value = item.selected ? item.count : "";
+        count.value = item.selected ? (item.count ?? "") : "";
         row.querySelectorAll("[data-medical]").forEach((button) => {
           button.disabled = !item.selected;
           button.classList.toggle(
@@ -181,7 +183,8 @@ function renderBehaviors() {
     (input) =>
       (input.oninput = () => {
         if (input.validity.valid)
-          behaviors[Number(input.dataset.behaviorCount)].count = Number(input.value);
+          behaviors[Number(input.dataset.behaviorCount)].count =
+            input.value === "" ? null : Number(input.value);
         update();
       }),
   );
@@ -195,12 +198,13 @@ function renderBehaviors() {
   document.querySelectorAll("[data-medical]").forEach(
     (button) =>
       (button.onclick = () => {
-        behaviors[Number(button.dataset.medical)].medical = button.dataset.value;
+        const item = behaviors[Number(button.dataset.medical)];
+        item.medical = item.medical === button.dataset.value ? "" : button.dataset.value;
         button
           .closest(".segmented-options")
           .querySelectorAll("button")
           .forEach((choice) => {
-            choice.classList.toggle("selected", choice === button);
+            choice.classList.toggle("selected", choice.dataset.value === item.medical);
           });
         update();
       }),
@@ -218,9 +222,9 @@ function renderLifetime() {
   document.querySelectorAll("[data-lifetime]").forEach(
     (button) =>
       (button.onclick = () => {
-        lifetime = button.dataset.lifetime;
+        lifetime = lifetime === button.dataset.lifetime ? "" : button.dataset.lifetime;
         document.querySelectorAll("[data-lifetime]").forEach((choice) => {
-          choice.classList.toggle("selected", choice === button);
+          choice.classList.toggle("selected", choice.dataset.lifetime === lifetime);
         });
         update();
       }),
@@ -252,12 +256,13 @@ function renderContext() {
   document.querySelectorAll("[data-context]").forEach(
     (button) =>
       (button.onclick = () => {
-        context[button.dataset.context] = button.dataset.value;
+        const key = button.dataset.context;
+        context[key] = context[key] === button.dataset.value ? "" : button.dataset.value;
         button
           .closest(".segmented-options")
           .querySelectorAll("button")
           .forEach((choice) => {
-            choice.classList.toggle("selected", choice === button);
+            choice.classList.toggle("selected", choice.dataset.value === context[key]);
           });
         update();
       }),
@@ -285,7 +290,7 @@ function renderReasons() {
   document.querySelectorAll('[name^="reason-"]').forEach(
     (input) =>
       (input.onchange = () => {
-        reasons[Number(input.name.split("-")[1])] = Number(input.value);
+        reasons[Number(input.name.split("-")[1])] = input.checked ? Number(input.value) : null;
         update();
       }),
   );
@@ -297,13 +302,32 @@ function renderReasons() {
     };
 }
 
+// The final Other reason is optional and excluded from all function means.
+function completionMessage() {
+  const required = reasons.slice(0, -1);
+  const answered = required.filter(Number.isInteger).length;
+  if (answered !== required.length)
+    return `${answered} of ${required.length} reason ratings answered — complete these items to generate documentation.`;
+  if (selectedBehaviors().some((item) => !Number.isInteger(item.count) || item.count < 1))
+    return "Enter a frequency for each selected behavior.";
+  return "";
+}
+
 // Group reason ratings using FACTORS, then calculate each mean. The final Other reason is excluded.
 function functionScores() {
   return Object.fromEntries(
     FACTOR_ORDER.map((code) => {
       const indexes = FACTORS.map((factor, i) => (factor === code ? i : -1)).filter((i) => i >= 0);
       const total = indexes.reduce((sum, i) => sum + reasons[i], 0);
-      return [code, { mean: total / indexes.length, total, count: indexes.length }];
+      const complete = indexes.every((i) => Number.isInteger(reasons[i]));
+      return [
+        code,
+        {
+          mean: complete ? total / indexes.length : null,
+          total: complete ? total : null,
+          count: indexes.length,
+        },
+      ];
     }),
   );
 }
@@ -311,20 +335,22 @@ function functionScores() {
 // Recalculate the displayed results and regenerate the selected output format.
 function update() {
   const selected = selectedBehaviors(),
-    incidents = selected.reduce((sum, item) => sum + item.count, 0),
+    // Several methods can occur in one episode; this is a sum of method frequencies.
+    behaviorTotal = selected.reduce((sum, item) => sum + item.count, 0),
     scores = functionScores();
   $("method-count").textContent = selected.length;
-  $("incident-count").textContent = incidents;
+  $("behavior-total").textContent =
+    selected.length && selected.every((item) => Number.isInteger(item.count)) ? behaviorTotal : "—";
   $("intent-alert").hidden = context.intent !== "Yes";
   $("function-results").innerHTML = FACTOR_ORDER.map((code) => {
     const info = FACTOR_INFO[code],
       score = scores[code];
     return `<div class="function-card">
         <h3>${info.name}</h3>
-        <div class="function-score">${score.mean.toFixed(2)} / 3</div>
+        <div class="function-score">${score.mean === null ? "—" : `${score.mean.toFixed(2)} / 3`}</div>
         <div class="function-description">${info.description}</div>
         <div class="function-bar">
-        <span style="width:${(score.mean / 3) * 100}%">
+        <span style="width:${((score.mean ?? 0) / 3) * 100}%">
         </span>
         </div>
         </div>`;
@@ -342,12 +368,14 @@ function update() {
         <strong>${REASON_OPTIONS[item.value].label} (${item.value}):</strong> ${item.text}</p>`,
         )
         .join("")
-    : "<p>No reasons endorsed above Never.</p>";
+    : `<p>${reasons.slice(0, -1).some((value) => value === null) ? `${reasons.slice(0, -1).filter(Number.isInteger).length} of ${REASONS.length - 1} reason ratings answered.` : "No reasons endorsed above Never."}</p>`;
   const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
   Workbench.writeOutput(
-    detailed
-      ? detailedOutput(selected, incidents, scores)
-      : summaryOutput(selected, incidents, scores, ranked),
+    completionMessage()
+      ? ""
+      : detailed
+        ? detailedOutput(selected, behaviorTotal, scores)
+        : summaryOutput(selected, behaviorTotal, scores, ranked),
   );
 }
 
@@ -362,7 +390,8 @@ function selectedBehaviors() {
 }
 
 // Build the paragraph version of the note from the current results.
-function summaryOutput(selected, incidents, scores, ranked) {
+function summaryOutput(selected, behaviorTotal, scores, ranked) {
+  if (completionMessage()) return "";
   const methodText = selected.length
     ? selected
         .map(
@@ -370,7 +399,7 @@ function summaryOutput(selected, incidents, scores, ranked) {
             `${item.name} (${item.count} time${item.count === 1 ? "" : "s"}${item.medical === "Yes" ? ", medical treatment received" : ""})`,
         )
         .join(", ")
-    : "no past-year self-harm behaviors";
+    : "no past-year self-harm behaviors entered";
   const functions = FACTOR_ORDER.map(
     (code) => `${FACTOR_INFO[code].name} ${scores[code].mean.toFixed(2)}/3`,
   ).join(", ");
@@ -380,27 +409,41 @@ function summaryOutput(selected, incidents, scores, ranked) {
         .map((item) => `${item.text} (${REASON_OPTIONS[item.value].label})`)
         .join("; ")
     : "none endorsed above Never";
-  return `FASM completed. The client reported ${methodText}, totaling ${incidents} reported incident${incidents === 1 ? "" : "s"} during the past year. Lifetime history outside the past year: ${lifetime}. Suicidal intent during the reported acts: ${context.intent}. Typical contemplation period was ${context.delay.toLowerCase()}; substance involvement was ${context.substances.toLowerCase()}; pain was rated ${context.pain.toLowerCase()}${context.age !== "" ? `; age at first self-harm was ${context.age}` : ""}. Function means were ${functions}. Highest endorsed reasons were ${top}. The FASM has no diagnostic cutoff; results require integration with clinical interview and direct safety assessment.`;
+  const details = [];
+  if (lifetime) details.push(`Lifetime history outside the past year: ${lifetime}.`);
+  if (context.intent) details.push(`Suicidal intent during the reported acts: ${context.intent}.`);
+  if (context.delay) details.push(`Typical contemplation period: ${context.delay.toLowerCase()}.`);
+  if (context.substances)
+    details.push(`Substance involvement: ${context.substances.toLowerCase()}.`);
+  if (context.pain) details.push(`Pain: ${context.pain.toLowerCase()}.`);
+  if (context.age !== "") details.push(`Age at first self-harm: ${context.age}.`);
+  return `FASM completed. Past-year behavior entries were ${methodText}${selected.length ? `, with a summed frequency of ${behaviorTotal} across methods during the past year` : ""}. ${details.length ? details.join(" ") + " " : ""}Function means were ${functions}. Highest endorsed reasons were ${top}. The FASM has no diagnostic cutoff; results require integration with clinical interview and direct safety assessment.`;
 }
 
 // Build the detailed note, including individual answers and scores.
-function detailedOutput(selected, incidents, scores) {
+function detailedOutput(selected, behaviorTotal, scores) {
+  if (completionMessage()) return "";
   const lines = ["Functional Assessment of Self-Mutilation (FASM)", "", "Past-Year Behaviors"];
   if (selected.length)
     selected.forEach((item) =>
-      lines.push(item.name, `Frequency: ${item.count}`, `Medical treatment: ${item.medical}`, ""),
+      lines.push(
+        item.name,
+        `Frequency: ${item.count}`,
+        `Medical treatment: ${item.medical || "Not documented"}`,
+        "",
+      ),
     );
-  else lines.push("None endorsed", "");
+  else lines.push("No behaviors entered", "");
   lines.push(
     `Total methods: ${selected.length}`,
-    `Total reported incidents: ${incidents}`,
-    `Lifetime history outside past year: ${lifetime}`,
+    `Total frequency across methods: ${behaviorTotal}`,
+    `Lifetime history outside past year: ${lifetime || "Not documented"}`,
     "",
     "Contextual Features",
-    `Suicidal intent during acts: ${context.intent}`,
-    `Contemplation period: ${context.delay}`,
-    `Drugs or alcohol: ${context.substances}`,
-    `Pain: ${context.pain}`,
+    `Suicidal intent during acts: ${context.intent || "Not documented"}`,
+    `Contemplation period: ${context.delay || "Not documented"}`,
+    `Drugs or alcohol: ${context.substances || "Not documented"}`,
+    `Pain: ${context.pain || "Not documented"}`,
     `Age at first self-harm: ${context.age || "Not documented"}`,
     "",
     "Function Profiles",
@@ -415,7 +458,7 @@ function detailedOutput(selected, incidents, scores) {
     lines.push(
       "",
       `${i + 1}. ${i === REASONS.length - 1 && otherReason.trim() ? otherReason.trim() : text}`,
-      `${REASON_OPTIONS[reasons[i]].label} - ${reasons[i]}`,
+      `${reasons[i] === null ? "Not answered" : `${REASON_OPTIONS[reasons[i]].label} - ${reasons[i]}`}`,
     ),
   );
   lines.push(
@@ -434,7 +477,7 @@ function escapeAttr(value = "") {
 // Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((input) => (input.onchange = update));
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 reset();

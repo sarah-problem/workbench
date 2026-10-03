@@ -19,12 +19,12 @@
       rel="stylesheet"
     />
     <!-- Page layout first; the shared design system owns common styling. -->
-    <link rel="stylesheet" href="screening.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="ybocs.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="screening.css?v=20261003-review6" />
+    <link rel="stylesheet" href="ybocs.css?v=20261003-multiple-other" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-review6" />
     <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body class="spacious-tool">
+  <body data-clearable-answers class="spacious-tool">
     <main class="page-shell">
       <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
       <h1 id="page-title">Y-BOCS</h1>
@@ -97,16 +97,15 @@
       <section id="results" class="card results-card">
         <div class="score-grid">
           <div>
-            <span class="small-label">Obsessions</span><strong id="obsession-score">0 / 20</strong>
+            <span class="small-label">Obsessions</span><strong id="obsession-score">—</strong>
           </div>
           <div>
-            <span class="small-label">Compulsions</span
-            ><strong id="compulsion-score">0 / 20</strong>
+            <span class="small-label">Compulsions</span><strong id="compulsion-score">—</strong>
           </div>
-          <div><span class="small-label">Total</span><strong id="total-score">0 / 40</strong></div>
+          <div><span class="small-label">Total</span><strong id="total-score">—</strong></div>
           <div>
             <span class="small-label">Severity</span
-            ><strong id="severity-label">Subclinical</strong>
+            ><strong id="severity-label">Awaiting responses</strong>
           </div>
         </div>
         <div class="information-alert">
@@ -120,7 +119,7 @@
         <div class="output-style-row">
           <span class="small-label">Output style</span
           ><label class="inline-option"
-            ><input type="radio" name="outputStyle" value="summary" checked /> Summary</label
+            ><input type="radio" name="outputStyle" value="summary" checked /> Narrative</label
           ><label class="inline-option"
             ><input type="radio" name="outputStyle" value="detailed" /> List</label
           >
@@ -146,8 +145,8 @@
       </section>
     </main>
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="workbench-ui.js?v=20261003-audit4"></script>
-    <script src="ybocs.js?v=20261003-audit4"></script>
+    <script src="workbench-ui.js?v=20261003-clearable2"></script>
+    <script src="ybocs.js?v=20261003-multiple-other"></script>
     <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

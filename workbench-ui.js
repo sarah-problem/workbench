@@ -4,12 +4,14 @@ const Workbench = (() => {
   let reviewed = false;
   let pendingOutput = "";
   let copyTimer;
+  let validateReview = () => "";
   const output = () => document.querySelector("[data-note-output]");
   const status = () => document.querySelector("[data-copy-status]");
 
-  // Preset-based tools deliberately keep their convenient starting profile.
-  // A separate review action prevents a preset from silently becoming a completed note.
-  function initReview() {
+  // Tools prepare notes separately from displaying them. Blank-start questionnaires
+  // can provide a completeness check; other tools retain their existing review flow.
+  function initReview({ validate = () => "" } = {}) {
+    validateReview = validate;
     reviewPanel = document.createElement("div");
     reviewPanel.className = "preset-review";
     reviewPanel.innerHTML = '<button type="button">Create documentation</button>';
@@ -19,6 +21,11 @@ const Workbench = (() => {
     row.insertBefore(reviewPanel, row.querySelector(".output-copy-actions"));
     reviewButton.addEventListener("click", () => {
       if (!numbersAreValid(true)) return;
+      const incomplete = validateReview();
+      if (incomplete) {
+        if (status()) status().textContent = incomplete;
+        return;
+      }
       reviewed = true;
       reviewPanel.hidden = true;
       reviewButton.hidden = true;
@@ -86,6 +93,11 @@ const Workbench = (() => {
       message.textContent = "Check the highlighted number fields.";
       return;
     }
+    const incomplete = validateReview();
+    if (incomplete) {
+      message.textContent = incomplete;
+      return;
+    }
     if (!field.value.trim()) {
       message.textContent =
         reviewPanel && !reviewed ? "Create documentation first." : "No documentation to copy yet.";
@@ -109,6 +121,52 @@ const Workbench = (() => {
       copyTimer = setTimeout(() => {
         message.textContent = "";
       }, 1800);
+  }
+
+  // Blank-start assessments allow a second activation to clear a radio answer.
+  // Track changes too so arrow-key navigation, label clicks, and Space agree.
+  // Delegation covers questionnaire controls rebuilt after Reset or version changes.
+  if (document.body?.hasAttribute("data-clearable-answers")) {
+    const selected = new Map();
+    const isAnswer = (target) =>
+      target.matches('input[type="radio"]') && target.name !== "outputStyle";
+    const clearAnswer = (target) => {
+      target.checked = false;
+      selected.delete(target.name);
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    // Some browsers do not click an already checked radio on Space.
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== " " || event.repeat || !isAnswer(event.target) || !event.target.checked)
+        return;
+      event.preventDefault();
+      clearAnswer(event.target);
+    });
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target;
+        if (target.closest("[data-reset-assessment]")) {
+          selected.clear();
+          return;
+        }
+        if (!isAnswer(target)) return;
+        if (selected.get(target.name) === target) {
+          // Clearing is a real answer edit: invalidate the note and update stored state.
+          clearAnswer(target);
+        } else {
+          selected.set(target.name, target);
+        }
+      },
+      true,
+    );
+    document.addEventListener("change", (event) => {
+      const target = event.target;
+      if (!isAnswer(target)) return;
+      if (target.checked) selected.set(target.name, target);
+      else selected.delete(target.name);
+    });
   }
 
   document

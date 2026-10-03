@@ -154,17 +154,8 @@ button:disabled {
   white-space: nowrap;
   cursor: pointer;
 }
-/* Match MSE in risk pages too, whose button rules have higher specificity. */
-.risk-app #theme-toggle {
-  padding: 8px 14px;
-  background: var(--surface);
-  color: var(--text);
-}
-#theme-toggle:hover,
-.risk-app #theme-toggle:hover {
+#theme-toggle:hover {
   border-color: var(--accent-secondary);
-  background: var(--surface);
-  color: var(--text);
 }
 #theme-toggle:focus-visible {
   outline: 2px solid var(--accent-secondary);
@@ -295,14 +286,15 @@ input::placeholder {
 .inline-option,
 .symptom-row label,
 .other-symptom-row label,
-.main-check,
-.type-row > span {
+.main-check {
   font-size: var(--font-option);
   font-weight: 400;
   line-height: 1.4;
 }
 .field-label,
-.behavior-name {
+.behavior-name,
+.behavior-row .small-label,
+.other-behavior-row .small-label {
   font-size: var(--font-field);
   font-weight: 500;
 }
@@ -609,4 +601,13 @@ input[type="number"]:invalid {
 .domain-score,
 .score-grid strong {
   font-size: var(--font-result);
+}
+
+/* Generated notes keep the same readable size in every app and in Compact mode. */
+.page-shell [data-note-output],
+.risk-app [data-note-output] {
+  min-height: 240px;
+  padding: 16px;
+  border-radius: var(--radius-small);
+  font: 400 16px/1.5 var(--body-font);
 }

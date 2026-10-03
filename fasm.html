@@ -19,12 +19,12 @@
       rel="stylesheet"
     />
     <!-- Page layout first; the shared design system owns common styling. -->
-    <link rel="stylesheet" href="screening.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="fasm.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="screening.css?v=20261003-review6" />
+    <link rel="stylesheet" href="fasm.css?v=20261003-review6" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-review6" />
     <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body class="spacious-tool">
+  <body data-clearable-answers class="spacious-tool">
     <main class="page-shell">
       <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
       <h1>FASM</h1>
@@ -104,8 +104,8 @@
             <div id="method-count" class="score-display">0</div>
           </div>
           <div>
-            <span class="small-label">Reported incidents</span>
-            <div id="incident-count" class="score-display">0</div>
+            <span class="small-label">Total across methods</span>
+            <div id="behavior-total" class="score-display">0</div>
           </div>
         </div>
         <div id="function-results" class="function-results"></div>
@@ -127,7 +127,7 @@
         <div class="output-style-row">
           <span class="small-label">Output style</span
           ><label class="inline-option"
-            ><input type="radio" name="outputStyle" value="summary" checked /> Summary</label
+            ><input type="radio" name="outputStyle" value="summary" checked /> Narrative</label
           ><label class="inline-option"
             ><input type="radio" name="outputStyle" value="detailed" /> List</label
           >
@@ -159,8 +159,8 @@
       </section>
     </main>
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="workbench-ui.js?v=20261003-audit4"></script>
-    <script src="fasm.js?v=20261003-audit4"></script>
+    <script src="workbench-ui.js?v=20261003-clearable2"></script>
+    <script src="fasm.js?v=20261003-clearable"></script>
     <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

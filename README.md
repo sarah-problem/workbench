@@ -77,13 +77,21 @@ Comments explain responsibilities, sequencing, exceptions, and scoring relations
 
 **Risk pages start blank.** Output updates as findings are entered. Unchecked factors do not become documented absences; unanswered radios do not become denials. Reset clears the assessment, closes optional details, and returns the output format to Narrative. Risk levels and disposition are always selected by the clinician.
 
-**MSE and scored tools start with presets.** Scores can be previewed immediately, but the note stays blank until **Create documentation** is clicked. Editing an answer clears the displayed note and requires another click. Changing output format or MSE layout preserves the current generated state. This button does not establish that every item was assessed or that the findings are clinically valid.
+**Single-answer choices can be cleared:** click the selected answer again (or press Space while it is focused). This applies to the blank-start questionnaires and both risk forms, including context buttons. Clearing a required answer removes the completed score and note until it is answered again. Output format, age version, and MSE preset controls keep their existing behavior.
 
-Reset restores each tool's starting profile and clears optional entries. It preserves the selected output format on preset-based tools. MSE also preserves Learn/Compact and teaching-panel choices. Y-BOCS reset clears **both** adult and child answers while retaining the visible version; switching versions without resetting keeps their answers separate.
+**All scored questionnaires start unanswered.** Reset clears responses, including numeric counts and optional context. Empty is distinct from zero, No, Never, or Not relevant. Total scores and interpretations wait for the required score inputs; incomplete forms show progress and cannot generate a completed note. Individual ISAS/FASM function scores can appear once every item in that function is answered.
+
+Optional context remains optional and is never filled with a negative answer. PHQ-9/GAD-7 functional impact, Y-BOCS additional ratings, and TSDS percentages appear in documentation only as entered (List may identify missing context as not documented). PHQ-9 item 9, ISAS Anti-Suicide endorsements, and FASM intent still trigger their notices on partial forms.
+
+**MSE retains its normal findings preset.** Its Reset restores that profile and clears optional entries. The risk assessments continue to start blank.
+
+MSE and scored tools keep the note blank until **Create documentation** is clicked. Editing an answer clears the displayed note and requires another click. Changing output format or MSE layout preserves the current generated state. Completion checks establish that required answers are present, not that the assessment is clinically valid.
+
+Reset preserves the selected output format on questionnaires and MSE; MSE also preserves Learn/Compact and teaching-panel choices. Y-BOCS Reset clears **both** adult and child answers while retaining the visible version; switching versions without resetting keeps their answers separate.
 
 Number fields use native `min`, `max`, and `step` validation. Invalid values stay visible for correction and block note generation/copying. Count and percentage handlers retain their last valid values for score previews while an invalid edit is present. FASM requires a positive whole-number count for a selected behavior; disabled fields are excluded from validation. CRAFFT day counts permit 0–366 to allow a leap-year interval.
 
-Every output toolbar places format selection, generation when applicable, and Copy together. DOM order matches visual order. Copy tries the clipboard API, then a selection-based fallback; if neither works, it selects the text and prompts for Cmd/Ctrl+C instead of reporting success.
+Every output panel is titled **Generated Documentation** and uses **Narrative / List** for format selection. Every output toolbar places format selection, generation when applicable, and Copy together. Generated note text stays 16px in every app, including MSE Compact mode. DOM order matches visual order. Copy tries the clipboard API, then a selection-based fallback; if neither works, it selects the text and prompts for Cmd/Ctrl+C instead of reporting success.
 
 ## Tool-specific relationships to preserve
 
@@ -96,6 +104,7 @@ Every output toolbar places format selection, generation when applicable, and Co
 - The Open all/Close all button controls teaching panels, not baseline panels. A mixture of open and closed teaching panels offers Open all.
 - Context selections do not infer diagnoses. No modifier or unknown baseline clears source attribution. Hidden, irrelevant specific-observation checkboxes are cleared before generating output.
 - Mood and safety “Other” fields retain text for editing, but it is omitted when Other is not selected. Placeholder examples are never treated as answers.
+- Observation placeholders combine selection-specific examples with section examples, deduplicate them, and show up to three after one `Ex.:` prefix. The Add/Hide observation button exposes its open state to assistive technology.
 - `descriptorDiagram()` draws the speech/thought-process SVGs. Only the vocabulary labels use pink; diagram strokes and letters follow the ordinary text color. Notes use yellow/gold bullet markers.
 
 ### Risk assessments
@@ -106,15 +115,15 @@ The comprehensive form groups inquiry into Thoughts; Plan, access and preparatio
 
 ### Scored tools
 
-| Tool           | Important implementation detail                                                                                                                                                                      |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PHQ-9/GAD-7    | Functional impact is documented separately from the item total. PHQ-9 item 9 controls an additional assessment notice. This page uses standard PHQ-9 wording, not the full adolescent-modified form. |
-| Brief screens  | `answers` stores scores; `answerChoices` stores selected labels. Keep both aligned, because different labels can share a score. Reset rebuilds both.                                                 |
-| ISAS           | Each of 13 functions sums three 0–2 ratings. Behavior counts are separate from function scores. An unnamed positive Other count appears as “Other behavior.”                                         |
-| FASM           | `FACTORS[i]` assigns reason `i` to a function. Function results are means; Other is excluded. Method counts and contextual answers do not contribute to those means.                                 |
-| LPFS-SR        | Item, weight, and domain arrays align by index. Responses multiply weights, including negative weights. The preset profile is not an assessment result.                                              |
-| TSDS           | The 21 symptom responses are scored independently of discrimination-attribution percentages. Typing an Other description does not check its box.                                                     |
-| Y-BOCS/CY-BOCS | Only the ten severity items contribute to the total. Checklist selections and additional ratings are separate. Adult and child states are independent until Reset clears both.                       |
+| Tool           | Important implementation detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PHQ-9/GAD-7    | Functional impact is documented separately from the item total. PHQ-9 item 9 controls an additional assessment notice. This page uses standard PHQ-9 wording, not the full adolescent-modified form.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Brief screens  | `answers` stores scores; `answerChoices` stores selected labels. Keep both aligned, because different labels can share a score. Reset clears both to null. MDQ needs its co-occurrence/impairment responses for interpretation; PC-PTSD-5 can stop after an explicit No exposure response. Other supplementary questions remain optional.                                                                                                                                                                                                                                                                                        |
+| ISAS           | Each of 13 functions sums three 0–2 ratings. Behavior counts are separate from function scores. An unnamed positive Other count appears as “Other behavior.” If every standard behavior count is explicitly zero, no other/main behavior is entered, and function ratings are untouched, Section I can be documented without scoring Section II.                                                                                                                                                                                                                                                                                 |
+| FASM           | `FACTORS[i]` assigns reason `i` to a function. Function results are means; Other is excluded. Method counts and contextual answers do not contribute to those means. All core reason ratings must be entered; the final Other rating is optional. Selecting a method reveals frequency and medical-treatment fields; frequency and treatment start blank, and deselection clears those two answers. The summed frequency across methods is not a count of unique episodes.                                                                                                                                                       |
+| LPFS-SR        | Item, weight, and domain arrays align by index. Responses multiply weights, including negative weights. Unanswered items are stored as null; domain and total scores remain unavailable until all 80 responses are entered.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| TSDS           | The 21 symptom responses are scored independently of discrimination-attribution percentages. Selecting an attribution reveals its percentage field; selecting Other also reveals its description. Deselection retains those entries for editing but excludes them from output.                                                                                                                                                                                                                                                                                                                                                   |
+| Y-BOCS/CY-BOCS | Only the ten severity items contribute to the total and are required for scoring; additional ratings stay optional. Checklist selections and additional ratings are separate. Adult and child states are independent until Reset clears both. Each checklist category supports multiple custom symptoms with independent Current/Past selections and Add/Remove controls. Entries are separate for adult and child versions; Reset clears both. A checked custom symptom without text is documented as “not described,” rather than silently omitted. Both Narrative and List include selected current and past custom symptoms. |
 
 The arithmetic checks verify the configured implementation. They do not authenticate instrument wording, editions, permissions, reference norms, or clinical interpretation. See [AUDIT.md](AUDIT.md) for the scope and remaining clinical review boundary.
 
@@ -132,7 +141,7 @@ Use variables near the top of `workbench-shared.css` for suite-wide changes:
 | `--font-result`                                     | 24px numeric result displays                                               |
 | `--space-panel` / `--space-row` / `--space-options` | 16px / 12px / 8px shared spacing                                           |
 
-Page-specific CSS owns distinct layouts; the final shared stylesheet owns common presentation. A more specific selector can still override a later general rule, so check the browser's computed styles before adding another override. Consolidate an existing rule when possible rather than appending another historical correction.
+`screening.css` owns the scored tools’ shared introduction, question, navigation, and alert layouts. Page-specific CSS owns distinct layouts; the final shared stylesheet owns common presentation. A more specific selector can still override a later general rule, so check the browser's computed styles before adding another override. Consolidate an existing rule when possible rather than appending another historical correction.
 
 ## Storage, network, and embedding
 
@@ -156,8 +165,17 @@ Run these dependency-free checks with Node:
 ```sh
 node tests/regression.cjs
 node tests/invariants.cjs
+node tests/followups.cjs
+node tests/blank-start.cjs
+node tests/questionnaire-defaults.cjs
 ```
 
 The first checks reset/label consistency, invalid measure links, blank risk output, clipboard failure paths, documentation state, and numeric validation. The second checks calculation boundaries, item mappings, version separation, MSE output coverage, JavaScript syntax, local links/IDs, stylesheet order, and CSS variables.
+
+The third checks conditional FASM/TSDS fields, invalid edits and reselection, custom Y-BOCS symptom output, MSE observation examples, and thought-content sentence grammar.
+
+The fourth checks blank, partial, complete, and reset states for LPFS-SR, PHQ-9, and GAD-7, explicit zero responses, unselected impact, and the PHQ-9 alert on an incomplete form.
+
+The fifth extends blank/partial/complete/reset checks to the other questionnaires, including optional context, separate Y-BOCS versions, and partial-form alerts.
 
 Browser checks remain necessary for real control behavior, responsive layout, colors, keyboard focus, and clipboard permissions. [tests/QA.md](tests/QA.md) records the latest performed checks and a repeatable checklist. [AUDIT.md](AUDIT.md) records the file-by-file review and changes.

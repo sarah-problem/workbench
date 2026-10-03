@@ -11,7 +11,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quick Risk Assessment</title>
+    <title>Quick Risk Assessment | Clinical Workbench</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,17 +19,17 @@
       rel="stylesheet"
     />
     <!-- Page layout first; the shared design system owns common styling. -->
-    <link rel="stylesheet" href="risk.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="risk.css?v=20261003-review6" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-review6" />
     <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body class="risk-app spacious-tool">
+  <body data-clearable-answers class="risk-app spacious-tool">
     <main class="risk-shell">
       <a class="risk-back" href="index.html">← Back to Clinical Workbench</a>
       <h1>Quick Risk Assessment</h1>
 
       <div class="button-row quick-top-actions">
-        <button data-reset-assessment="true" type="button" class="primary-button" id="reset">
+        <button data-reset-assessment="true" type="button" id="reset">
           <span class="reset-icon" aria-hidden="true">↺</span> Reset assessment
         </button>
       </div>
@@ -205,7 +205,7 @@
           >
         </div>
         <button type="button" class="secondary-button toggle-details" data-target="risk-other-wrap">
-          + Add other risk factor
+          + Add details
         </button>
         <div class="optional-details" id="risk-other-wrap">
           <textarea
@@ -274,7 +274,7 @@
           class="secondary-button toggle-details"
           data-target="protective-other-wrap"
         >
-          + Add other protective factor
+          + Add details
         </button>
         <div class="optional-details" id="protective-other-wrap">
           <textarea
@@ -478,7 +478,7 @@
       </section>
 
       <section class="risk-card">
-        <h2>Generated Risk Assessment</h2>
+        <h2>Generated Documentation</h2>
         <div class="output-style-row" role="group" aria-label="Output style">
           <span class="field-label">Output style</span>
           <button type="button" class="output-style-button selected" data-style="narrative">
@@ -486,7 +486,7 @@
           </button>
           <button type="button" class="output-style-button" data-style="list">List</button>
           <div class="output-copy-actions">
-            <button data-copy-output type="button" class="primary-button" id="copy">Copy</button>
+            <button data-copy-output type="button" id="copy">Copy</button>
 
             <span id="copy-status" aria-live="polite" data-copy-status></span>
           </div>
@@ -495,14 +495,13 @@
           id="output"
           data-note-output
           aria-label="Generated documentation"
-          class="risk-output"
           readonly
         ></textarea>
       </section>
     </main>
 
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="workbench-ui.js?v=20261003-audit4"></script>
+    <script src="workbench-ui.js?v=20261003-clearable2"></script>
     <script src="risk-presentation.js?v=20261003-audit4"></script>
     <script src="quick-risk.js?v=20261003-audit4"></script>
     <script src="embed-resize.js?v=20261003-audit4"></script>

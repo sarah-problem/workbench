@@ -4,12 +4,9 @@
  * Rules later in the file can override earlier rules with equal specificity.
  */
 
-.isas-shell {
-  max-width: none;
-}
-
 /* Links to major sections; the ISAS navigation stays in normal document flow. */
 .section-nav {
+  position: static;
   display: flex;
   flex-wrap: wrap;
   gap: 10px 20px;
@@ -82,10 +79,6 @@ textarea:focus-visible {
   border-radius: 20px;
   background: var(--surface-2);
   line-height: 1.45;
-}
-
-.information-alert.hidden {
-  display: none;
 }
 
 .detail-grid {
@@ -277,7 +270,6 @@ textarea:focus-visible {
 
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 850px) {
-  .behavior-grid,
   .optional-statements {
     grid-template-columns: 1fr;
   }

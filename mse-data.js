@@ -42,94 +42,54 @@ const mseDimensionDescriptions = {
 // Placeholder examples are hints only, never defaults or generated note content.
 // More specific examples take priority when their corresponding choice is selected.
 const mseObservationHints = {
-  appearance: {
-    default:
-      "Describe the specific observation and relevant context, e.g., Arrived in work clothing immediately after a shift.",
-  },
   behavior: {
-    default: "e.g., Initially reserved; became more engaged as the session progressed.",
-    guarded: "e.g., Answered general questions but declined to discuss family conflict.",
-    restless:
-      "e.g., Frequently shifted position while continuing to participate in the conversation.",
+    guarded: "Answered general questions but declined to discuss family conflict.",
+    restless: "Frequently shifted position while continuing to participate in the conversation.",
   },
   eyeContact: {
-    default: "e.g., Eye contact varied with the topic being discussed.",
     limited:
-      "e.g., Limited eye contact was consistent with prior sessions; client remained engaged in the interaction.",
+      "Limited eye contact was consistent with prior sessions; client remained engaged in the interaction.",
   },
   speech: {
-    default: "Describe rate, volume, pauses, or amount of speech and any relevant context.",
-    latent: "e.g., Took additional time before answering; responses were relevant when given time.",
+    latent: "Took additional time before answering; responses were relevant when given time.",
     impoverished:
-      "e.g., Responses were brief, with little spontaneous elaboration; continued to participate when prompted.",
-    rapid: "e.g., Spoke quickly but paused for questions and clarification.",
-    other:
-      "Describe the speech feature in your own words, e.g., Volume increased when discussing the conflict.",
+      "Responses were brief, with little spontaneous elaboration; continued to participate when prompted.",
+    rapid: "Spoke quickly but paused for questions and clarification.",
+    other: "Volume increased when discussing the conflict.",
   },
   affect: {
-    default: "e.g., Became tearful when discussing a recent loss.",
-    restricted: "e.g., Emotional expression was limited in range, consistent with prior sessions.",
+    restricted: "Emotional expression was limited in range, consistent with prior sessions.",
   },
   thoughtProcess: {
-    default: "Describe how ideas connected and whether the client reached the point.",
     circumstantial:
-      "e.g., Provided extensive background before answering; returned to the original question with brief redirection.",
-    tangential: "e.g., Shifted from the question to other topics and required redirection.",
-    perseverative: "e.g., Repeatedly returned to the same concern despite changes in topic.",
+      "Provided extensive background before answering; returned to the original question with brief redirection.",
+    tangential: "Shifted from the question to other topics and required redirection.",
+    perseverative: "Repeatedly returned to the same concern despite changes in topic.",
   },
   thoughtContent: {
-    default: "Describe the specific theme and whether it was reported or observed.",
-    ruminative: "e.g., Repeatedly revisited a recent disagreement and concerns about its meaning.",
-    preoccupied: "e.g., Much of the discussion centered on an upcoming housing decision.",
-  },
-  perception: {
-    default:
-      "Clarify what the client reported versus what you observed, including timing and context.",
-  },
-  attentionMemory: {
-    default:
-      "Clarify attention and memory separately when needed, e.g., Needed occasional repetition of questions; recalled recent events.",
+    ruminative: "Repeatedly revisited a recent disagreement and concerns about its meaning.",
+    preoccupied: "Much of the discussion centered on an upcoming housing decision.",
   },
   insight: {
-    default: "Describe what the client recognizes and what remains unclear.",
-    good: "e.g., Recognized a recurring interpersonal pattern and described its effect on relationships.",
-    fair: "e.g., Recognized distress but had difficulty identifying recurring triggers.",
+    good: "Recognized a recurring interpersonal pattern and described its effect on relationships.",
+    fair: "Recognized distress but had difficulty identifying recurring triggers.",
     limited:
-      "e.g., Recognized associated distress but had limited awareness of recurring interpersonal patterns.",
-    poor: "Describe the specific concern the client did not recognize, rather than making a global statement about awareness.",
-    mixed:
-      "e.g., Recognized difficulties at school but had less awareness of their impact at home.",
+      "Recognized associated distress but had limited awareness of recurring interpersonal patterns.",
+    mixed: "Recognized difficulties at school but had less awareness of their impact at home.",
   },
   judgment: {
-    default: "Give a specific example of a decision, the options available, and the context.",
-    fair: "e.g., Identified some possible consequences but needed support to consider alternatives.",
+    fair: "Identified some possible consequences but needed support to consider alternatives.",
     limited:
-      "e.g., Could identify consequences during discussion but reported difficulty applying this understanding during conflict.",
-    poor: "Describe the decision and its consequences, and distinguish reported behavior from what you observed today.",
+      "Could identify consequences during discussion but reported difficulty applying this understanding during conflict.",
     mixed:
-      "e.g., Considered alternatives during the session; caregiver reported difficulty making decisions during conflict at home.",
+      "Considered alternatives during the session; caregiver reported difficulty making decisions during conflict at home.",
   },
   impulse: {
-    default:
-      "Distinguish behavior in the session from recent reported behavior, and identify the source.",
     intact:
-      "e.g., Behavioral control was maintained during the session; parent reported continued impulsive behavior at school.",
-    fair: "e.g., Needed occasional reminders to pause before responding during the session.",
+      "Behavioral control was maintained during the session; parent reported continued impulsive behavior at school.",
+    fair: "Needed occasional reminders to pause before responding during the session.",
     limited:
-      "e.g., Behavioral control was maintained during the session; caregiver reported episodes of hitting peers when frustrated.",
-    poor: "Describe the specific behavior, when it occurred, and who reported it; clarify what was observed during this session.",
-  },
-  sib: {
-    default:
-      "Clarify urges versus behavior, timing, and source of information. Include only findings actually assessed.",
-  },
-  si: {
-    default:
-      "Clarify the client's report, timing, and any further risk assessment or action taken. Include only findings actually assessed.",
-  },
-  hi: {
-    default:
-      "Clarify the client's report and context, and any further risk assessment or action taken. Include only findings actually assessed.",
+      "Behavioral control was maintained during the session; caregiver reported episodes of hitting peers when frustrated.",
   },
 };
 
@@ -230,7 +190,6 @@ const mseContextSections = [
 // Each section has a stable id, displayed title, normal default, and choices. multiple allows several selections; observation enables free text. Keep ids aligned with mse.js.
 const mseSections = [
   {
-    type: "single",
     id: "appearance",
     title: "Appearance",
     normal: "appropriate",
@@ -255,7 +214,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "behavior",
     title: "Behavior",
     normal: "cooperative",
@@ -278,7 +236,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "eyeContact",
     title: "Eye Contact",
     normal: "appropriate",
@@ -298,7 +255,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "speech",
     title: "Speech",
     normal: "normal",
@@ -327,7 +283,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "mood",
     title: "Mood",
     normal: "euthymic",
@@ -349,7 +304,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "affect",
     title: "Affect",
     normal: "congruentFull",
@@ -374,7 +328,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "thoughtProcess",
     title: "Thought Process",
     normal: "linear",
@@ -403,7 +356,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "thoughtContent",
     title: "Thought Content",
     normal: "unremarkable",
@@ -427,7 +379,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "perception",
     title: "Perception",
     normal: "none",
@@ -476,7 +427,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "attentionMemory",
     title: "Attention / Memory",
     normal: "intact",
@@ -505,7 +455,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "insight",
     title: "Insight",
     normal: "good",
@@ -527,7 +476,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "judgment",
     title: "Judgment",
     normal: "good",
@@ -549,7 +497,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "impulse",
     title: "Impulse Control",
     normal: "intact",
@@ -569,7 +516,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "sib",
     title: "Self-Injury",
     normal: "denied",
@@ -597,7 +543,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "si",
     title: "Suicidal Ideation",
     normal: "denied",
@@ -617,7 +562,6 @@ const mseSections = [
   },
 
   {
-    type: "single",
     id: "hi",
     title: "Homicidal Ideation",
     normal: "denied",
@@ -642,8 +586,7 @@ const optionHelp = {
   appearance: {
     appropriate:
       "Presentation is adequate for the setting and does not raise a clinically meaningful concern.",
-    disheveled:
-      "Hair, clothing, or overall presentation appears noticeably unkempt. Describes appearance or presentation.",
+    disheveled: "Hair, clothing, or overall presentation appears noticeably unkempt.",
     poorHygiene:
       "There are observable concerns with basic hygiene or hygiene-related ADLs, such as bathing, oral care, body odor, or changing into clean clothing.",
     inappropriate:
@@ -655,9 +598,8 @@ const optionHelp = {
     cooperative:
       "The client participates, answers questions, and engages, even if anxious, tearful, or upset.",
     guarded:
-      "The client engages but protects information, avoids elaboration, or selectively avoids topics. Describes behavior or speech that is limited or selective.",
-    withdrawn:
-      "The client shows reduced interpersonal engagement or responsiveness overall. Describes behavior or speech that is reduced across the interaction rather than only around certain topics.",
+      "The client engages but protects information, avoids elaboration, or selectively avoids topics.",
+    withdrawn: "The client shows reduced interpersonal engagement or responsiveness overall.",
     restless:
       "The body does not settle: fidgeting, shifting, bouncing a leg, pacing, or repeatedly getting up. The client may still be calm and engaged.",
     agitated:
@@ -667,14 +609,10 @@ const optionHelp = {
   },
   eyeContact: {
     appropriate: "Eye contact fits the interaction and context.",
-    limited:
-      "The client makes little direct eye contact. Describes eye contact that is infrequent without clear evidence that the client is trying to avoid it.",
-    avoidant:
-      "The client appears to actively avoid eye contact. Describes eye contact that is actively turned away, looked down, or otherwise evaded.",
-    intense:
-      "Eye contact is unusually sustained or forceful enough to be clinically notable. Describes eye contact that is intense or fixated. ",
-    variable:
-      "Eye contact changes across topics, emotional states, or moments in session. Describes eye contact that is inconsistent or fluctuating.",
+    limited: "The client makes little direct eye contact.",
+    avoidant: "The client appears to actively avoid eye contact.",
+    intense: "Eye contact is unusually sustained or forceful enough to be clinically notable. ",
+    variable: "Eye contact changes across topics, emotional states, or moments in session.",
   },
   mood: {
     euthymic:

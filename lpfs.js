@@ -196,15 +196,18 @@ const DOMAIN_ORDER = ["Identity", "Self-Direction", "Empathy", "Intimacy"];
 const $ = (id) => document.getElementById(id);
 let answers = [];
 
-// Choose 4 for negatively weighted items and 1 for the others as the existing starting profile.
-function presetAnswers() {
-  return WEIGHTS.map((weight) => (weight < 0 ? 4 : 1));
+// Null is an unanswered item, never a low-score preset or a numerical zero.
+function completionMessage() {
+  const answered = answers.filter(Number.isInteger).length;
+  return answered === ITEMS.length
+    ? ""
+    : `${answered} of ${ITEMS.length} answered — complete all items to generate documentation.`;
 }
 
-// Restore the starting answers, rebuild the controls, and refresh the results.
+// Reset clears every response and result while retaining the chosen output format.
 function reset() {
   Workbench.resetReview();
-  answers = presetAnswers();
+  answers = Array(ITEMS.length).fill(null);
   renderQuestions();
   update();
 }
@@ -227,7 +230,7 @@ function renderQuestions() {
   document.querySelectorAll('[name^="item-"]').forEach(
     (input) =>
       (input.onchange = () => {
-        answers[Number(input.name.split("-")[1])] = Number(input.value);
+        answers[Number(input.name.split("-")[1])] = input.checked ? Number(input.value) : null;
         update();
       }),
   );
@@ -235,6 +238,7 @@ function renderQuestions() {
 
 // Multiply answers by matching WEIGHTS, add them into DOMAINS, and round domain and total scores.
 function scores() {
+  if (completionMessage()) return null;
   const result = { Identity: 0, "Self-Direction": 0, Empathy: 0, Intimacy: 0 };
   answers.forEach((answer, i) => (result[DOMAINS[i]] += answer * WEIGHTS[i]));
   Object.keys(result).forEach((key) => (result[key] = round(result[key])));
@@ -259,11 +263,13 @@ function benchmarkLevel(name, score) {
 // Recalculate the displayed results and regenerate the selected output format.
 function update() {
   const result = scores();
-  $("total-score").textContent = format(result.Total);
-  $("total-marker").textContent = marker("Total", result.Total);
-  $("domain-results").innerHTML = DOMAIN_ORDER.map((name) => domainCard(name, result[name])).join(
-    "",
-  );
+  $("total-score").textContent = result ? format(result.Total) : "—";
+  $("total-marker").textContent = result
+    ? marker("Total", result.Total)
+    : `${answers.filter(Number.isInteger).length} of ${ITEMS.length} answered`;
+  $("domain-results").innerHTML = DOMAIN_ORDER.map((name) =>
+    domainCard(name, result ? result[name] : null),
+  ).join("");
   const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
   Workbench.writeOutput(detailed ? detailedOutput(result) : summaryOutput(result));
 }
@@ -284,11 +290,11 @@ function renderReference() {
 
 // Build one domain result card with its score, reference label, and segmented bar.
 function domainCard(name, score) {
-  const active = benchmarkLevel(name, score);
+  const active = score === null ? 0 : benchmarkLevel(name, score);
   return `<div class="domain-card">
         <h3>${name}</h3>
-        <div class="domain-score">${format(score)}</div>
-        <div class="domain-marker">${marker(name, score)}</div>
+        <div class="domain-score">${score === null ? "—" : format(score)}</div>
+        <div class="domain-marker">${score === null ? "Awaiting responses" : marker(name, score)}</div>
         <div class="benchmark-bar" aria-hidden="true">${[1, 2, 3, 4]
           .map(
             (level) => `<span class="${level <= active ? "active" : ""}">
@@ -300,6 +306,7 @@ function domainCard(name, score) {
 
 // Build the paragraph version of the note from the current results.
 function summaryOutput(result) {
+  if (!result) return "";
   const domains = DOMAIN_ORDER.map(
     (name) => `${name} ${format(result[name])} (${marker(name, result[name]).toLowerCase()})`,
   ).join(", ");
@@ -308,6 +315,7 @@ function summaryOutput(result) {
 
 // Build the detailed note, including individual answers and scores.
 function detailedOutput(result) {
+  if (!result) return "";
   const lines = [
     "Level of Personality Functioning Scale - Self Report (LPFS-SR)",
     "",
@@ -346,7 +354,7 @@ function format(value) {
 // Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((input) => (input.onchange = update));
-Workbench.initReview();
+Workbench.initReview({ validate: completionMessage });
 
 // Initial page setup: populate the form and show its starting results.
 renderReference();

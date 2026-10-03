@@ -8,30 +8,30 @@
 }
 
 .workbench-header {
-  margin-bottom: clamp(36px, 5vw, 64px);
+  margin-bottom: 24px;
 }
 
 .workbench-header p {
   max-width: 720px;
-  margin: 18px 0 0;
+  margin: 8px 0 0;
   color: var(--muted-text);
   font-size: clamp(17px, 1.4vw, 20px);
   line-height: 1.5;
 }
 
 .dashboard-section + .dashboard-section {
-  margin-top: clamp(42px, 5vw, 72px);
+  margin-top: 28px;
 }
 
 .section-title {
-  margin: 0 0 20px;
+  margin: 0 0 12px;
   color: var(--accent-primary);
 }
 
 /* Arrange tool links into a grid; smaller-screen rules below change the column count. */
 .workbench-grid {
   display: grid;
-  gap: clamp(18px, 2vw, 28px);
+  gap: var(--space-row);
 }
 
 .assessment-grid,
@@ -42,8 +42,8 @@
 /* Clickable home-page cards that open individual tools. */
 .tool-card {
   display: block;
-  min-height: 230px;
-  padding: clamp(28px, 3vw, 44px);
+  /* Let content determine row height rather than reserving empty card space. */
+  padding: var(--space-panel);
   border: 1px solid var(--border);
   border-radius: 30px;
   background: var(--surface);
@@ -67,7 +67,7 @@
 }
 
 .tool-card h3 {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   color: var(--accent-secondary);
 }
 
@@ -76,7 +76,7 @@
   max-width: 760px;
   color: var(--muted-text);
   font-size: clamp(16px, 1.25vw, 19px);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
@@ -92,10 +92,5 @@
   .assessment-grid,
   .screening-grid {
     grid-template-columns: 1fr;
-  }
-
-  .tool-card {
-    min-height: 0;
-    padding: 26px;
   }
 }

@@ -11,7 +11,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mental Status Exam</title>
+    <title>Mental Status Exam | Clinical Workbench</title>
 
     <!-- Fonts used on the Squarespace site -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,8 +22,8 @@
     />
 
     <!-- Page layout first; the shared design system owns common styling. -->
-    <link rel="stylesheet" href="mse.css?v=20261003-audit4" />
-    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="mse.css?v=20261003-review6" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-review6" />
     <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
 
@@ -53,12 +53,7 @@
         </div>
 
         <div class="button-row">
-          <button
-            data-reset-assessment="true"
-            type="button"
-            class="primary-button"
-            onclick="resetToNormal()"
-          >
+          <button data-reset-assessment="true" type="button" onclick="resetToNormal()">
             <span class="reset-icon" aria-hidden="true">↺</span> Reset assessment
           </button>
           <button
@@ -78,7 +73,7 @@
 
       <!-- Generated note and output controls. JavaScript writes the result into the output field. -->
       <section class="card output-card">
-        <h2>Generated MSE</h2>
+        <h2>Generated Documentation</h2>
 
         <div class="output-style-row">
           <span class="small-label">Output style</span>
@@ -93,7 +88,7 @@
             List
           </label>
           <div class="output-copy-actions">
-            <button data-copy-output type="button" class="primary-button">Copy</button>
+            <button data-copy-output type="button">Copy</button>
             <span id="copyStatus" aria-live="polite" data-copy-status></span>
           </div>
         </div>
@@ -109,9 +104,9 @@
 
     <!-- Clinical content loads first; mse.js uses that content to build the page. -->
     <!-- Scripts run after the markup exists. Keep this load order, especially mse-data.js before mse.js. -->
-    <script src="workbench-ui.js?v=20261003-audit4"></script>
-    <script src="mse-data.js?v=20261003-audit4"></script>
-    <script src="mse.js?v=20261003-audit4"></script>
+    <script src="workbench-ui.js?v=20261003-clearable2"></script>
+    <script src="mse-data.js?v=20261003-review6"></script>
+    <script src="mse.js?v=20261003-review6"></script>
     <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

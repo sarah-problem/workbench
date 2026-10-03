@@ -4,23 +4,6 @@
  * Rules later in the file can override earlier rules with equal specificity.
  */
 
-.intro-card {
-  display: grid;
-  gap: 10px;
-}
-.intro-card p {
-  margin: 0;
-  line-height: 1.55;
-}
-/* Navigation links between sections; sticky positioning keeps links visible while scrolling. */
-.section-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
 .response-key {
   display: flex;
   flex-wrap: wrap;
@@ -29,14 +12,6 @@
 }
 .response-key span {
   color: var(--muted-text);
-}
-.question-card {
-  display: grid;
-  gap: 14px;
-}
-/* Arrange the answer choices within a question. */
-.response-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .overall-result {
   padding: 14px;
@@ -88,14 +63,6 @@
 .benchmark-bar span.active {
   background: var(--accent-primary);
 }
-.information-alert {
-  margin-top: 18px;
-  padding: 15px;
-  border: 1px solid var(--accent-secondary);
-  border-radius: 20px;
-  background: var(--notice-surface);
-  line-height: 1.5;
-}
 .reference-table {
   overflow-x: auto;
 }
@@ -121,9 +88,6 @@
 }
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 760px) {
-  .section-nav {
-    position: static;
-  }
   .response-grid,
   .domain-results {
     grid-template-columns: 1fr 1fr;
