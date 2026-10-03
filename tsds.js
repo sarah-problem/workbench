@@ -46,14 +46,15 @@ const TYPES = [
   "Disability",
   "Other",
 ];
-let answers = Array(21).fill(1),
+let answers = Array(ITEMS.length).fill(1),
   types = {};
 const $ = (id) => document.getElementById(id);
 const sum = (a, b) => a + b;
 
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
-  answers = Array(21).fill(1);
+  Workbench.resetReview();
+  answers = Array(ITEMS.length).fill(1);
   types = {};
   render();
 }
@@ -62,7 +63,16 @@ function reset() {
 function render() {
   $("questions").innerHTML = ITEMS.map(
     (text, i) =>
-      `<section class="card question-card"><h2><span class="question-number">${i + 1}.</span>${i === 18 ? text : `Due to past experiences of discrimination, ${lowerFirst(text)}`}</h2><div class="response-grid">${OPTIONS.map((o) => `<label class="response-option"><input type="radio" name="item-${i}" value="${o.value}" ${answers[i] === o.value ? "checked" : ""}><span>${o.label}<br>${o.value}</span></label>`).join("")}</div></section>`,
+      `<section class="card question-card">
+        <h2>
+        <span class="question-number">${i + 1}.</span>${i === 18 ? text : `Due to past experiences of discrimination, ${lowerFirst(text)}`}</h2>
+        <div class="response-grid">${OPTIONS.map(
+          (o) => `<label class="response-option">
+        <input type="radio" name="item-${i}" value="${o.value}" ${answers[i] === o.value ? "checked" : ""}>
+        <span>${o.label}<br>${o.value}</span>
+        </label>`,
+        ).join("")}</div>
+        </section>`,
   ).join("");
   document.querySelectorAll('[name^="item-"]').forEach(
     (x) =>
@@ -79,7 +89,10 @@ function render() {
 function renderTypes() {
   $("type-grid").innerHTML = TYPES.map((type) => {
     const v = types[type] || { selected: false, percent: 0, text: "" };
-    return `<div class="type-row"><input type="checkbox" data-type-check="${type}" ${v.selected ? "checked" : ""}>${type === "Other" ? `<input type="text" data-type-text="Other" value="${escapeAttr(v.text)}" placeholder="Other type">` : `<span>${type}</span>`}<label><input type="number" min="0" max="100" step="1" data-type-percent="${type}" value="${v.percent}" ${v.selected ? "" : "disabled"}>%</label></div>`;
+    return `<div class="type-row">
+        <input type="checkbox" aria-label="${type}" data-type-check="${type}" ${v.selected ? "checked" : ""}>${type === "Other" ? `<input type="text" aria-label="Other type of discrimination" data-type-text="Other" value="${escapeAttr(v.text)}" placeholder="Other type">` : `<span>${type}</span>`}<label>
+        <input type="number" min="0" max="100" step="1" aria-label="${type} percentage" data-type-percent="${type}" value="${v.percent}" ${v.selected ? "" : "disabled"}>%</label>
+        </div>`;
   }).join("");
   document.querySelectorAll("[data-type-check]").forEach(
     (x) =>
@@ -87,7 +100,8 @@ function renderTypes() {
         const v = types[x.dataset.typeCheck] || { percent: 0, text: "" };
         v.selected = x.checked;
         types[x.dataset.typeCheck] = v;
-        renderTypes();
+        // Toggle only this row; rebuilding every row would lose focus and unfinished edits.
+        x.closest(".type-row").querySelector("[data-type-percent]").disabled = !x.checked;
         update();
       }),
   );
@@ -95,7 +109,7 @@ function renderTypes() {
     (x) =>
       (x.oninput = () => {
         const v = types[x.dataset.typePercent] || { selected: true, text: "" };
-        v.percent = Math.min(100, Math.max(0, +x.value || 0));
+        if (x.validity.valid) v.percent = Number(x.value) || 0;
         types[x.dataset.typePercent] = v;
         update();
       }),
@@ -103,7 +117,8 @@ function renderTypes() {
   document.querySelectorAll("[data-type-text]").forEach(
     (x) =>
       (x.oninput = () => {
-        const v = types.Other || { selected: true, percent: 0 };
+        // Writing a description does not select its checkbox.
+        const v = types.Other || { selected: false, percent: 0 };
         v.text = x.value;
         types.Other = v;
         update();
@@ -124,14 +139,17 @@ function update() {
   const counts = OPTIONS.map((o) => answers.filter((v) => v === o.value).length);
   $("distribution").innerHTML = OPTIONS.map(
     (o, i) =>
-      `<div><span class="small-label">${o.label}</span><strong>${counts[i]} item${counts[i] === 1 ? "" : "s"}</strong></div>`,
+      `<div>
+        <span class="small-label">${o.label}</span>
+        <strong>${counts[i]} item${counts[i] === 1 ? "" : "s"}</strong>
+        </div>`,
   ).join("");
   const pct = selectedTypes().reduce((n, x) => n + x.percent, 0);
   $("percentage-status").textContent = selectedTypes().length
     ? `Selected percentages total ${pct}%.${pct === 100 ? "" : " Adjust to 100% when the client can reasonably estimate the distribution."}`
     : "No discrimination types selected.";
   const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
-  $("output").value = detailed ? detail(total, avg) : summary(total, avg, counts);
+  Workbench.writeOutput(detailed ? detail(total, avg) : summary(total, avg, counts));
 }
 
 // Collect checked discrimination types, using the custom Other label when provided.
@@ -178,23 +196,16 @@ function detail(total, avg) {
 
 // Lowercase the first letter when inserting a phrase into a longer sentence.
 function lowerFirst(s) {
-  return s.charAt(0).toLowerCase() + s.slice(1);
+  return /^I(?:\b|[’'])/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1);
 }
 // Escape special characters before inserting text into a quoted HTML attribute.
 function escapeAttr(s = "") {
   return String(s).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 }
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
-$("copy-button").onclick = async () => {
-  await navigator.clipboard.writeText($("output").value);
-  $("copy-status").textContent = "Copied";
-  setTimeout(() => ($("copy-status").textContent = ""), 1500);
-};
-$("select-button").onclick = () => {
-  $("output").focus();
-  $("output").select();
-};
+Workbench.initReview();
+
 // Initial page setup: populate the form and show its starting results.
 reset();

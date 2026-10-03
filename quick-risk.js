@@ -7,59 +7,6 @@
 
 let outputStyle = "narrative";
 
-// Explanations shown for the selected risk level. These are lookup text, not an automated scoring rule.
-const acuteRiskDescriptions = {
-  low: "Current circumstances are unlikely to result in suicidal behavior. Outpatient care is generally appropriate when otherwise clinically indicated.",
-  "low-moderate":
-    "Current circumstances increase suicide risk but can typically be managed safely in outpatient care with appropriate supports, monitoring, and safety planning.",
-  moderate:
-    "Suicide risk is clinically significant and requires active intervention, close monitoring, and consideration of a higher level of care if risk increases.",
-  "moderate-high":
-    "Suicide risk is substantial. Urgent evaluation, intensive intervention, and careful consideration of the appropriate level of care are indicated.",
-  high: "Suicide risk appears imminent or severe. Immediate intervention and emergency evaluation are generally indicated.",
-};
-
-const chronicRiskDescriptions = {
-  low: "Long-term history suggests little ongoing elevation above baseline suicide risk.",
-  "low-moderate":
-    "Long-term risk is mildly elevated because of enduring risk factors or psychiatric history.",
-  moderate:
-    "Long-term risk remains meaningfully elevated because of persistent risk factors, recurrent suicidal ideation, or previous suicidal behavior.",
-  "moderate-high":
-    "Multiple enduring risk factors substantially increase future suicide risk and warrant ongoing monitoring and intervention.",
-  high: "Long-term history indicates persistently severe suicide risk requiring intensive long-term risk management.",
-};
-
-const riskLevelLabels = {
-  low: "Low",
-  "low-moderate": "Low–moderate",
-  moderate: "Moderate",
-  "moderate-high": "Moderate–high",
-  high: "High",
-};
-
-// Show the selected acute or chronic risk label, color, and explanation. This does not calculate a risk level.
-function updateRiskLevelDisplay(kind) {
-  const value = selectedValue(kind);
-  const result = document.getElementById(`${kind}-result`);
-  const explainer = document.getElementById(`${kind}-explainer`);
-  const descriptions = kind === "acute" ? acuteRiskDescriptions : chronicRiskDescriptions;
-  const riskClasses = [
-    "risk-low",
-    "risk-low-moderate",
-    "risk-moderate",
-    "risk-moderate-high",
-    "risk-high",
-  ];
-
-  result.classList.remove(...riskClasses);
-  explainer.classList.remove(...riskClasses);
-  result.classList.add(`risk-${value}`);
-  explainer.classList.add(`risk-${value}`);
-  result.textContent = `${riskLevelLabels[value]} ${kind} risk`;
-  explainer.textContent = descriptions[value];
-}
-
 // Find the selected radio button in a named group.
 function selectedInput(name) {
   return document.querySelector(`input[name="${name}"]:checked`);
@@ -124,48 +71,36 @@ function narrativeOutput() {
 
   const sentences = [];
 
-  if (ideation === "denied") {
-    sentences.push("Client denied current suicidal ideation.");
-  } else {
-    sentences.push(`Client endorsed ${ideation}.`);
-  }
-
-  sentences.push(
-    `No current suicide plan was identified.`.replace(
-      "No current suicide plan was identified.",
+  if (ideation)
+    sentences.push(
+      ideation === "denied"
+        ? "Client denied current suicidal ideation."
+        : `Client endorsed ${ideation}.`,
+    );
+  if (plan)
+    sentences.push(
       plan === "none"
         ? "No current suicide plan was identified."
         : `Current suicide plan was described as ${plan}.`,
-    ),
-  );
-
-  sentences.push(
-    means === "none identified"
-      ? "No access to lethal means was identified."
-      : `Access to lethal means was ${means}.`,
-  );
-
-  sentences.push(
-    behavior === "none"
-      ? "No recent suicidal behavior was identified."
-      : `Recent suicidal behavior included ${behavior}.`,
-  );
-
-  sentences.push(
-    risk.length
-      ? `Relevant risk factors include ${listText(risk)}.`
-      : "No additional acute or chronic risk factors were identified.",
-  );
-
-  sentences.push(
-    protective.length
-      ? `Protective factors include ${listText(protective)}.`
-      : "No protective factors were selected.",
-  );
-
-  sentences.push(
-    `Acute risk is assessed as ${selectedValue("acute")}, with chronic risk assessed as ${selectedValue("chronic")}.`,
-  );
+    );
+  if (means)
+    sentences.push(
+      means === "none identified"
+        ? "No access to lethal means was identified."
+        : `Access to lethal means was ${means}.`,
+    );
+  if (behavior)
+    sentences.push(
+      behavior === "none"
+        ? "No recent suicidal behavior was identified."
+        : `Recent suicidal behavior included ${behavior}.`,
+    );
+  if (risk.length) sentences.push(`Relevant risk factors include ${listText(risk)}.`);
+  if (protective.length) sentences.push(`Protective factors include ${listText(protective)}.`);
+  if (selectedValue("acute"))
+    sentences.push(`Acute risk is assessed as ${selectedValue("acute")}.`);
+  if (selectedValue("chronic"))
+    sentences.push(`Chronic risk is assessed as ${selectedValue("chronic")}.`);
 
   if (rationale) sentences.push(`Clinical rationale: ${rationale}`);
 
@@ -186,49 +121,42 @@ function listOutput() {
   const rationale = document.getElementById("rationale").value.trim();
   const interventionNotes = document.getElementById("interventionNotes").value.trim();
 
-  const lines = [
-    "Current Risk",
-    `Ideation: ${selectedLabel("ideation")}`,
-    `Plan: ${selectedLabel("plan")}`,
-    `Means: ${selectedLabel("means")}`,
-    `Behavior: ${selectedLabel("behavior")}`,
-    "",
-    "Risk Factors",
-    ...(risk.length ? risk : ["None identified"]),
-    "",
-    "Protective Factors",
-    ...(protective.length ? protective : ["None selected"]),
-    "",
-    "Assessment",
-    `Acute: ${selectedLabel("acute")}`,
-    `Chronic: ${selectedLabel("chronic")}`,
+  const groups = [
+    [
+      "Current Risk",
+      ["ideation", "plan", "means", "behavior"]
+        .filter((name) => selectedValue(name))
+        .map((name) => `${name[0].toUpperCase() + name.slice(1)}: ${selectedLabel(name)}`),
+    ],
+    ["Risk Factors", risk],
+    ["Protective Factors", protective],
+    [
+      "Assessment",
+      [
+        selectedValue("acute") && `Acute: ${selectedLabel("acute")}`,
+        selectedValue("chronic") && `Chronic: ${selectedLabel("chronic")}`,
+        rationale && `Rationale: ${rationale}`,
+      ].filter(Boolean),
+    ],
+    [
+      "Interventions",
+      [...interventions, interventionNotes && `Notes: ${interventionNotes}`].filter(Boolean),
+    ],
   ];
-
-  if (rationale) lines.push(`Rationale: ${rationale}`);
-
-  lines.push("", "Interventions", ...(interventions.length ? interventions : ["None selected"]));
-
-  if (interventionNotes) lines.push(`Notes: ${interventionNotes}`);
-
-  return lines.join("\n");
+  return groups
+    .filter(([, entries]) => entries.length)
+    .map(([heading, entries]) => `${heading}\n${entries.map((entry) => `- ${entry}`).join("\n")}`)
+    .join("\n\n");
 }
 
 // Replace the output field with the chosen narrative or list format.
 function generate() {
-  document.getElementById("output").value =
-    outputStyle === "list" ? listOutput() : narrativeOutput();
+  Workbench.writeOutput(outputStyle === "list" ? listOutput() : narrativeOutput());
 }
 
-// Restore the configured low-risk defaults, clear optional entries, and refresh the note.
-function resetToNormal() {
-  document.querySelector('input[name="ideation"][value="denied"]').checked = true;
-  document.querySelector('input[name="plan"][value="none"]').checked = true;
-  document.querySelector('input[name="means"][value="none identified"]').checked = true;
-  document.querySelector('input[name="behavior"][value="none"]').checked = true;
-  document.querySelector('input[name="acute"][value="low"]').checked = true;
-  document.querySelector('input[name="chronic"][value="low"]').checked = true;
-
-  document.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+// Clear findings without assigning denials or a risk level.
+function resetAssessment() {
+  document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach((input) => {
     input.checked = false;
   });
 
@@ -241,6 +169,7 @@ function resetToNormal() {
   });
 
   document.querySelectorAll(".toggle-details").forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
     button.textContent =
       button.dataset.originalLabel || button.textContent.replace("− Hide", "+ Add");
   });
@@ -250,26 +179,29 @@ function resetToNormal() {
     button.classList.toggle("selected", button.dataset.style === outputStyle);
   });
 
-  updateRiskLevelDisplay("acute");
-  updateRiskLevelDisplay("chronic");
+  updateRiskDisplay("acute", selectedValue("acute"));
+  updateRiskDisplay("chronic", selectedValue("chronic"));
   generate();
 }
 
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
-document.querySelectorAll("input, textarea").forEach((control) => {
-  control.addEventListener("input", generate);
+// Connect page controls: reset answers, change output style, refresh documentation. Copy is handled by workbench-ui.js.
+document.querySelectorAll("input, textarea:not([readonly])").forEach((control) => {
+  if (control.matches("textarea, input[type=text]")) control.addEventListener("input", generate);
   control.addEventListener("change", () => {
-    if (control.name === "acute") updateRiskLevelDisplay("acute");
-    if (control.name === "chronic") updateRiskLevelDisplay("chronic");
-    generate();
+    if (control.name === "acute") updateRiskDisplay("acute", selectedValue("acute"));
+    if (control.name === "chronic") updateRiskDisplay("chronic", selectedValue("chronic"));
+    if (!control.matches("textarea, input[type=text]")) generate();
   });
 });
 
 document.querySelectorAll(".toggle-details").forEach((button) => {
   button.dataset.originalLabel = button.textContent;
+  button.setAttribute("aria-controls", button.dataset.target);
+  button.setAttribute("aria-expanded", "false");
   button.addEventListener("click", () => {
     const target = document.getElementById(button.dataset.target);
     const isOpen = target.classList.toggle("open");
+    button.setAttribute("aria-expanded", String(isOpen));
     button.textContent = isOpen ? "− Hide details" : button.dataset.originalLabel;
   });
 });
@@ -284,33 +216,9 @@ document.querySelectorAll(".output-style-button").forEach((button) => {
   });
 });
 
-document.getElementById("reset").addEventListener("click", resetToNormal);
-
-document.getElementById("copy").addEventListener("click", async () => {
-  const output = document.getElementById("output");
-  const status = document.getElementById("copy-status");
-
-  try {
-    await navigator.clipboard.writeText(output.value);
-    status.textContent = "Copied";
-  } catch {
-    output.select();
-    document.execCommand("copy");
-    status.textContent = "Copied";
-  }
-
-  setTimeout(() => {
-    status.textContent = "";
-  }, 1800);
-});
-
-document.getElementById("selectText").addEventListener("click", () => {
-  const output = document.getElementById("output");
-  output.focus();
-  output.select();
-});
+document.getElementById("reset").addEventListener("click", resetAssessment);
 
 // Initial page setup: populate the form and show its starting results.
-updateRiskLevelDisplay("acute");
-updateRiskLevelDisplay("chronic");
+updateRiskDisplay("acute", selectedValue("acute"));
+updateRiskDisplay("chronic", selectedValue("chronic"));
 generate();

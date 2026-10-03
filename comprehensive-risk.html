@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
   comprehensive-risk.html: Comprehensive Suicide Assessment: collects the full form into one assessment and formats the note.
+  Shared: workbench-shared.css (design), workbench-theme.js (theme).
   Appearance: risk.css.
+  Shared assessment actions: workbench-ui.js (except the home page).
   Behavior (loaded at the bottom): comprehensive-risk.js, embed-resize.js.
   id attributes connect controls to JavaScript; class attributes connect them to CSS.
 -->
@@ -16,16 +18,23 @@
       href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap"
       rel="stylesheet"
     />
-    <!-- Load shared styling first, followed by any page-specific overrides. -->
-    <link rel="stylesheet" href="risk.css" />
+    <!-- Page layout first; the shared design system owns common styling. -->
+    <link rel="stylesheet" href="risk.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body class="risk-app">
+  <body class="risk-app spacious-tool">
     <main class="risk-shell">
       <a class="risk-back" href="index.html">← Back to Clinical Workbench</a>
       <h1>Comprehensive Suicide Assessment</h1>
       <div class="button-row">
-        <button type="button" id="reset-assessment" class="primary-button">
-          ↺ Reset to Normal
+        <button
+          data-reset-assessment="true"
+          type="button"
+          id="reset-assessment"
+          class="primary-button"
+        >
+          <span class="reset-icon" aria-hidden="true">↺</span> Reset assessment
         </button>
       </div>
 
@@ -178,7 +187,8 @@
         <div class="optional-details" id="risk-details">
           <textarea
             id="additional-risk"
-            placeholder="Optional additional risk factors or context"
+            aria-label="Additional risk factors or context"
+            placeholder="Ex.: Recent change in stressors / Collateral information differs from client report"
           ></textarea>
         </div>
       </section>
@@ -211,13 +221,6 @@
               name="internalProtective"
               value="effective coping skills"
             /><span>Coping skills</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="checkbox"
-              name="internalProtective"
-              value="problem-solving ability"
-            /><span>Problem-solving ability</span></label
           >
           <label class="choice-chip"
             ><input
@@ -294,420 +297,444 @@
             /><span>Established safety plan</span></label
           >
         </div>
-      </section>
-
-      <section class="risk-card">
-        <div class="risk-section-heading">
-          <h2>Suicidal Ideation</h2>
-          <div class="framework-badges">
-            <span class="framework-badge">SAFE-T 3</span>
-            <span class="framework-badge secondary">C-SSRS: Severity</span>
-          </div>
-        </div>
-
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="ideationSeverity"
-              value="No current suicidal ideation"
-              checked
-            /><span>None</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="ideationSeverity"
-              value="Wish to be dead or not wake up"
-            /><span>Wish to be dead</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="ideationSeverity"
-              value="Non-specific active suicidal thoughts"
-            /><span>Active thoughts, no method</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="ideationSeverity"
-              value="Suicidal thoughts with a method but without current intent"
-            /><span>Method, no intent</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="ideationSeverity"
-              value="Suicidal thoughts with intent but without a specific plan"
-            /><span>Intent, no specific plan</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="ideationSeverity"
-              value="Suicidal thoughts with a specific plan and intent"
-            /><span>Plan and intent</span></label
-          >
-        </div>
-      </section>
-
-      <section class="risk-card">
-        <div class="risk-section-heading">
-          <h2>Intensity of Ideation</h2>
-          <div class="framework-badges">
-            <span class="framework-badge">SAFE-T 3</span>
-            <span class="framework-badge secondary">C-SSRS: Intensity</span>
-          </div>
-        </div>
-
-        <h3>Frequency</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input type="radio" name="frequency" value="less than weekly" checked /><span
-              >Less than weekly</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="frequency" value="weekly" /><span>Weekly</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="frequency" value="several times per week" /><span
-              >Several times/week</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="frequency" value="daily" /><span>Daily</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="frequency" value="many times per day" /><span
-              >Many times/day</span
-            ></label
-          >
-        </div>
-
-        <h3>Duration</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input type="radio" name="duration" value="fleeting" checked /><span
-              >Fleeting</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="duration" value="under 15 minutes" /><span
-              >Under 15 minutes</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="duration" value="15 to 60 minutes" /><span
-              >15–60 minutes</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="duration" value="one to four hours" /><span
-              >1–4 hours</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="duration" value="most of the day" /><span
-              >Most of the day</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="duration" value="continuous or nearly continuous" /><span
-              >Continuous</span
-            ></label
-          >
-        </div>
-
-        <h3>Controllability</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input type="radio" name="controllability" value="easily controlled" checked /><span
-              >Easily controlled</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="controllability" value="controlled with some effort" /><span
-              >Some effort</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="controllability" value="difficult to control" /><span
-              >Difficult to control</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="controllability" value="unable to control" /><span
-              >Unable to control</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="controllability" value="unclear" /><span
-              >Unclear</span
-            ></label
-          >
-        </div>
-
-        <h3>Deterrents</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="deterrents"
-              value="deterrents clearly prevent action"
-              checked
-            /><span>Clearly prevent action</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="deterrents"
-              value="deterrents probably prevent action"
-            /><span>Probably prevent action</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="deterrents"
-              value="the effect of deterrents is uncertain"
-            /><span>Uncertain</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="deterrents"
-              value="deterrents are unlikely to prevent action"
-            /><span>Unlikely to prevent action</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="deterrents"
-              value="no meaningful deterrents were identified"
-            /><span>No identified deterrents</span></label
-          >
-        </div>
-
-        <h3>Primary Reason for Ideation</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="reason"
-              value="primarily to end or escape emotional pain"
-              checked
-            /><span>End / escape pain</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="reason"
-              value="primarily to communicate distress or influence another person"
-            /><span>Communicate distress / influence</span></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="reason"
-              value="a mixture of escape and interpersonal reasons"
-            /><span>Mixed reasons</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="reason" value="unclear" /><span>Unclear</span></label
-          >
-        </div>
-      </section>
-
-      <section class="risk-card">
-        <div class="risk-section-heading">
-          <h2>Suicidal and Self-Injurious Behavior</h2>
-          <div class="framework-badges">
-            <span class="framework-badge">SAFE-T 3</span>
-            <span class="framework-badge secondary">C-SSRS: Behavior</span>
-          </div>
-        </div>
-
-        <div class="risk-options">
-          <label class="choice-chip"
-            ><input type="checkbox" name="behaviorType" value="preparatory behavior" /><span
-              >Preparatory behavior</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="checkbox" name="behaviorType" value="an aborted attempt" /><span
-              >Aborted attempt</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="checkbox" name="behaviorType" value="an interrupted attempt" /><span
-              >Interrupted attempt</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="checkbox" name="behaviorType" value="an actual suicide attempt" /><span
-              >Actual attempt</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="checkbox" name="behaviorType" value="non-suicidal self-injury" /><span
-              >Non-suicidal self-injury</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="checkbox"
-              name="behaviorType"
-              value="no suicidal or self-injurious behavior identified"
-            /><span>None identified</span></label
-          >
-        </div>
-
-        <h3>Most Recent Behavior</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="behaviorTiming"
-              value="no behavior identified"
-              checked
-            /><span>None</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="behaviorTiming" value="within the past 24 hours" /><span
-              >Past 24 hours</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="behaviorTiming" value="within the past week" /><span
-              >Past week</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="behaviorTiming" value="within the past month" /><span
-              >Past month</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="behaviorTiming" value="within the past three months" /><span
-              >Past 3 months</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="behaviorTiming" value="more than three months ago" /><span
-              >More than 3 months</span
-            ></label
-          >
-        </div>
-
         <button
           type="button"
           class="secondary-button toggle-details"
-          data-target="behavior-details"
+          data-target="protective-details"
+          aria-expanded="false"
+          aria-controls="protective-details"
         >
-          + Add behavior details
+          + Add details
         </button>
-        <div class="optional-details" id="behavior-details">
+        <div class="optional-details" id="protective-details">
           <textarea
-            id="behavior-description"
-            placeholder="Optional timing, method, intent, medical consequences, lethality, rescue, or circumstances"
+            id="additional-protective"
+            aria-label="Additional protective factors or context"
+            placeholder="Ex.: Identifies caring for a pet as a reason to stay alive / Names a trusted person they would contact during a crisis / Describes a coping strategy that has helped during previous crises"
           ></textarea>
         </div>
       </section>
 
-      <section class="risk-card">
+      <section class="risk-card" id="suicide-inquiry">
         <div class="risk-section-heading">
-          <h2>Current Plan, Intent, and Means</h2>
-          <div class="framework-badges">
-            <span class="framework-badge">SAFE-T 3</span>
-            <span class="framework-badge secondary">C-SSRS: Ideation / Behavior</span>
+          <h2>Suicide Inquiry</h2>
+          <span class="framework-badge">SAFE-T 3</span>
+        </div>
+        <p class="risk-helper">
+          Record the findings you assessed. Detailed prompts and your own wording are both
+          available.
+        </p>
+        <article class="inquiry-area" data-area="thoughts">
+          <h3>Thoughts</h3>
+          <div
+            class="risk-options single-choice"
+            role="group"
+            aria-label="Current suicidal thoughts"
+          >
+            <label class="choice-chip"
+              ><input
+                type="radio"
+                name="ideationSeverity"
+                value="No current suicidal ideation"
+              /><span>Denied current thoughts</span></label
+            ><label class="choice-chip"
+              ><input type="radio" name="ideationSeverity" value="Passive thoughts of death" /><span
+                >Passive thoughts</span
+              ></label
+            ><label class="choice-chip"
+              ><input type="radio" name="ideationSeverity" value="Active suicidal thoughts" /><span
+                >Active thoughts</span
+              ></label
+            ><label class="choice-chip"
+              ><input type="radio" name="ideationSeverity" value="unclear" /><span
+                >Unclear</span
+              ></label
+            ><label class="choice-chip"
+              ><input type="radio" name="ideationSeverity" value="not assessed" /><span
+                >Not assessed</span
+              ></label
+            >
           </div>
-        </div>
-
-        <h3>Current Intent</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input type="radio" name="currentIntent" value="denied" checked /><span
-              >Denied</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="currentIntent" value="unclear" /><span>Unclear</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="currentIntent" value="present" /><span>Present</span></label
-          >
-        </div>
-
-        <h3>Current Plan</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input type="radio" name="currentPlan" value="none" checked /><span>None</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="currentPlan" value="vague or partially developed" /><span
-              >Vague / partial</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="currentPlan" value="specific and developed" /><span
-              >Specific / developed</span
-            ></label
-          >
-        </div>
-
-        <h3>Access to Means</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="meansAccess"
-              value="denied or no access identified"
-              checked
-            /><span>Denied / none identified</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="meansAccess" value="possible access" /><span
-              >Possible access</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="meansAccess" value="confirmed access" /><span
-              >Confirmed access</span
-            ></label
-          >
-        </div>
-
-        <h3>Preparation</h3>
-        <div class="risk-options single-choice">
-          <label class="choice-chip"
-            ><input type="radio" name="preparation" value="none identified" checked /><span
-              >None</span
-            ></label
-          >
-          <label class="choice-chip"
-            ><input
-              type="radio"
-              name="preparation"
-              value="possible or unclear preparatory behavior"
-            /><span>Possible / unclear</span></label
-          >
-          <label class="choice-chip"
-            ><input type="radio" name="preparation" value="active preparatory behavior" /><span
-              >Active preparation</span
-            ></label
-          >
-        </div>
-
-        <button type="button" class="secondary-button toggle-details" data-target="means-details">
-          + Add plan or means details
-        </button>
-        <div class="optional-details" id="means-details">
-          <textarea
-            id="means-description"
-            placeholder="Optional method, access, rehearsal, concealment, steps taken, or means-restriction details"
+          <label class="inquiry-note-label" for="thought-summary">Thoughts / timeframe</label
+          ><textarea
+            id="thought-summary"
+            class="inquiry-note"
+            placeholder="Ex.: Frequency and duration in your own words / Last 48 hours, past month, or worst-ever episode"
           ></textarea>
-        </div>
+          <details class="inquiry-details" id="thought-details">
+            <summary>Detailed thought prompts</summary>
+            <h4>Frequency</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input type="radio" name="frequency" value="less than weekly" /><span
+                  >Less than weekly</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="frequency" value="weekly" /><span>Weekly</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="frequency" value="several times per week" /><span
+                  >Several times/week</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="frequency" value="daily" /><span>Daily</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="frequency" value="many times per day" /><span
+                  >Many times/day</span
+                ></label
+              >
+            </div>
+            <h4>Duration</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input type="radio" name="duration" value="fleeting" /><span>Fleeting</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="duration" value="under 15 minutes" /><span
+                  >Under 15 minutes</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="duration" value="15 to 60 minutes" /><span
+                  >15–60 minutes</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="duration" value="one to four hours" /><span
+                  >1–4 hours</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="duration" value="most of the day" /><span
+                  >Most of the day</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="duration" value="continuous or nearly continuous" /><span
+                  >Continuous</span
+                ></label
+              >
+            </div>
+            <h4>Controllability</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input type="radio" name="controllability" value="easily controlled" /><span
+                  >Easily controlled</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="controllability"
+                  value="controlled with some effort"
+                /><span>Some effort</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="controllability" value="difficult to control" /><span
+                  >Difficult to control</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="controllability" value="unable to control" /><span
+                  >Unable to control</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="controllability" value="unclear" /><span
+                  >Unclear</span
+                ></label
+              >
+            </div>
+            <h4>Deterrents</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="deterrents"
+                  value="deterrents clearly prevent action"
+                /><span>Clearly prevent action</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="deterrents"
+                  value="deterrents probably prevent action"
+                /><span>Probably prevent action</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="deterrents"
+                  value="the effect of deterrents is uncertain"
+                /><span>Uncertain</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="deterrents"
+                  value="deterrents are unlikely to prevent action"
+                /><span>Unlikely to prevent action</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="deterrents"
+                  value="no meaningful deterrents were identified"
+                /><span>No identified deterrents</span></label
+              >
+            </div>
+            <h4>Reasons for ideation</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="reason"
+                  value="primarily to end or escape emotional pain"
+                /><span>End / escape pain</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="reason"
+                  value="primarily to communicate distress or influence another person"
+                /><span>Communicate distress / influence</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="reason"
+                  value="a mixture of escape and interpersonal reasons"
+                /><span>Mixed reasons</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="reason" value="unclear" /><span>Unclear</span></label
+              >
+            </div>
+          </details>
+        </article>
+        <article class="inquiry-area" data-area="plan">
+          <h3>Plan, access &amp; preparation</h3>
+          <div class="risk-options single-choice">
+            <label class="choice-chip"
+              ><input type="radio" name="currentPlan" value="none" /><span
+                >No current plan</span
+              ></label
+            >
+            <label class="choice-chip"
+              ><input type="radio" name="currentPlan" value="vague or partially developed" /><span
+                >Vague / partial</span
+              ></label
+            >
+            <label class="choice-chip"
+              ><input type="radio" name="currentPlan" value="specific and developed" /><span
+                >Specific / developed</span
+              ></label
+            >
+            <label class="choice-chip"
+              ><input type="radio" name="currentPlan" value="unclear" /><span>Unclear</span></label
+            ><label class="choice-chip"
+              ><input type="radio" name="currentPlan" value="not assessed" /><span
+                >Not assessed</span
+              ></label
+            >
+          </div>
+          <label class="inquiry-note-label" for="plan-summary">Plan / access / preparation</label
+          ><textarea
+            id="plan-summary"
+            class="inquiry-note"
+            placeholder="Ex.: No plan reported; access discussed separately / Describe what is known or remains unclear"
+          ></textarea>
+          <details class="inquiry-details" id="plan-details">
+            <summary>Detailed plan and access prompts</summary>
+            <h4>Access to means</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="meansAccess"
+                  value="denied or no access identified"
+                /><span>Denied / none identified</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="meansAccess" value="possible access" /><span
+                  >Possible access</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="meansAccess" value="confirmed access" /><span
+                  >Confirmed access</span
+                ></label
+              >
+            </div>
+            <h4>Preparation</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input type="radio" name="preparation" value="none identified" /><span
+                  >None</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="preparation"
+                  value="possible or unclear preparatory behavior"
+                /><span>Possible / unclear</span></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="preparation" value="active preparatory behavior" /><span
+                  >Active preparation</span
+                ></label
+              >
+            </div>
+            <label class="inquiry-note-label" for="means-description">Additional context</label
+            ><textarea
+              id="means-description"
+              class="inquiry-note"
+              placeholder="Ex.: Timing or location / Availability and potential lethality / Preparatory steps or means-restriction arrangements"
+            ></textarea>
+          </details>
+        </article>
+        <article class="inquiry-area" data-area="behavior">
+          <h3>Behavior &amp; history</h3>
+          <div class="risk-options single-choice" role="group" aria-label="Behavior and history">
+            <label class="choice-chip"
+              ><input
+                type="radio"
+                name="behaviorStatus"
+                value="No suicidal or self-injurious behavior reported"
+              /><span>None reported</span></label
+            ><label class="choice-chip"
+              ><input type="radio" name="behaviorStatus" value="Past behavior reported" /><span
+                >History reported</span
+              ></label
+            ><label class="choice-chip"
+              ><input type="radio" name="behaviorStatus" value="Recent behavior reported" /><span
+                >Recent behavior</span
+              ></label
+            ><label class="choice-chip"
+              ><input type="radio" name="behaviorStatus" value="unclear" /><span
+                >Unclear</span
+              ></label
+            ><label class="choice-chip"
+              ><input type="radio" name="behaviorStatus" value="not assessed" /><span
+                >Not assessed</span
+              ></label
+            >
+          </div>
+          <label class="inquiry-note-label" for="behavior-summary">Behavior / history</label
+          ><textarea
+            id="behavior-summary"
+            class="inquiry-note"
+            placeholder="Ex.: Past versus recent behavior / Source of history / Suicidal intent versus non-suicidal self-injury"
+          ></textarea>
+          <details class="inquiry-details" id="behavior-inquiry-details">
+            <summary>Detailed behavior prompts</summary>
+            <div class="risk-options">
+              <label class="choice-chip"
+                ><input type="checkbox" name="behaviorType" value="preparatory behavior" /><span
+                  >Preparatory behavior</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="checkbox" name="behaviorType" value="an aborted attempt" /><span
+                  >Aborted attempt</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="checkbox" name="behaviorType" value="an interrupted attempt" /><span
+                  >Interrupted attempt</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="checkbox"
+                  name="behaviorType"
+                  value="an actual suicide attempt"
+                /><span>Actual attempt</span></label
+              >
+              <label class="choice-chip"
+                ><input type="checkbox" name="behaviorType" value="non-suicidal self-injury" /><span
+                  >Non-suicidal self-injury</span
+                ></label
+              >
+            </div>
+            <h4>Most recent behavior</h4>
+            <div class="risk-options single-choice">
+              <label class="choice-chip"
+                ><input type="radio" name="behaviorTiming" value="no behavior identified" /><span
+                  >None</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="behaviorTiming" value="within the past 24 hours" /><span
+                  >Past 24 hours</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="behaviorTiming" value="within the past week" /><span
+                  >Past week</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input type="radio" name="behaviorTiming" value="within the past month" /><span
+                  >Past month</span
+                ></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="behaviorTiming"
+                  value="within the past three months"
+                /><span>Past 3 months</span></label
+              >
+              <label class="choice-chip"
+                ><input
+                  type="radio"
+                  name="behaviorTiming"
+                  value="more than three months ago"
+                /><span>More than 3 months</span></label
+              >
+            </div>
+            <label class="inquiry-note-label" for="behavior-description">Additional context</label
+            ><textarea
+              id="behavior-description"
+              class="inquiry-note"
+              placeholder="Ex.: Attempts, interrupted or aborted attempts, or rehearsals / Intent and medical consequences / Youth caregiver report"
+            ></textarea>
+          </details>
+        </article>
+        <article class="inquiry-area" data-area="intent">
+          <h3>Intent</h3>
+          <div class="risk-options single-choice">
+            <label class="choice-chip"
+              ><input type="radio" name="currentIntent" value="denied" /><span>Denied</span></label
+            >
+            <label class="choice-chip"
+              ><input type="radio" name="currentIntent" value="unclear" /><span
+                >Unclear</span
+              ></label
+            >
+            <label class="choice-chip"
+              ><input type="radio" name="currentIntent" value="present" /><span
+                >Present</span
+              ></label
+            >
+            <label class="choice-chip"
+              ><input type="radio" name="currentIntent" value="not assessed" /><span
+                >Not assessed</span
+              ></label
+            >
+          </div>
+          <label class="inquiry-note-label" for="intent-summary">Intent / ambivalence</label
+          ><textarea
+            id="intent-summary"
+            class="inquiry-note"
+            placeholder="Ex.: Expectation of acting on thoughts / Belief about lethality / Reasons to die versus reasons to live"
+          ></textarea>
+        </article>
       </section>
 
       <section class="risk-card">
@@ -724,12 +751,12 @@
               <div class="field-label">Current (Acute) Risk</div>
               <div class="risk-helper">Current risk in the immediate clinical context.</div>
             </div>
-            <div class="risk-level-result risk-low" id="acute-result">Low acute risk</div>
+            <div class="risk-level-result" id="acute-result">Not selected</div>
           </div>
 
           <div class="risk-options single-choice risk-level-options">
             <label class="choice-chip risk-choice risk-low"
-              ><input type="radio" name="acuteLevel" value="low" checked /><span>Low</span></label
+              ><input type="radio" name="acuteLevel" value="low" /><span>Low</span></label
             >
             <label class="choice-chip risk-choice risk-low-moderate"
               ><input type="radio" name="acuteLevel" value="low-moderate" /><span
@@ -749,10 +776,7 @@
             >
           </div>
 
-          <p class="risk-level-explainer risk-low" id="acute-explainer">
-            Current circumstances are unlikely to result in suicidal behavior. Outpatient care is
-            generally appropriate when otherwise clinically indicated.
-          </p>
+          <p class="risk-level-explainer" id="acute-explainer" hidden></p>
         </div>
 
         <div class="risk-level-panel" data-risk-panel="chronic">
@@ -763,12 +787,12 @@
                 Long-term baseline risk based on enduring and historical factors.
               </div>
             </div>
-            <div class="risk-level-result risk-low" id="chronic-result">Low chronic risk</div>
+            <div class="risk-level-result" id="chronic-result">Not selected</div>
           </div>
 
           <div class="risk-options single-choice risk-level-options">
             <label class="choice-chip risk-choice risk-low"
-              ><input type="radio" name="chronicLevel" value="low" checked /><span>Low</span></label
+              ><input type="radio" name="chronicLevel" value="low" /><span>Low</span></label
             >
             <label class="choice-chip risk-choice risk-low-moderate"
               ><input type="radio" name="chronicLevel" value="low-moderate" /><span
@@ -790,9 +814,7 @@
             >
           </div>
 
-          <p class="risk-level-explainer risk-low" id="chronic-explainer">
-            Long-term history suggests little ongoing elevation above baseline suicide risk.
-          </p>
+          <p class="risk-level-explainer" id="chronic-explainer" hidden></p>
         </div>
 
         <h3>Interventions</h3>
@@ -872,12 +894,9 @@
         <h3>Recommended Level of Care</h3>
         <div class="risk-options single-choice">
           <label class="choice-chip"
-            ><input
-              type="radio"
-              name="recommendation"
-              value="continue outpatient care"
-              checked
-            /><span>Continue outpatient care</span></label
+            ><input type="radio" name="recommendation" value="continue outpatient care" /><span
+              >Continue outpatient care</span
+            ></label
           >
           <label class="choice-chip"
             ><input type="radio" name="recommendation" value="urgent clinical consultation" /><span
@@ -905,7 +924,8 @@
 
         <textarea
           id="clinical-rationale"
-          placeholder="Clinical formulation and rationale"
+          aria-label="Clinical rationale"
+          placeholder="Ex.: Acute changes and ongoing vulnerabilities / Protective factors and their availability / Rationale for disposition"
         ></textarea>
       </section>
 
@@ -921,15 +941,24 @@
             Narrative
           </button>
           <button type="button" id="list-output-button" class="output-style-button">List</button>
+          <div class="output-copy-actions">
+            <button data-copy-output type="button" id="copy-assessment" class="primary-button">
+              Copy
+            </button>
+
+            <span id="copy-status" aria-live="polite" data-copy-status></span>
+          </div>
         </div>
 
-        <textarea id="comprehensive-output" class="risk-output" readonly></textarea>
-
-        <div class="button-row">
-          <button type="button" id="copy-assessment" class="primary-button">Copy</button>
-          <button type="button" id="select-assessment" class="secondary-button">Select text</button>
-          <span id="copy-status" aria-live="polite"></span>
-        </div>
+        <p id="assessment-progress" class="risk-helper" aria-live="polite"></p>
+        <p id="assessment-review" class="risk-helper" aria-live="polite"></p>
+        <textarea
+          id="comprehensive-output"
+          data-note-output
+          aria-label="Generated documentation"
+          class="risk-output"
+          readonly
+        ></textarea>
 
         <p class="risk-note">
           Framework labels show where each section corresponds to SAFE-T and C-SSRS concepts. This
@@ -938,7 +967,9 @@
       </section>
     </main>
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="comprehensive-risk.js"></script>
-    <script src="embed-resize.js"></script>
+    <script src="workbench-ui.js?v=20261003-audit4"></script>
+    <script src="risk-presentation.js?v=20261003-audit4"></script>
+    <script src="comprehensive-risk.js?v=20261003-audit4"></script>
+    <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

@@ -1,0 +1,612 @@
+/* Shared palette and controls for every Clinical Workbench page.
+ * Loaded after page styles; tool-specific layout and score colors stay in their own files.
+ */
+:root {
+  --heading-font: "Cutive", serif;
+  --body-font: "Asap", sans-serif;
+  --radius-small: 20px;
+  --radius-large: 30px;
+  --font-page-title: 32px;
+  --font-section-title: 21px;
+  --font-subheading: 17px;
+  --font-option: 14px;
+  --font-field: 15px;
+  --font-result: 24px;
+  --font-hint: 13px;
+  --space-panel: 16px;
+  --space-row: 12px;
+  --space-options: 8px;
+  --bg: #000000;
+  --text: #ffffff;
+  --accent-primary: #ff42a7;
+  --accent-secondary: #ffec1a;
+  --surface: #111111;
+  --surface-2: #1a1a1a;
+  --border: #333333;
+  --muted-text: #cccccc;
+  --on-accent: #000000;
+  --notice-surface: #1c1b0b;
+  --highlight-surface: #25101d;
+  --track: #3b3b3b;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #faf8f6;
+  --text: #242124;
+  --accent-primary: #b31568;
+  --accent-secondary: #756000;
+  --surface: #ffffff;
+  --surface-2: #f2edf0;
+  --border: #c9bec4;
+  --muted-text: #60565d;
+  --on-accent: #ffffff;
+  --notice-surface: #fff8df;
+  --highlight-surface: #fbeaf3;
+  --track: #ded5da;
+  color-scheme: light;
+}
+/* Page foundations shared by every tool. */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body-font);
+}
+.page-shell,
+.risk-shell,
+.workbench-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(28px, 4vw, 64px);
+}
+@media (max-width: 760px) {
+  .page-shell,
+  .risk-shell,
+  .workbench-shell {
+    padding: 14px;
+  }
+}
+
+/* Shared actions: primary, secondary, answer, and output-format buttons. */
+button {
+  padding: 10px 16px;
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-small);
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  font: 400 var(--font-option)/1.4 var(--body-font);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.08s ease;
+}
+button.secondary,
+.secondary-button,
+.tiny-button,
+.output-style-button {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text);
+}
+.segment-button {
+  border-color: var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.segment-button.selected,
+.output-style-button.selected {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--on-accent);
+}
+button:hover {
+  border-color: var(--accent-secondary);
+}
+button:focus-visible {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 2px;
+}
+button:active {
+  transform: translateY(1px);
+}
+button:disabled {
+  cursor: default;
+}
+[data-copy-status] {
+  color: var(--accent-secondary);
+}
+
+.workbench-topbar,
+.mse-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.workbench-topbar {
+  margin-bottom: 16px;
+}
+.workbench-topbar .risk-back {
+  margin: 0;
+}
+#theme-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 0 0 auto;
+  padding: 8px 14px;
+  border: 2px solid var(--accent-primary);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font:
+    500 15px/1.25 "Asap",
+    sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* Match MSE in risk pages too, whose button rules have higher specificity. */
+.risk-app #theme-toggle {
+  padding: 8px 14px;
+  background: var(--surface);
+  color: var(--text);
+}
+#theme-toggle:hover,
+.risk-app #theme-toggle:hover {
+  border-color: var(--accent-secondary);
+  background: var(--surface);
+  color: var(--text);
+}
+#theme-toggle:focus-visible {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 3px;
+}
+.theme-icon {
+  font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+}
+:root[data-theme="light"] #theme-toggle {
+  box-shadow: 0 8px 22px rgb(0 0 0 / 18%);
+}
+input,
+textarea,
+select {
+  accent-color: var(--accent-primary);
+}
+textarea::placeholder,
+input::placeholder {
+  color: var(--muted-text);
+  opacity: 1;
+  font-size: var(--font-hint);
+  font-weight: 400;
+}
+/* Risk colors convey a category in addition to its written label. Darker text
+   colors preserve contrast on light surfaces; selected chips keep black text. */
+:root[data-theme="light"] .risk-low {
+  color: #226c3c;
+}
+:root[data-theme="light"] .risk-low-moderate {
+  color: #59600e;
+}
+:root[data-theme="light"] .risk-moderate {
+  color: #805200;
+}
+:root[data-theme="light"] .risk-moderate-high {
+  color: #a33e00;
+}
+:root[data-theme="light"] .risk-high {
+  color: #b52435;
+}
+@media (max-width: 480px) {
+  .workbench-topbar,
+  .mse-topbar {
+    flex-wrap: wrap;
+  }
+}
+
+/* Shared type scale: decorative page titles, quieter sans-serif sections,
+   and regular-weight answers. Apply equally in Learn and Compact. */
+.page-shell h1,
+.risk-app h1,
+.workbench-shell h1 {
+  font-family: var(--heading-font);
+  font-size: var(--font-page-title);
+  line-height: 1.3;
+}
+.page-shell h2,
+.risk-app h2,
+.workbench-shell .section-title,
+.page-shell .mse-category-title {
+  font-family: var(--body-font);
+  font-size: var(--font-section-title);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.page-shell h3,
+.risk-app h3,
+.page-shell .section-header h3,
+.workbench-shell .tool-card h3 {
+  font-family: var(--body-font);
+  font-size: var(--font-subheading);
+  font-weight: 600;
+  line-height: 1.4;
+}
+/* Repeated assessment prompts are a level below their section heading,
+   even on pages that use h2 for the individual question cards. */
+.page-shell .question-card h2,
+.page-shell .reason-card h2 {
+  font-family: var(--body-font);
+  font-size: var(--font-subheading);
+  font-weight: 500;
+  line-height: 1.45;
+}
+.button-row:has([data-reset-assessment]),
+.quick-top-actions {
+  justify-content: flex-end;
+}
+.choice-chip span,
+.segment-button,
+.compact-mode .segment-button,
+.segment-button.small,
+.response-option span,
+.function-response span,
+.anchor-option span,
+.anchor-option span strong {
+  font-family: var(--body-font);
+  font-size: var(--font-option);
+  font-weight: 400;
+  line-height: 1.4;
+}
+.choice-chip span,
+.segment-button,
+.compact-mode .segment-button,
+.segment-button.small,
+.function-response span {
+  min-height: 36px;
+  padding: 7px 11px;
+}
+.response-option span {
+  min-height: 52px;
+  padding: 8px 10px;
+}
+.anchor-option span {
+  padding: 9px 11px;
+}
+.segmented-options,
+.risk-options {
+  gap: var(--space-options);
+}
+.segmented-options .segment-button {
+  margin: 0;
+}
+.context-choices label,
+.context-observations label,
+.inline-option,
+.symptom-row label,
+.other-symptom-row label,
+.main-check,
+.type-row > span {
+  font-size: var(--font-option);
+  font-weight: 400;
+  line-height: 1.4;
+}
+.field-label,
+.behavior-name {
+  font-size: var(--font-field);
+  font-weight: 500;
+}
+@media (max-width: 700px) {
+  .page-shell h1,
+  .risk-app h1,
+  .workbench-shell h1 {
+    font-size: 28px;
+  }
+}
+/* Keep comfortable touch targets without making desktop choices bulky. */
+@media (pointer: coarse) {
+  .choice-chip span,
+  .segment-button,
+  .compact-mode .segment-button,
+  .segment-button.small,
+  .function-response span {
+    min-height: 44px;
+  }
+}
+
+/* Spacious tool layout: one outer panel, full-width rows, quiet dividers.
+   MSE keeps its separate Learn/Compact layouts. */
+.spacious-tool .card,
+.spacious-tool .risk-card {
+  margin: var(--space-panel) 0;
+  padding: var(--space-panel);
+  border-radius: 20px;
+}
+.spacious-tool .page-shell > #questions:has(> .question-card) {
+  margin: 16px 0;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.spacious-tool .question-card,
+.spacious-tool .reason-card {
+  margin: 0;
+  padding: var(--space-row) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.spacious-tool .question-card + .question-card,
+.spacious-tool .reason-card + .reason-card {
+  border-top: 1px solid var(--border);
+}
+.spacious-tool h3,
+.spacious-tool .question-card h2,
+.spacious-tool .reason-card h2 {
+  color: var(--text);
+}
+.spacious-tool .risk-section-heading {
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.spacious-tool .risk-card > h3 {
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+.spacious-tool .risk-options + h3 {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.spacious-tool .behavior-grid,
+.spacious-tool .type-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.spacious-tool .behavior-list,
+.spacious-tool .context-fields {
+  gap: 0;
+}
+.spacious-tool .behavior-row,
+.spacious-tool .other-behavior-row,
+.spacious-tool .context-item,
+.spacious-tool .type-row {
+  padding: var(--space-row) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.spacious-tool .behavior-row + .behavior-row,
+.spacious-tool .other-behavior-row,
+.spacious-tool .context-item + .context-item,
+.spacious-tool .type-row + .type-row {
+  border-top: 1px solid var(--border);
+}
+.spacious-tool .function-list {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.spacious-tool .function-item {
+  padding: var(--space-row) 0;
+}
+.spacious-tool .framework-badge,
+.spacious-tool .framework-badge.secondary {
+  color: var(--muted-text);
+  border-color: var(--border);
+  font-weight: 400;
+}
+.spacious-tool .section-nav a,
+.spacious-tool .symptom-row label {
+  font-weight: 400;
+}
+.spacious-tool .section-nav {
+  padding: 12px 16px;
+  gap: 12px 20px;
+}
+.spacious-tool .section-nav a {
+  color: var(--muted-text);
+}
+.spacious-tool .section-nav a:hover {
+  color: var(--text);
+}
+.spacious-tool button.secondary,
+.spacious-tool button.secondary-button {
+  color: var(--muted-text);
+  font-weight: 400;
+}
+@media (max-width: 700px) {
+  .spacious-tool .card,
+  .spacious-tool .risk-card {
+    padding: 16px;
+  }
+  .spacious-tool .question-card,
+  .spacious-tool .reason-card {
+    padding: var(--space-row) 0;
+  }
+  .spacious-tool .page-shell > #questions:has(> .question-card) {
+    padding: 0 16px;
+  }
+}
+
+.spacious-tool .risk-level-panel {
+  padding: var(--space-row) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.spacious-tool .risk-level-panel + .risk-level-panel {
+  border-top: 1px solid var(--border);
+}
+
+/* Four inquiry rows share the same quiet hierarchy as MSE Learn. */
+.spacious-tool .inquiry-area {
+  padding: var(--space-row) 0;
+}
+.spacious-tool .inquiry-area + .inquiry-area {
+  border-top: 1px solid var(--border);
+}
+.spacious-tool .inquiry-area h3 {
+  margin: 0 0 8px;
+}
+.inquiry-note-label {
+  display: block;
+  margin: 10px 0 5px;
+  font-size: var(--font-option);
+  color: var(--muted-text);
+}
+.risk-app textarea.inquiry-note {
+  min-height: 64px;
+  margin: 0;
+}
+.inquiry-details {
+  margin-top: 10px;
+}
+.inquiry-details summary {
+  color: var(--muted-text);
+  font-size: var(--font-option);
+  cursor: pointer;
+  padding: 5px 0;
+}
+.inquiry-details h4 {
+  font-size: var(--font-option);
+  font-weight: 500;
+  margin: 12px 0 6px;
+}
+#assessment-progress,
+#assessment-review {
+  margin: 10px 0;
+}
+#assessment-review:empty {
+  display: none;
+}
+
+/* Shared reset action: same wording, monochrome arrow, and quiet weight.
+   Individual tools retain their existing reset behavior. */
+button[data-reset-assessment],
+.risk-app button[data-reset-assessment] {
+  font-family: var(--body-font);
+  font-size: var(--font-option);
+  font-weight: 400;
+  line-height: 1.4;
+}
+.reset-icon {
+  font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif;
+  font-weight: 400;
+}
+
+/* Actions share a quiet weight; section titles retain emphasis. */
+button,
+.risk-app button,
+.output-style-row label,
+.output-style-row .field-label,
+.output-style-row .small-label,
+[data-copy-status] {
+  font-family: var(--body-font);
+  font-size: var(--font-option);
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* Detail actions use the same type size as the adjacent answer choices. */
+.risk-app button.toggle-details {
+  font-size: var(--font-option);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Avoid stacking panel padding and label margins below the formulation heading. */
+.spacious-tool h3 + .risk-level-panel[data-risk-panel="acute"] {
+  margin-top: 4px;
+  padding-top: 0;
+}
+.spacious-tool h3 + .risk-level-panel[data-risk-panel="acute"] .field-label {
+  margin-top: 0;
+}
+
+/* Documentation controls share one row, wrapping naturally on narrow screens. */
+.output-style-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+}
+.output-style-row .inline-option,
+.output-style-row .small-label,
+.output-style-row .field-label {
+  margin: 0;
+}
+
+/* Preset review is part of documentation, separate from the assessment answers. */
+.preset-review {
+  order: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 0 auto;
+  color: var(--muted-text);
+  font-size: var(--font-option);
+  line-height: 1.45;
+}
+.preset-review button {
+  margin: 0;
+  font-size: var(--font-option);
+}
+[hidden] {
+  display: none !important;
+}
+
+/* Copy is separated from format/generation controls by a quiet vertical rule. */
+.output-copy-actions {
+  order: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+.output-style-row:has(.preset-review:not([hidden])) .output-copy-actions {
+  margin-left: 0;
+}
+.output-copy-actions button {
+  margin: 0;
+}
+.output-copy-actions [data-copy-status]:empty {
+  display: none;
+}
+
+/* Keyboard navigation must remain visible when a radio is visually hidden. */
+.anchor-option input:focus-visible + span {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 2px;
+}
+/* Invalid numbers retain the typed value; documentation waits for correction. */
+input[type="number"]:invalid {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 2px;
+}
+
+/* Numeric summaries share a scale; section headings keep their smaller hierarchy. */
+.score-display,
+.severity-display,
+.function-score,
+.domain-score,
+.score-grid strong {
+  font-size: var(--font-result);
+}

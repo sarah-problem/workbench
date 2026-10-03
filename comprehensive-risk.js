@@ -5,43 +5,9 @@
  * See README.md for the file map and a guide to following the code.
  */
 
-const output = document.getElementById("comprehensive-output");
-const copyStatus = document.getElementById("copy-status");
 let outputStyle = "narrative";
-
-// Explanations shown for clinician-selected acute and chronic risk levels.
-const riskDescriptions = {
-  acute: {
-    low: "Current circumstances are unlikely to result in suicidal behavior. Outpatient care is generally appropriate when otherwise clinically indicated.",
-    "low-moderate":
-      "Current circumstances increase suicide risk but can typically be managed safely in outpatient care with appropriate supports, monitoring, and safety planning.",
-    moderate:
-      "Suicide risk is clinically significant and requires active intervention, close monitoring, and consideration of a higher level of care if risk increases.",
-    "moderate-high":
-      "Suicide risk is substantial. Urgent evaluation, intensive intervention, and careful consideration of the appropriate level of care are indicated.",
-    high: "Suicide risk appears imminent or severe. Immediate intervention and emergency evaluation are generally indicated.",
-  },
-  chronic: {
-    low: "Long-term history suggests little ongoing elevation above baseline suicide risk.",
-    "low-moderate":
-      "Long-term risk is mildly elevated because of enduring risk factors or psychiatric history.",
-    moderate:
-      "Long-term risk remains meaningfully elevated because of persistent risk factors, recurrent suicidal ideation, or previous suicidal behavior.",
-    "moderate-high":
-      "Multiple enduring risk factors substantially increase future suicide risk and warrant ongoing monitoring and intervention.",
-    high: "Long-term history indicates persistently severe suicide risk requiring intensive long-term risk management.",
-  },
-};
-
-const riskLabels = {
-  low: "Low",
-  "low-moderate": "Low–moderate",
-  moderate: "Moderate",
-  "moderate-high": "Moderate–high",
-  high: "High",
-};
-
-const riskClasses = Object.keys(riskLabels).map((level) => `risk-${level}`);
+// Remember the prior selection because browsers check radios before click handlers run.
+const detailedSelections = new Map();
 
 // Read the value of the selected radio button; return empty text if none is selected.
 function selectedValue(name) {
@@ -56,9 +22,9 @@ function checkedValues(name) {
 }
 
 // Join choices into readable English, handling empty, one-item, and longer lists.
-function listText(items, emptyText = "none specifically identified") {
+function listText(items) {
   const values = items.filter(Boolean);
-  if (!values.length) return emptyText;
+  if (!values.length) return "";
   if (values.length === 1) return values[0];
   if (values.length === 2) return `${values[0]} and ${values[1]}`;
   return `${values.slice(0, -1).join(", ")}, and ${values.at(-1)}`;
@@ -75,112 +41,188 @@ function sentence(text) {
   return /[.!?]$/.test(text) ? text : `${text}.`;
 }
 
-// Read all form fields once and return a named collection used by both output formats.
+// Each output row has a label, control name, and optional free-text field.
+// Unanswered controls produce no finding; placeholders are never read as answers.
+const assessmentGroups = [
+  [
+    "Risk Factors",
+    [
+      ["Acute risk factors", "acuteRisk", "checks"],
+      ["Chronic risk factors", "chronicRisk", "checks"],
+      ["Additional risk context", "additional-risk", "text"],
+    ],
+  ],
+  [
+    "Protective Factors",
+    [
+      ["Internal protective factors", "internalProtective", "checks"],
+      ["External protective factors", "externalProtective", "checks"],
+      ["Additional protective factors", "additional-protective", "text"],
+    ],
+  ],
+  [
+    "Thoughts",
+    [
+      ["Current suicidal thoughts", "ideationSeverity"],
+      ["Thoughts / timeframe", "thought-summary", "text"],
+      ["Frequency", "frequency"],
+      ["Duration", "duration"],
+      ["Controllability", "controllability"],
+      ["Deterrents", "deterrents"],
+      ["Reasons for ideation", "reason"],
+    ],
+  ],
+  [
+    "Plan, Access & Preparation",
+    [
+      ["Current plan", "currentPlan"],
+      ["Plan / access / preparation", "plan-summary", "text"],
+      ["Access to means", "meansAccess"],
+      ["Preparation", "preparation"],
+      ["Plan context", "means-description", "text"],
+    ],
+  ],
+  [
+    "Behavior & History",
+    [
+      ["Behavior / history", "behaviorStatus"],
+      ["Behavior summary", "behavior-summary", "text"],
+      ["Behavior type", "behaviorType", "checks"],
+      ["Most recent behavior", "behaviorTiming"],
+      ["Behavior context", "behavior-description", "text"],
+    ],
+  ],
+  [
+    "Intent",
+    [
+      ["Current intent", "currentIntent"],
+      ["Intent / ambivalence", "intent-summary", "text"],
+    ],
+  ],
+  [
+    "Assessment & Next Steps",
+    [
+      ["Acute risk", "acuteLevel"],
+      ["Chronic risk", "chronicLevel"],
+      ["Interventions", "intervention", "checks"],
+      ["Recommendation", "recommendation"],
+      ["Clinical rationale", "clinical-rationale", "text"],
+    ],
+  ],
+];
+// Collect only entered findings into labeled groups shared by both output styles.
 function getAssessmentData() {
-  return {
-    acuteFactors: checkedValues("acuteRisk"),
-    chronicFactors: checkedValues("chronicRisk"),
-    internalProtective: checkedValues("internalProtective"),
-    externalProtective: checkedValues("externalProtective"),
-    ideation: selectedValue("ideationSeverity"),
-    frequency: selectedValue("frequency"),
-    duration: selectedValue("duration"),
-    controllability: selectedValue("controllability"),
-    deterrents: selectedValue("deterrents"),
-    reason: selectedValue("reason"),
-    behaviors: checkedValues("behaviorType"),
-    behaviorTiming: selectedValue("behaviorTiming"),
-    intent: selectedValue("currentIntent"),
-    plan: selectedValue("currentPlan"),
-    means: selectedValue("meansAccess"),
-    preparation: selectedValue("preparation"),
-    acuteLevel: selectedValue("acuteLevel"),
-    chronicLevel: selectedValue("chronicLevel"),
-    interventions: checkedValues("intervention"),
-    recommendation: selectedValue("recommendation"),
-    additionalRisk: cleanText("additional-risk"),
-    behaviorDetails: cleanText("behavior-description"),
-    meansDetails: cleanText("means-description"),
-    rationale: cleanText("clinical-rationale"),
-  };
+  return assessmentGroups
+    .map(([title, fields]) => ({
+      title,
+      rows: fields
+        .map(([label, name, kind]) => {
+          const value =
+            kind === "text"
+              ? cleanText(name)
+              : kind === "checks"
+                ? listText(checkedValues(name))
+                : selectedValue(name);
+          return value ? sentence(`${label}: ${value}`) : "";
+        })
+        .filter(Boolean),
+    }))
+    .filter((group) => group.rows.length);
+}
+// Keep each assessment area together as one paragraph.
+function narrativeOutput(groups) {
+  return groups.map((group) => group.rows.join(" ")).join("\n\n");
+}
+// Use plain hyphens so copied lists work in clinical note systems.
+function listOutput(groups) {
+  return groups
+    .map((group) => `${group.title}\n${group.rows.map((row) => `- ${row}`).join("\n")}`)
+    .join("\n\n");
 }
 
-// Turn the selected findings and optional notes into connected sentences.
-function narrativeOutput(data) {
-  const parts = [
-    `Acute risk factors include ${listText(data.acuteFactors)}; chronic or historical risk factors include ${listText(data.chronicFactors)}.`,
-    `Internal protective factors include ${listText(data.internalProtective)}; external protective factors include ${listText(data.externalProtective)}.`,
-    `${data.ideation}. When present, ideation occurs ${data.frequency}, lasts ${data.duration}, is ${data.controllability}, and ${data.deterrents}. The primary reason for ideation is described as ${data.reason}.`,
-    `Suicidal or self-injurious behavior includes ${listText(data.behaviors)}, with the most recent behavior identified as ${data.behaviorTiming}.`,
-    `Current intent is ${data.intent}; the current plan is ${data.plan}; access to means is ${data.means}; and preparation is ${data.preparation}.`,
-    `Acute suicide risk is assessed as ${data.acuteLevel}, and chronic risk as ${data.chronicLevel}. Interventions include ${listText(data.interventions)}. The clinical recommendation is ${data.recommendation}.`,
+// Progress belongs to the interface, never to the copied clinical note.
+function updateAssessmentProgress() {
+  const core = [
+    [
+      "Thoughts",
+      "ideationSeverity",
+      "thought-summary",
+      "frequency",
+      "duration",
+      "controllability",
+      "deterrents",
+      "reason",
+    ],
+    [
+      "Plan/access/preparation",
+      "currentPlan",
+      "plan-summary",
+      "meansAccess",
+      "preparation",
+      "means-description",
+    ],
+    [
+      "Behavior/history",
+      "behaviorStatus",
+      "behavior-summary",
+      "behaviorType",
+      "behaviorTiming",
+      "behavior-description",
+    ],
+    ["Intent", "currentIntent", "intent-summary"],
   ];
-
-  if (data.additionalRisk) parts.splice(1, 0, sentence(data.additionalRisk));
-  if (data.behaviorDetails) parts.splice(5, 0, sentence(data.behaviorDetails));
-  if (data.meansDetails) parts.splice(parts.length - 1, 0, sentence(data.meansDetails));
-  if (data.rationale) parts.push(sentence(data.rationale));
-
-  return parts.join(" ");
+  const missing = core
+    .filter(
+      ([, ...names]) =>
+        !names.some(
+          (name) => document.getElementById(name)?.value.trim() || checkedValues(name).length,
+        ),
+    )
+    .map(([label]) => label);
+  const notAssessed = core
+    .filter(([, name]) => selectedValue(name) === "not assessed")
+    .map(([label]) => label);
+  document.getElementById("assessment-progress").textContent = [
+    missing.length
+      ? `Inquiry areas not yet documented: ${missing.join(", ")}.`
+      : "Each inquiry area has an entry; review completeness before copying.",
+    notAssessed.length ? `Marked not assessed: ${notAssessed.join(", ")}.` : "",
+    !selectedValue("acuteLevel") ? "Acute risk level not selected." : "",
+    !cleanText("clinical-rationale") ? "Clinical rationale not entered." : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const concerns = [];
+  if (
+    selectedValue("ideationSeverity") === "No current suicidal ideation" &&
+    ["frequency", "duration", "controllability", "deterrents", "reason"].some((name) =>
+      selectedValue(name),
+    )
+  )
+    concerns.push(
+      "Current thoughts are denied but thought details are entered; clarify their timeframe.",
+    );
+  if (
+    selectedValue("behaviorStatus") === "No suicidal or self-injurious behavior reported" &&
+    checkedValues("behaviorType").length
+  )
+    concerns.push(
+      "The behavior summary and selected behavior types differ; review their timeframe.",
+    );
+  if (
+    selectedValue("currentPlan") === "none" &&
+    selectedValue("preparation") === "active preparatory behavior"
+  )
+    concerns.push(
+      "No current plan and active preparation are both selected; clarify this finding.",
+    );
+  document.getElementById("assessment-review").textContent = concerns.join(" ");
 }
-
-// Arrange the same assessment information under headings for list output.
-function listOutput(data) {
-  const sections = [
-    [
-      "Risk Factors",
-      `Acute: ${listText(data.acuteFactors)}`,
-      `Chronic: ${listText(data.chronicFactors)}`,
-      ...(data.additionalRisk ? [`Additional context: ${data.additionalRisk}`] : []),
-    ],
-    [
-      "Protective Factors",
-      `Internal: ${listText(data.internalProtective)}`,
-      `External: ${listText(data.externalProtective)}`,
-    ],
-    [
-      "Suicidal Ideation",
-      `Severity: ${data.ideation}`,
-      `Frequency: ${data.frequency}`,
-      `Duration: ${data.duration}`,
-      `Controllability: ${data.controllability}`,
-      `Deterrents: ${data.deterrents}`,
-      `Primary reason: ${data.reason}`,
-    ],
-    [
-      "Behavior",
-      `Type: ${listText(data.behaviors)}`,
-      `Most recent: ${data.behaviorTiming}`,
-      ...(data.behaviorDetails ? [`Details: ${data.behaviorDetails}`] : []),
-    ],
-    [
-      "Plan, Intent, and Means",
-      `Intent: ${data.intent}`,
-      `Plan: ${data.plan}`,
-      `Means: ${data.means}`,
-      `Preparation: ${data.preparation}`,
-      ...(data.meansDetails ? [`Details: ${data.meansDetails}`] : []),
-    ],
-    [
-      "Assessment",
-      `Acute: ${data.acuteLevel}`,
-      `Chronic: ${data.chronicLevel}`,
-      ...(data.rationale ? [`Rationale: ${data.rationale}`] : []),
-    ],
-    [
-      "Interventions and Recommendation",
-      `Interventions: ${listText(data.interventions)}`,
-      `Recommendation: ${data.recommendation}`,
-    ],
-  ];
-
-  return sections.map((section) => section.join("\n")).join("\n\n");
-}
-
-// Collect the current assessment and write the selected format to the output field.
+// Live output on this blank-start tool does not need a preset-generation action.
 function generateAssessment() {
   const data = getAssessmentData();
-  output.value = outputStyle === "list" ? listOutput(data) : narrativeOutput(data);
+  Workbench.writeOutput(outputStyle === "list" ? listOutput(data) : narrativeOutput(data));
+  updateAssessmentProgress();
 }
 
 // Remember the chosen format, highlight its button, and regenerate the note.
@@ -192,27 +234,10 @@ function setOutputStyle(style) {
   generateAssessment();
 }
 
-// Display the clinician-selected risk level and its explanation; no automatic risk calculation occurs here.
-function updateRiskDisplay(kind) {
-  const value = selectedValue(`${kind}Level`);
-  const result = document.getElementById(`${kind}-result`);
-  const explainer = document.getElementById(`${kind}-explainer`);
-
-  [result, explainer].forEach((element) => {
-    element.classList.remove(...riskClasses);
-    element.classList.add(`risk-${value}`);
-  });
-
-  result.textContent = `${riskLabels[value]} ${kind} risk`;
-  explainer.textContent = riskDescriptions[kind][value];
-}
-
-// Restore the HTML radio defaults, clear checkboxes and notes, and reset the display.
+// Clear the assessment without assigning normal findings or a risk level.
 function resetAssessment() {
-  document.querySelectorAll('input[type="radio"]').forEach((input) => {
-    input.checked = input.defaultChecked;
-  });
-  document.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+  detailedSelections.clear();
+  document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach((input) => {
     input.checked = false;
   });
   document.querySelectorAll("textarea:not([readonly])").forEach((textarea) => {
@@ -221,49 +246,75 @@ function resetAssessment() {
   document.querySelectorAll(".optional-details").forEach((panel) => panel.classList.remove("open"));
   document.querySelectorAll(".toggle-details").forEach((button) => {
     button.textContent = button.dataset.closedLabel;
+    button.setAttribute("aria-expanded", "false");
   });
 
+  document.querySelectorAll(".inquiry-details").forEach((panel) => {
+    panel.open = false;
+  });
   setOutputStyle("narrative");
-  updateRiskDisplay("acute");
-  updateRiskDisplay("chronic");
+  updateRiskDisplay("acute", selectedValue("acuteLevel"));
+  updateRiskDisplay("chronic", selectedValue("chronicLevel"));
 }
 
-// Copy the note; if the modern clipboard API fails, try the older selected-text method.
-async function copyAssessment() {
-  try {
-    await navigator.clipboard.writeText(output.value);
-    copyStatus.textContent = "Copied";
-  } catch {
-    selectAssessment();
-    document.execCommand("copy");
-    copyStatus.textContent = "Copied";
-  }
-  setTimeout(() => {
-    copyStatus.textContent = "";
-  }, 1800);
-}
-
-// Highlight the generated note so it can be copied manually.
-function selectAssessment() {
-  output.focus();
-  output.select();
-}
-
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
-document.querySelectorAll("input, textarea").forEach((control) => {
-  control.addEventListener("input", generateAssessment);
+// Optional detail radios can return to unanswered by activating the same choice.
+// Native labels and Space activation both deliver a click to the associated input.
+document.querySelectorAll('.inquiry-details input[type="radio"]').forEach((control) => {
+  control.addEventListener("click", () => {
+    if (detailedSelections.get(control.name) === control.value) {
+      control.checked = false;
+      detailedSelections.delete(control.name);
+      control.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      detailedSelections.set(control.name, control.value);
+    }
+  });
+  // Arrow-key navigation also updates the remembered selection.
   control.addEventListener("change", () => {
-    if (control.name === "acuteLevel") updateRiskDisplay("acute");
-    if (control.name === "chronicLevel") updateRiskDisplay("chronic");
-    generateAssessment();
+    if (control.checked) detailedSelections.set(control.name, control.value);
+    else detailedSelections.delete(control.name);
+  });
+});
+
+// These values offer a relevant detail panel; opening it never supplies an answer.
+const detailPrompts = {
+  ideationSeverity: {
+    id: "thought-details",
+    values: ["Passive thoughts of death", "Active suicidal thoughts", "unclear"],
+  },
+  currentPlan: {
+    id: "plan-details",
+    values: ["vague or partially developed", "specific and developed", "unclear"],
+  },
+  behaviorStatus: {
+    id: "behavior-inquiry-details",
+    values: ["Past behavior reported", "Recent behavior reported", "unclear"],
+  },
+};
+
+// Answer changes refresh documentation; copy is handled by workbench-ui.js.
+document.querySelectorAll("input, textarea:not([readonly])").forEach((control) => {
+  if (control.matches("textarea, input[type=text]"))
+    control.addEventListener("input", generateAssessment);
+  control.addEventListener("change", () => {
+    // Offer relevant detail without making it mandatory or hiding other areas.
+    const detail = detailPrompts[control.name];
+    if (detail?.values.includes(control.value)) document.getElementById(detail.id).open = true;
+    if (control.name === "acuteLevel") updateRiskDisplay("acute", selectedValue("acuteLevel"));
+    if (control.name === "chronicLevel")
+      updateRiskDisplay("chronic", selectedValue("chronicLevel"));
+    if (!control.matches("textarea, input[type=text]")) generateAssessment();
   });
 });
 
 document.querySelectorAll(".toggle-details").forEach((button) => {
   button.dataset.closedLabel = button.textContent;
+  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-controls", button.dataset.target);
   button.addEventListener("click", () => {
     const panel = document.getElementById(button.dataset.target);
     const isOpen = panel.classList.toggle("open");
+    button.setAttribute("aria-expanded", String(isOpen));
     button.textContent = isOpen ? "− Hide details" : button.dataset.closedLabel;
   });
 });
@@ -274,10 +325,8 @@ document.querySelectorAll(".output-style-button").forEach((button) => {
 });
 
 document.getElementById("reset-assessment").addEventListener("click", resetAssessment);
-document.getElementById("copy-assessment").addEventListener("click", copyAssessment);
-document.getElementById("select-assessment").addEventListener("click", selectAssessment);
 
 // Initial page setup: populate the form and show its starting results.
-updateRiskDisplay("acute");
-updateRiskDisplay("chronic");
+updateRiskDisplay("acute", selectedValue("acuteLevel"));
+updateRiskDisplay("chronic", selectedValue("chronicLevel"));
 generateAssessment();

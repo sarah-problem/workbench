@@ -25,9 +25,6 @@
   display: grid;
   gap: 14px;
 }
-.question-card h2 {
-  line-height: 1.5;
-}
 /* Arrange the answer choices within a question. */
 .response-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -54,22 +51,22 @@
   padding: 9px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: #111;
+  background: var(--surface);
   color: var(--text);
   font: inherit;
 }
 .type-row input[type="text"] {
   width: 100%;
   padding: 9px;
-  border: 1px dashed #666;
+  border: 1px dashed var(--border);
   border-radius: 14px;
-  background: #111;
+  background: var(--surface);
   color: var(--text);
   font: inherit;
 }
 .percentage-status {
   margin-top: 14px;
-  color: var(--yellow);
+  color: var(--accent-secondary);
   font-weight: 700;
 }
 /* Display the number of answers in each response category. */
@@ -88,9 +85,9 @@
 .information-alert {
   margin-top: 18px;
   padding: 15px;
-  border: 1px solid var(--yellow);
+  border: 1px solid var(--accent-secondary);
   border-radius: 20px;
-  background: #1c1b0b;
+  background: var(--notice-surface);
   line-height: 1.5;
 }
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */

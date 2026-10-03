@@ -21,7 +21,7 @@
   margin-top: 24px;
 }
 .symptom-group h3 {
-  color: var(--pink);
+  color: var(--accent-primary);
 }
 /* Keep a symptom label beside its Current and Past checkboxes. */
 .symptom-row {
@@ -45,7 +45,7 @@
   gap: 24px;
 }
 .target-grid h3 {
-  color: var(--yellow);
+  color: var(--accent-secondary);
 }
 .target-input {
   width: 100%;
@@ -66,7 +66,7 @@
   margin-top: 0;
 }
 .severity-probe {
-  color: #ccc;
+  color: var(--muted-text);
   line-height: 1.5;
 }
 /* Arrange the rating anchors for each severity or additional clinical item. */
@@ -85,19 +85,18 @@
 .anchor-option span {
   display: block;
   height: 100%;
-  padding: 12px;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: var(--surface-2);
   cursor: pointer;
 }
 .anchor-option input:checked + span {
-  background: var(--pink);
-  border-color: var(--pink);
-  color: #000;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--on-accent);
 }
 .anchor-option:hover span {
-  border-color: var(--yellow);
+  border-color: var(--accent-secondary);
 }
 /* Group obsession, compulsion, total, and severity results. */
 .score-grid {
@@ -114,15 +113,15 @@
 .score-grid strong {
   display: block;
   margin-top: 8px;
-  color: var(--yellow);
+  color: var(--accent-secondary);
   font-size: 22px;
 }
 .information-alert {
   margin-top: 18px;
   padding: 15px;
-  border: 1px solid var(--yellow);
+  border: 1px solid var(--accent-secondary);
   border-radius: 20px;
-  background: #1c1b0b;
+  background: var(--notice-surface);
   line-height: 1.5;
 }
 .other-symptom-row {
@@ -136,9 +135,9 @@
 .other-symptom-row input[type="text"] {
   width: 100%;
   padding: 10px 13px;
-  border: 1px dashed #666;
+  border: 1px dashed var(--border);
   border-radius: 18px;
-  background: #161616;
+  background: var(--surface);
   color: var(--text);
   font: inherit;
 }

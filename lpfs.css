@@ -28,31 +28,25 @@
   align-items: center;
 }
 .response-key span {
-  color: #ccc;
+  color: var(--muted-text);
 }
 .question-card {
   display: grid;
   gap: 14px;
 }
-.question-card h2 {
-  line-height: 1.5;
-}
 /* Arrange the answer choices within a question. */
 .response-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.response-option span {
-  min-height: 72px;
-}
 .overall-result {
   padding: 14px;
-  border: 1px solid var(--pink);
+  border: 1px solid var(--accent-primary);
   border-radius: 20px;
   background: var(--surface-2);
 }
 .marker-text {
   margin-top: 6px;
-  color: #ccc;
+  color: var(--muted-text);
   font-weight: 600;
 }
 .domain-results {
@@ -77,7 +71,7 @@
 }
 .domain-marker {
   margin-top: 4px;
-  color: #ccc;
+  color: var(--muted-text);
 }
 /* Reference marker segments; JavaScript applies active to crossed thresholds. */
 .benchmark-bar {
@@ -89,17 +83,17 @@
 .benchmark-bar span {
   height: 7px;
   border-radius: 999px;
-  background: #3b3b3b;
+  background: var(--track);
 }
 .benchmark-bar span.active {
-  background: var(--pink);
+  background: var(--accent-primary);
 }
 .information-alert {
   margin-top: 18px;
   padding: 15px;
-  border: 1px solid var(--yellow);
+  border: 1px solid var(--accent-secondary);
   border-radius: 20px;
-  background: #1c1b0b;
+  background: var(--notice-surface);
   line-height: 1.5;
 }
 .reference-table {
@@ -115,14 +109,14 @@
   border-bottom: 1px solid var(--border);
 }
 .reference-row.header {
-  color: var(--yellow);
+  color: var(--accent-secondary);
   font-weight: 700;
 }
 .reference-row.current {
-  background: #25101d;
+  background: var(--highlight-surface);
 }
 .reference-row.current span:first-child {
-  color: var(--pink);
+  color: var(--accent-primary);
   font-weight: 700;
 }
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */

@@ -1,56 +1,7 @@
-/* mse.css
- * Mental Status Exam only (mse.html).
- * CSS controls appearance. JavaScript controls responses and generated notes.
- * Rules later in the file can override earlier rules with equal specificity.
- */
-
-/* Theme variables: change these values to adjust the main colors and fonts used below. */
-:root {
-  --bg: #000000;
-  --text: #ffffff;
-  --accent-primary: #ff42a7;
-  --accent-secondary: #ffec1a;
-  --surface: #111111;
-  --surface-2: #1a1a1a;
-  --border: #333333;
-
-  --radius-small: 20px;
-  --radius-large: 30px;
-
-  --heading-font: "Cutive", serif;
-  --body-font: "Asap", sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-/* Page-wide defaults for the background, text, and font. */
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--body-font);
-}
-
-/* Outer page spacing and width. */
-.page-shell {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(28px, 4vw, 64px);
-}
-
-h1,
-h2 {
-  font-family: var(--heading-font);
-}
-
+/* MSE-only layout: shared typography, palette, and controls load afterward. */
 h1 {
   margin: 24px 0;
   color: var(--accent-secondary);
-  font-size: 42px;
-  line-height: 1.2;
   text-decoration: underline;
   text-decoration-color: var(--accent-primary);
   text-underline-offset: 6px;
@@ -59,7 +10,6 @@ h1 {
 h2 {
   margin: 0;
   color: var(--accent-secondary);
-  font-size: 19px;
 }
 
 a {
@@ -80,8 +30,16 @@ a {
 }
 
 .controls-card {
-  display: grid;
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.controls-card .button-row {
+  margin-top: 0;
+  margin-left: auto;
 }
 
 .section-header {
@@ -89,6 +47,15 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+/* Keep teaching definitions visually secondary to the dimension name. */
+.dimension-description {
+  font-family: var(--body-font);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--muted-text);
 }
 
 .inline-option {
@@ -124,86 +91,6 @@ a {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
-}
-
-button,
-.segment-button {
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--radius-small);
-  font-family: var(--body-font);
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    transform 0.08s ease;
-}
-
-button {
-  margin: 0 8px 8px 0;
-  padding: 10px 16px;
-}
-
-.primary-button,
-button:not([class]),
-button:not(.secondary-button):not(.segment-button):not(.tiny-button) {
-  background: var(--accent-primary);
-  color: #000;
-}
-
-.secondary-button,
-.tiny-button {
-  border-color: var(--border);
-  background: transparent;
-  color: var(--text);
-}
-
-.segment-button {
-  padding: 10px 14px;
-  border-color: var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.segment-button.small {
-  padding: 7px 11px;
-  font-size: 14px;
-}
-
-/* Show which answer is selected; JavaScript adds and removes the selected class. */
-.segment-button.selected {
-  border-color: var(--accent-primary);
-  background: var(--accent-primary);
-  color: #000;
-}
-
-button:hover,
-.segment-button:hover {
-  border-color: var(--accent-secondary);
-}
-
-.primary-button:hover,
-button:not([class]):hover {
-  background: var(--accent-secondary);
-}
-
-.secondary-button:hover,
-.tiny-button:hover {
-  border-color: var(--accent-secondary);
-  background: var(--accent-secondary);
-  color: #000;
-}
-
-button:focus-visible,
-.segment-button:focus-visible {
-  outline: 2px solid var(--accent-secondary);
-  outline-offset: 2px;
-}
-
-button:active,
-.segment-button:active {
-  transform: translateY(1px);
 }
 
 .button-row {
@@ -270,71 +157,51 @@ textarea {
 
 .more-info summary {
   color: var(--accent-secondary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .info-content {
   margin-top: 10px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-left: 4px solid var(--accent-primary);
   border-radius: var(--radius-small);
   background: var(--surface-2);
 }
 
-.comparison-block {
-  margin: 8px 0 12px;
+/* Definitions and nuanced teaching notes share one readable text treatment. */
+.option-explanations,
+.question-block {
+  margin: 0;
 }
-
-.comparison-title {
-  margin-bottom: 3px;
-  color: var(--accent-secondary);
-  font-weight: 700;
+.question-block {
+  margin-top: 8px;
 }
-
-.comparison-block p,
-.info-note,
+.option-explanations p,
 .question-list li {
-  margin: 3px 0;
-  font-size: 15px;
-  line-height: 1.35;
+  font-size: 14px;
 }
-
-.comparison-block strong {
+.option-explanations strong {
   color: var(--accent-primary);
 }
-
-.info-note {
-  margin: 8px 0;
+.info-label {
+  display: inline-block;
+  margin-bottom: 2px;
 }
-
-.question-block {
-  margin-top: 10px;
-}
-
+/* Native markers align wrapped notes and follow the theme's yellow/gold accent. */
 .question-list {
   margin: 4px 0 0;
-  padding: 0;
-  list-style: none;
+  padding-inline-start: 1.25em;
+  list-style: disc outside;
 }
-
-.question-list li::before {
-  content: "□ ";
+.question-list li::marker {
   color: var(--accent-secondary);
-  font-weight: 700;
 }
-
 #copyStatus {
   margin-left: 8px;
   color: var(--accent-secondary);
-  font-weight: 700;
-}
-
-/* Document mode hides teaching content but keeps the normal layout. */
-.document-mode .more-info,
-.document-mode .learning-only {
-  display: none;
+  font-weight: 400;
 }
 
 /* Compact mode hides teaching content and makes the form denser. */
@@ -348,13 +215,14 @@ textarea {
   margin-top: 20px;
 }
 
-.compact-mode h1 {
-  font-size: 30px;
+.compact-mode #mse-fields {
+  display: block;
 }
 
-.compact-mode #mse-fields {
+/* Compact mode still keeps category headings above their own field grid. */
+.compact-mode .mse-category-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: 10px;
 }
 
@@ -369,18 +237,9 @@ textarea {
   margin: 10px 0;
 }
 
-.compact-mode h2 {
-  font-size: 15px;
-}
-
 .compact-mode .segmented-options {
   gap: 6px;
   margin-top: 8px;
-}
-
-.compact-mode .segment-button {
-  padding: 7px 9px;
-  font-size: 13px;
 }
 
 .compact-mode .tiny-button,
@@ -399,15 +258,6 @@ textarea {
 
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 700px) {
-  .page-shell {
-    margin: 0;
-    padding: 14px;
-  }
-
-  h1 {
-    font-size: 34px;
-  }
-
   .card {
     padding: 18px;
   }
@@ -417,78 +267,6 @@ textarea {
   }
 }
 
-/* Compact, information-dense More information panel */
-.option-explanations p,
-.notes-block p,
-.question-list li {
-  margin: 2px 0;
-  font-size: 14px;
-  line-height: 1.3;
-}
-
-.option-explanations strong {
-  color: var(--accent-primary);
-}
-
-.question-block,
-.notes-block {
-  margin-top: 8px;
-}
-
-.notes-block {
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-}
-
-.info-label {
-  margin-bottom: 2px;
-}
-
-.more-info summary {
-  font-size: 14px;
-}
-
-/* Incremental polish: keep the learning panel informative without making it huge. */
-.option-explanations p,
-.notes-block p,
-.question-list li {
-  line-height: 1.28;
-}
-
-.info-content {
-  padding-top: 9px;
-  padding-bottom: 9px;
-}
-
-/* MSE 3.5: minimal information-panel hierarchy */
-.option-explanations,
-.question-block,
-.notes-block {
-  margin: 0;
-}
-
-.question-block,
-.notes-block {
-  margin-top: 8px;
-}
-
-.option-explanations p,
-.notes-block p,
-.question-list li {
-  margin: 2px 0;
-  line-height: 1.3;
-}
-
-.notes-block {
-  padding-top: 0;
-  border-top: 0;
-}
-
-.info-label {
-  display: inline-block;
-  margin-bottom: 2px;
-}
-
 /* Multi-select sections use squarer tag-style buttons as a visual cue. */
 .multi-select-options .segment-button {
   border-radius: 8px;
@@ -496,4 +274,245 @@ textarea {
 
 .multi-select-options .segment-button.selected::before {
   content: "✓ ";
+}
+
+/* The same categories organize the form and the copied list output. */
+.mse-category {
+  margin: 32px 0;
+}
+.mse-category-title {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--accent-primary);
+  color: var(--accent-secondary);
+}
+
+/* Learn uses one quiet category panel with full-width dimension rows.
+   Dividers separate findings without enclosing every dimension in its own box. */
+body:not(.compact-mode) .mse-category {
+  margin: 28px 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+body:not(.compact-mode) .mse-category-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+body:not(.compact-mode) .mse-category-fields > .card {
+  min-width: 0;
+  margin: 0;
+  padding: 20px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+body:not(.compact-mode) .mse-category-fields > .card + .card {
+  border-top: 1px solid var(--border);
+}
+body:not(.compact-mode) .mse-category-fields > .card:last-child {
+  padding-bottom: 0;
+}
+body:not(.compact-mode) .mse-category-title {
+  margin-bottom: 0;
+  padding-bottom: 14px;
+  border-bottom-color: var(--border);
+}
+body:not(.compact-mode) .section-header h3 {
+  color: var(--text);
+}
+body:not(.compact-mode) .dimension-description {
+  font-size: 13px;
+}
+body:not(.compact-mode) .tiny-button {
+  margin: 0;
+  color: var(--muted-text);
+  font-weight: 400;
+  white-space: nowrap;
+}
+body:not(.compact-mode) .more-info > summary,
+body:not(.compact-mode) .context-panel > summary {
+  color: var(--muted-text);
+  font-size: 14px;
+  font-weight: 400;
+  padding: 5px 0;
+}
+body:not(.compact-mode) .more-info > summary:hover,
+body:not(.compact-mode) .context-panel > summary:hover {
+  color: var(--text);
+}
+body:not(.compact-mode) .more-info .info-content {
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+@media (max-width: 700px) {
+  body:not(.compact-mode) .mse-category {
+    padding: 16px;
+  }
+}
+/* Teaching text uses comfortable line spacing even within the tighter form. */
+.more-info .option-explanations p,
+.more-info .question-list li {
+  line-height: 1.5;
+  margin: 6px 0;
+}
+.more-info .info-content {
+  max-width: none;
+}
+
+/* Diagram and label occupy separate columns so long names cannot overlap. */
+.descriptor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+.descriptor-card {
+  min-width: 0;
+}
+.descriptor-heading {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: 15px;
+  font-weight: 600;
+}
+/* Color only the vocabulary label; SVG shapes and lettering keep the text color. */
+.descriptor-heading > span {
+  color: var(--accent-primary);
+}
+.descriptor-diagram {
+  width: 100px;
+  height: 48px;
+  color: var(--text);
+}
+.descriptor-body {
+  padding: 0 14px 14px;
+}
+
+.descriptor-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+@media (max-width: 700px) {
+  .descriptor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .descriptor-heading {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .descriptor-diagram {
+    width: 80px;
+  }
+}
+.section-header h3 {
+  margin: 0;
+  color: var(--accent-secondary);
+}
+
+/* Optional context remains available in every mode, including Compact. */
+.context-panel {
+  margin-top: 14px;
+}
+.context-panel summary {
+  color: var(--accent-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+.context-fields {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.context-fields label {
+  font-weight: 600;
+}
+.context-choices {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.context-choices legend {
+  font-weight: 600;
+  color: var(--accent-secondary);
+}
+.context-choices label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 400;
+}
+.context-choices input {
+  accent-color: var(--accent-primary);
+}
+.context-choices:disabled {
+  opacity: 0.55;
+}
+.context-note,
+.compact-mode .context-note {
+  min-height: 96px;
+}
+.context-select:focus-visible,
+.context-source:focus-visible,
+.context-panel summary:focus-visible {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 3px;
+}
+.context-source:disabled {
+  opacity: 0.55;
+}
+.context-observations {
+  min-width: 0;
+  margin: 8px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.context-observations legend {
+  padding: 0 6px;
+  color: var(--accent-secondary);
+}
+.context-observations label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 8px 0;
+  font-weight: 400;
+}
+.context-observations input {
+  accent-color: var(--accent-primary);
+}
+@media (max-width: 700px) {
+  .section-header {
+    flex-wrap: wrap;
+  }
+}
+
+/* Other descriptions stay available in both modes and only show when selected. */
+.other-entry[hidden] {
+  display: none;
+}
+.other-entry {
+  margin-top: 12px;
+}
+.other-text {
+  min-height: 112px;
+}
+/* Explicitly hide conditional observations despite their flex label styling. */
+.context-observations[hidden],
+.context-observations label[hidden] {
+  display: none;
 }

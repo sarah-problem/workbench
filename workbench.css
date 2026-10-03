@@ -1,49 +1,9 @@
-/* workbench.css
- * Home page only (index.html).
- * CSS controls appearance. JavaScript controls responses and generated notes.
- * Rules later in the file can override earlier rules with equal specificity.
- */
-
-/* Theme variables: change these values to adjust the main colors and fonts used below. */
-:root {
-  --wb-bg: #000000;
-  --wb-text: #ffffff;
-  --wb-pink: #ff42a7;
-  --wb-yellow: #ffec1a;
-  --wb-surface: #111111;
-  --wb-border: #333333;
-  --wb-heading: "Cutive", serif;
-  --wb-body: "Asap", sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-/* Page-wide defaults for the background, text, and font. */
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: var(--wb-bg);
-  color: var(--wb-text);
-  font-family: var(--wb-body);
-}
-
-/* Outer spacing for the home page. */
-.workbench-shell {
-  width: 100%;
-  margin: 0;
-  padding: clamp(28px, 4vw, 64px);
-}
-
+/* Home-page card grid and dashboard layout. Shared typography and themes load last. */
 .workbench-shell h1 {
   margin: 0;
-  color: var(--wb-yellow);
-  font-family: var(--wb-heading);
-  font-size: 42px;
-  line-height: 1.2;
+  color: var(--accent-secondary);
   text-decoration: underline;
-  text-decoration-color: var(--wb-pink);
+  text-decoration-color: var(--accent-primary);
   text-underline-offset: 6px;
 }
 
@@ -54,7 +14,7 @@ body {
 .workbench-header p {
   max-width: 720px;
   margin: 18px 0 0;
-  color: #d6d6d6;
+  color: var(--muted-text);
   font-size: clamp(17px, 1.4vw, 20px);
   line-height: 1.5;
 }
@@ -65,10 +25,7 @@ body {
 
 .section-title {
   margin: 0 0 20px;
-  color: var(--wb-pink);
-  font-family: var(--wb-heading);
-  font-size: clamp(23px, 2vw, 30px);
-  line-height: 1.25;
+  color: var(--accent-primary);
 }
 
 /* Arrange tool links into a grid; smaller-screen rules below change the column count. */
@@ -77,10 +34,7 @@ body {
   gap: clamp(18px, 2vw, 28px);
 }
 
-.assessment-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
+.assessment-grid,
 .screening-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -90,10 +44,10 @@ body {
   display: block;
   min-height: 230px;
   padding: clamp(28px, 3vw, 44px);
-  border: 1px solid var(--wb-border);
+  border: 1px solid var(--border);
   border-radius: 30px;
-  background: var(--wb-surface);
-  color: var(--wb-text);
+  background: var(--surface);
+  color: var(--text);
   text-decoration: none;
   transition:
     background-color 0.15s ease,
@@ -104,7 +58,7 @@ body {
 
 .tool-card:hover,
 .tool-card:focus-visible {
-  border-color: var(--wb-yellow);
+  border-color: var(--accent-secondary);
   outline: none;
 }
 
@@ -114,16 +68,13 @@ body {
 
 .tool-card h3 {
   margin: 0 0 16px;
-  color: var(--wb-yellow);
-  font-family: var(--wb-heading);
-  font-size: clamp(21px, 1.6vw, 27px);
-  line-height: 1.35;
+  color: var(--accent-secondary);
 }
 
 .tool-card p {
   margin: 0;
   max-width: 760px;
-  color: #eeeeee;
+  color: var(--muted-text);
   font-size: clamp(16px, 1.25vw, 19px);
   line-height: 1.6;
 }
@@ -138,14 +89,6 @@ body {
 
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 700px) {
-  .workbench-shell {
-    padding: 24px 16px 36px;
-  }
-
-  .workbench-shell h1 {
-    font-size: 34px;
-  }
-
   .assessment-grid,
   .screening-grid {
     grid-template-columns: 1fr;

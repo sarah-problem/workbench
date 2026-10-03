@@ -1,69 +1,22 @@
-/* screening.css
- * Shared base for screening.html, brief-assessment.html, isas.html, fasm.html, lpfs.html, tsds.html, and ybocs.html.
- * CSS controls appearance. JavaScript controls responses and generated notes.
- * Rules later in the file can override earlier rules with equal specificity.
- */
-
-/* Theme variables: change these values to adjust the main colors and fonts used below. */
-:root {
-  --bg: #000000;
-  --text: #ffffff;
-  --pink: #ff42a7;
-  --yellow: #ffec1a;
-  --surface: #111111;
-  --surface-2: #1a1a1a;
-  --border: #333333;
-  --heading-font: "Cutive", serif;
-  --body-font: "Asap", sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-/* Page-wide defaults for the background, text, and font. */
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--body-font);
-}
-
-/* Outer page spacing and width. */
-.page-shell {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(28px, 4vw, 64px);
-}
-
-h1,
-h2 {
-  font-family: var(--heading-font);
-}
-
+/* Base layout for scored assessments; page-specific styles extend it. Shared typography and themes load last. */
 h1 {
   margin: 24px 0;
-  color: var(--yellow);
-  font-size: 42px;
-  line-height: 1.2;
+  color: var(--accent-secondary);
   text-decoration: underline;
-  text-decoration-color: var(--pink);
+  text-decoration-color: var(--accent-primary);
   text-underline-offset: 6px;
 }
 
 h2 {
   margin: 0 0 10px;
-  color: var(--yellow);
-  font-size: 19px;
+  color: var(--accent-secondary);
 }
 h3 {
   margin: 20px 0 10px;
-  color: var(--yellow);
-  font-size: 16px;
+  color: var(--accent-secondary);
 }
 a {
-  color: var(--pink);
+  color: var(--accent-primary);
 }
 
 /* Shared panel appearance used by questions, results, and documentation. */
@@ -81,7 +34,7 @@ a {
 }
 .helper-text,
 .screening-note {
-  color: #cccccc;
+  color: var(--muted-text);
   line-height: 1.45;
 }
 .helper-text {
@@ -95,67 +48,9 @@ a {
   gap: 10px;
 }
 
-button,
-.segment-button {
-  border: 1px solid var(--pink);
-  border-radius: 20px;
-  background: var(--pink);
-  color: #000;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    transform 0.08s ease;
-}
-
-button {
-  padding: 10px 16px;
-}
-.segment-button {
-  padding: 10px 14px;
-  border-color: var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-}
-button.secondary {
-  border-color: var(--border);
-  background: transparent;
-  color: var(--text);
-}
-
-button:hover,
-.segment-button:hover {
-  border-color: var(--yellow);
-}
-button:focus-visible,
-.segment-button:focus-visible {
-  outline: 2px solid var(--yellow);
-  outline-offset: 2px;
-}
-button:active,
-.segment-button:active {
-  transform: translateY(1px);
-}
-/* Show which answer is selected; JavaScript adds and removes the selected class. */
-.segment-button.selected {
-  border-color: var(--pink);
-  background: var(--pink);
-  color: #000;
-}
-
-.question-card h2 {
-  font-size: 18px;
-}
 .question-number {
-  color: var(--pink);
+  color: var(--accent-primary);
   margin-right: 7px;
-}
-.question-text {
-  margin: 0 0 14px;
-  line-height: 1.45;
 }
 
 /* Arrange the answer choices within a question. */
@@ -179,30 +74,27 @@ button:active,
 
 .response-option span {
   display: flex;
-  min-height: 64px;
   align-items: center;
   justify-content: center;
-  padding: 9px;
   border: 1px solid var(--border);
   border-radius: 20px;
   background: var(--surface-2);
   color: var(--text);
   text-align: center;
-  font-weight: 600;
   cursor: pointer;
 }
 
 .response-option:hover span {
-  border-color: var(--yellow);
+  border-color: var(--accent-secondary);
 }
 .response-option input:focus-visible + span {
-  outline: 2px solid var(--yellow);
+  outline: 2px solid var(--accent-secondary);
   outline-offset: 2px;
 }
 .response-option input:checked + span {
-  border-color: var(--pink);
-  background: var(--pink);
-  color: #000;
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--on-accent);
 }
 
 /* Group the current score and interpretation into a results area. */
@@ -213,7 +105,7 @@ button:active,
 }
 
 .small-label {
-  color: var(--yellow);
+  color: var(--accent-secondary);
   font-weight: 700;
 }
 .score-display,
@@ -233,7 +125,7 @@ button:active,
   gap: 6px;
   margin-top: 16px;
   padding: 14px;
-  border: 2px solid var(--yellow);
+  border: 2px solid var(--accent-secondary);
   border-radius: 20px;
   background: var(--surface-2);
 }
@@ -253,9 +145,9 @@ button:active,
   background: var(--surface-2);
 }
 .interpretation-row.current {
-  border-color: var(--pink);
-  background: var(--pink);
-  color: #000;
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--on-accent);
 }
 .interpretation-range {
   font-weight: 700;
@@ -291,28 +183,15 @@ textarea {
   margin-top: 14px;
 }
 #copy-status {
-  color: var(--yellow);
+  color: var(--accent-secondary);
 }
 
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 760px) {
-  .page-shell {
-    margin: 0;
-    padding: 14px;
-  }
-  h1 {
-    font-size: 34px;
-  }
   .response-grid {
     grid-template-columns: 1fr 1fr;
   }
   .results-summary {
     grid-template-columns: 1fr;
   }
-}
-
-.measure-link {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
 }

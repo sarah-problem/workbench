@@ -1,80 +1,163 @@
-# Clinical Workbench: a guide to the files
+# Clinical Workbench
 
-Start with `index.html`: it is the home page linking to every tool. This is a collection of web pages, with no build step required. Keep the website files together in the same folder when uploading them to GitHub.
+A static website for clinical assessment, screening, teaching, and documentation. Start with `index.html`. There is no build step, package installation, database, or application server required by the website.
 
-## The three file types
+## Running and uploading
 
-- **HTML (`.html`)** defines the page structure: headings, fields, buttons, and places where results appear.
-- **CSS (`.css`)** controls appearance: colors, fonts, spacing, layouts, and smaller-screen adjustments.
-- **JavaScript (`.js`)** makes the page respond: builds questions, remembers current selections, calculates results, and generates copyable notes.
+Open `index.html` in a modern browser, or preview it over localhost from this folder:
 
-Comments explain the source code and do not appear on the website. In HTML they look like `<!-- explanation -->`; in CSS they look like `/* explanation */`; JavaScript uses either `// explanation` or `/* explanation */`.
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1
+```
 
-## Which files belong together?
+Then visit `http://127.0.0.1:8765/index.html`. Stop the preview with Ctrl+C. Localhost is useful for testing browser behavior such as copying; clipboard permissions can differ when opening a file directly.
 
-| Tool 							| Page 				| Behavior and content 		| Appearance 					|
-| ----------------------------------------------------- | -----------------------------	| -----------------------------	| ---------------------------------------------	|
-| Home page 						| `index.html` 			| Links are in the HTML 	| `workbench.css` 				|
-| Mental Status Exam 					| `mse.html` 			| `mse-data.js`, then `mse.js` 	| `mse.css` 					|
-| Quick Risk Assessment 				| `quick-risk.html` 		| `quick-risk.js` 		| `risk.css` 					|
-| Comprehensive Suicide Assessment 			| `comprehensive-risk.html` 	| `comprehensive-risk.js` 	| `risk.css` 					|
-| PHQ-9 and GAD-7 					| `screening.html` 		| `screening.js` 		| `screening.css` 				|
-| MDQ, ACEs, PCEs, ASRS, WHO-5, PC-PTSD-5, CRAFFT 	| `brief-assessment.html` 	| `brief-assessment.js` 	| `screening.css`, then `brief-assessment.css` 	|
-| ISAS 							| `isas.html` 			| `isas.js` 			| `screening.css`, then `isas.css` 		|
-| FASM 							| `fasm.html` 			| `fasm.js` 			| `screening.css`, then `fasm.css` 		|
-| LPFS-SR 						| `lpfs.html` 			| `lpfs.js` 			| `screening.css`, then `lpfs.css` 		|
-| TSDS 							| `tsds.html` 			| `tsds.js` 			| `screening.css`, then `tsds.css` 		|
-| Y-BOCS and CY-BOCS 					| `ybocs.html` 			| `ybocs.js` 			| `screening.css`, then `ybocs.css` 		|
+Upload the root `.html`, `.css`, and `.js` files together, keeping their filenames and relative locations. The `?v=...` suffixes on asset links are cache versions, not part of the filenames. When changing shared code or styles, update their version suffix on every page that loads them. Nothing in this project publishes changes automatically.
 
-Every page also loads **`embed-resize.js`**. When a tool is displayed inside another website, this helper sends height and scroll messages to that containing page. The containing website must handle those messages. When a tool is opened on its own, the helper exits immediately.
+The `tests` folder and Markdown documentation are development resources; they are not required to run the site. Unrelated scripts, generated documents, and private files that happen to share this folder are not website assets and should not be included in a website upload.
 
-CSS files are different parts of the site's styling, not a menu of alternative themes. Changing `risk.css` affects both risk pages. Changing `screening.css` affects every page that loads that shared base. A tool-specific stylesheet loads afterward and can override it.
+The old filenames `app.js` and `styles.css` were replaced by `mse.js` and `mse.css`. No current page loads the old names.
 
-## What was renamed?
+## File map
 
-- `app.js` → **`mse.js`**
-- `styles.css` → **`mse.css`**
+HTML defines the page structure; CSS controls appearance; JavaScript supplies questions, handles answers, calculates scores, and assembles notes.
 
-These files belong only to the MSE. `mse.html` now loads their new names, and the content-file comments point to `mse.js`.
+| Page                      | Content and behavior         | Page styles                             |
+| ------------------------- | ---------------------------- | --------------------------------------- |
+| `index.html`              | Tool links in the HTML       | `workbench.css`                         |
+| `mse.html`                | `mse-data.js`, then `mse.js` | `mse.css`                               |
+| `quick-risk.html`         | `quick-risk.js`              | `risk.css`                              |
+| `comprehensive-risk.html` | `comprehensive-risk.js`      | `risk.css`                              |
+| `screening.html`          | `screening.js`               | `screening.css`                         |
+| `brief-assessment.html`   | `brief-assessment.js`        | `screening.css`, `brief-assessment.css` |
+| `isas.html`               | `isas.js`                    | `screening.css`, `isas.css`             |
+| `fasm.html`               | `fasm.js`                    | `screening.css`, `fasm.css`             |
+| `lpfs.html`               | `lpfs.js`                    | `screening.css`, `lpfs.css`             |
+| `tsds.html`               | `tsds.js`                    | `screening.css`, `tsds.css`             |
+| `ybocs.html`              | `ybocs.js`                   | `screening.css`, `ybocs.css`            |
 
-For this update, upload the revised website HTML, CSS, and JavaScript files together. On GitHub, remove the old `app.js` and `styles.css` after the new files and updated `mse.html` are in place. Uploading a differently named file does not itself delete the old one. This local update does not publish anything to GitHub.
+Shared files:
 
-## How to read the JavaScript
+| File                   | Responsibility                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workbench-shared.css` | Suite palette, type sizes, spacing, controls, light/dark themes, and documentation toolbar. Loads **last**.                                       |
+| `workbench-theme.js`   | Applies the saved theme before painting; wires the sun/moon button. Loads in the HTML head.                                                       |
+| `workbench-ui.js`      | Copying, documentation generation state, number-field validation, and selected-button accessibility state. Loads before each assessment's script. |
+| `risk-presentation.js` | Shared risk labels and explanations for the two risk pages. Displays the clinician's selection; does not calculate risk.                          |
+| `embed-resize.js`      | Height and scroll messages when embedded in another website. Loads last; exits when opened outside a frame.                                       |
 
-Most tools follow the same sequence:
+Two pages serve several measures through a URL parameter:
 
-1. **Definitions:** lists of questions, answer labels, weights, or interpretation ranges near the top.
-2. **Current answers:** variables such as `answers`, `choices`, or `states` hold the current page's selections.
-3. **Rendering:** functions named `render...` build visible controls from those definitions and answers.
-4. **Events:** `onclick`, `onchange`, `oninput`, or `addEventListener` connect clicks and typing to functions.
-5. **Results:** functions named `update...`, `scores`, or `generate...` refresh scores and notes.
-6. **Output:** `summaryOutput`, `narrativeOutput`, `detailedOutput`, or `listOutput` assemble text for copying.
-7. **Startup:** calls at the bottom build the first view when the page opens.
+- `screening.html?measure=phq9` or `screening.html?measure=gad7`.
+- `brief-assessment.html?measure=mdq`, `ace`, `pce`, `asrs`, `who5`, `pcptsd5`, or `crafft`.
 
-A **function** is a named set of instructions. An **array** (`[...]`) is an ordered list. An **object** (`{...}`) stores named values. `map` turns each list entry into something else, `filter` keeps matching entries, and `reduce` combines entries, often into a total. Array positions start at zero unless a tool deliberately uses printed item numbers, as ISAS does.
+Missing or unsupported measure keys fall back to PHQ-9 or MDQ respectively. Y-BOCS/CY-BOCS switches versions within its page.
 
-`document.getElementById("output")` finds the HTML element with `id="output"`. Many tools abbreviate this lookup as `$("output")`; here `$` is a small helper, not a separate library. `.value` reads or writes a form field. `.textContent` writes plain text. `.innerHTML` builds HTML controls from text templates. `data-*` attributes carry identifiers from generated controls back to JavaScript.
+## Following the code
 
-Backticks create **template strings**, which can contain HTML or note text. `${...}` inserts a calculated value into one of those strings. Some HTML templates remain long because they represent a complete repeated question or row.
+Most tool scripts follow this flow:
 
-## Where to make common changes
+1. **Definitions:** questions, answer options, defaults, weights, and interpretation ranges.
+2. **State:** arrays or objects holding answers for the current visit.
+3. **Rendering:** `render...` functions build controls from those definitions and answers.
+4. **Events:** input/change/click handlers update the answers.
+5. **Results:** scoring and `update...` functions refresh the displays.
+6. **Documentation:** output functions assemble plain text and pass it to `Workbench.writeOutput(text)`.
+7. **Startup:** calls at the bottom initialize the page.
 
-- **Change the home page's tool names or links:** `index.html`.
-- **Change colors or spacing:** the relevant CSS file. Variables under `:root` collect the main colors and fonts in the base stylesheets. Later CSS rules may override earlier ones.
-- **Change MSE choices, defaults, or teaching explanations:** `mse-data.js`. Keep internal identifiers aligned with `mse.js`.
-- **Change the MSE narrative wording:** `buildNarrativeOutput()` in `mse.js`. It contains additional wording maps; the narrative is not generated solely from the data file. The list format uses choice labels from the data.
-- **Change a screening question, score range, or calculation:** the tool's JavaScript definitions and scoring functions. The comments describe the existing implementation; this cleanup did not review or change clinical scoring rules.
-- **Change note formatting:** the tool's output functions.
-- **Change copy or reset behavior:** handlers near the bottom of the tool's JavaScript, plus any functions those handlers call.
+The risk pages keep most questions in HTML and read the controls directly. MSE builds its form from `mse-data.js`. The scored tools generally keep questions and answers in JavaScript arrays.
 
-## Details that help explain the logic
+`$` in some scripts means `document.getElementById`; it is not an external library. `map` converts each array item, `filter` keeps matching items, and `reduce` combines values such as scores. Array indexes normally start at zero; ISAS deliberately uses printed item numbers 1–39 and leaves index zero unused.
 
-The link `screening.html?measure=gad7` loads the shared screening page and asks it to show GAD-7. `brief-assessment.html?measure=mdq` does the same for MDQ. The characters after `?` are URL parameters read by JavaScript.
+An element's `id` connects it to a specific lookup; a `class` usually connects it to CSS; `data-*` attributes carry identifiers from controls to event handlers. `textContent` and textarea `.value` write plain text. `innerHTML` builds markup; any user text inserted into an HTML attribute must pass through that script's `escapeAttr` helper.
 
-The two risk tools display and document the acute and chronic risk levels selected in the form. Their JavaScript does not calculate those levels from the checked factors.
+Comments explain responsibilities, sequencing, exceptions, and scoring relationships. They do not appear on the website. Prefer comments that explain _why_ a rule exists rather than repeating each assignment in English.
 
-Each assessment has its own scoring implementation. For example, LPFS-SR aligns question positions with weights and domains; Y-BOCS adds only the ten severity items; FASM averages the reasons assigned to each function. Preserve those relationships when editing.
+## Documentation and reset behavior
 
-Reset uses each tool's existing defaults, which may preselect answers. It does not mean that an assessment has been completed. The page's answer variables are held in memory; these scripts do not provide a saved-record system.
+**Risk pages start blank.** Output updates as findings are entered. Unchecked factors do not become documented absences; unanswered radios do not become denials. Reset clears the assessment, closes optional details, and returns the output format to Narrative. Risk levels and disposition are always selected by the clinician.
 
-To inspect the site locally, open `index.html` in a browser and follow its links. Clipboard access can depend on the browser and how the page is opened; Select text lets you copy manually. For editing, open the files in a text/code editor rather than a word processor.
+**MSE and scored tools start with presets.** Scores can be previewed immediately, but the note stays blank until **Create documentation** is clicked. Editing an answer clears the displayed note and requires another click. Changing output format or MSE layout preserves the current generated state. This button does not establish that every item was assessed or that the findings are clinically valid.
+
+Reset restores each tool's starting profile and clears optional entries. It preserves the selected output format on preset-based tools. MSE also preserves Learn/Compact and teaching-panel choices. Y-BOCS reset clears **both** adult and child answers while retaining the visible version; switching versions without resetting keeps their answers separate.
+
+Number fields use native `min`, `max`, and `step` validation. Invalid values stay visible for correction and block note generation/copying. Count and percentage handlers retain their last valid values for score previews while an invalid edit is present. FASM requires a positive whole-number count for a selected behavior; disabled fields are excluded from validation. CRAFFT day counts permit 0–366 to allow a leap-year interval.
+
+Every output toolbar places format selection, generation when applicable, and Copy together. DOM order matches visual order. Copy tries the clipboard API, then a selection-based fallback; if neither works, it selects the text and prompts for Cmd/Ctrl+C instead of reporting success.
+
+## Tool-specific relationships to preserve
+
+### MSE
+
+- `mse-data.js` holds section IDs, choices, defaults, categories, definitions, Notes, diagrams' explanatory text, and context examples.
+- `mseCategories` controls the order of both the form and List output.
+- `buildNarrativeOutput()` in `mse.js` has its own phrasing. List output uses `mseListWording`, falling back to option sentences in the data file. These are intentionally separate writing styles.
+- Learn and Compact use the same answers. Compact hides teaching panels and the additional-observation controls; observations already entered in Learn remain part of the assessment.
+- The Open all/Close all button controls teaching panels, not baseline panels. A mixture of open and closed teaching panels offers Open all.
+- Context selections do not infer diagnoses. No modifier or unknown baseline clears source attribution. Hidden, irrelevant specific-observation checkboxes are cleared before generating output.
+- Mood and safety “Other” fields retain text for editing, but it is omitted when Other is not selected. Placeholder examples are never treated as answers.
+- `descriptorDiagram()` draws the speech/thought-process SVGs. Only the vocabulary labels use pink; diagram strokes and letters follow the ordinary text color. Notes use yellow/gold bullet markers.
+
+### Risk assessments
+
+The comprehensive form groups inquiry into Thoughts; Plan, access and preparation; Behavior and history; and Intent. Selections or free text can document an area. Detail disclosures are optional; closing one does not remove its entered findings. Clicking an already selected radio inside a detailed disclosure returns it to unanswered.
+
+`assessmentGroups` maps controls to output labels and groups. Progress and clarification messages belong to the interface, not the copied note. Having an entry in every area is not a completeness or safety determination. Shared risk explanations are display text, not a scoring algorithm or a generated disposition.
+
+### Scored tools
+
+| Tool           | Important implementation detail                                                                                                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PHQ-9/GAD-7    | Functional impact is documented separately from the item total. PHQ-9 item 9 controls an additional assessment notice. This page uses standard PHQ-9 wording, not the full adolescent-modified form. |
+| Brief screens  | `answers` stores scores; `answerChoices` stores selected labels. Keep both aligned, because different labels can share a score. Reset rebuilds both.                                                 |
+| ISAS           | Each of 13 functions sums three 0–2 ratings. Behavior counts are separate from function scores. An unnamed positive Other count appears as “Other behavior.”                                         |
+| FASM           | `FACTORS[i]` assigns reason `i` to a function. Function results are means; Other is excluded. Method counts and contextual answers do not contribute to those means.                                 |
+| LPFS-SR        | Item, weight, and domain arrays align by index. Responses multiply weights, including negative weights. The preset profile is not an assessment result.                                              |
+| TSDS           | The 21 symptom responses are scored independently of discrimination-attribution percentages. Typing an Other description does not check its box.                                                     |
+| Y-BOCS/CY-BOCS | Only the ten severity items contribute to the total. Checklist selections and additional ratings are separate. Adult and child states are independent until Reset clears both.                       |
+
+The arithmetic checks verify the configured implementation. They do not authenticate instrument wording, editions, permissions, reference norms, or clinical interpretation. See [AUDIT.md](AUDIT.md) for the scope and remaining clinical review boundary.
+
+## Editing the design
+
+Use variables near the top of `workbench-shared.css` for suite-wide changes:
+
+| Variable                                            | Current use                                                                |
+| --------------------------------------------------- | -------------------------------------------------------------------------- |
+| `--accent-primary`                                  | Pink definitions, selected options, and primary actions                    |
+| `--accent-secondary`                                | Yellow in dark mode, gold in light mode; section accents and Notes bullets |
+| `--font-page-title`                                 | 32px desktop page titles; narrow screens use 28px                          |
+| `--font-section-title` / `--font-subheading`        | 21px / 17px hierarchy                                                      |
+| `--font-option` / `--font-field` / `--font-hint`    | 14px choices, 15px field labels, 13px placeholders                         |
+| `--font-result`                                     | 24px numeric result displays                                               |
+| `--space-panel` / `--space-row` / `--space-options` | 16px / 12px / 8px shared spacing                                           |
+
+Page-specific CSS owns distinct layouts; the final shared stylesheet owns common presentation. A more specific selector can still override a later general rule, so check the browser's computed styles before adding another override. Consolidate an existing rule when possible rather than appending another historical correction.
+
+## Storage, network, and embedding
+
+Assessment answers live in the current page's memory. The application does not save them to local storage or send them to a backend. The theme preference is stored under `workbench-theme`, with `mse-theme` retained as a migration fallback. Browser history, session restoration, extensions, and the operating-system clipboard are outside this code's control.
+
+Pages request Asap and Cutive from Google Fonts; fallback fonts work when unavailable. Copying explicitly places the note on the device clipboard. There is no analytics or assessment-submission code in these files.
+
+When embedded, `embed-resize.js` sends only two kinds of messages:
+
+```js
+{ type: "clinical-workbench-height", height: 900 }
+{ type: "clinical-workbench-scroll", top: 0 }
+```
+
+Values change with the layout or destination section. The containing website must receive them, verify both `event.origin` and `event.source`, and resize/scroll its iframe. That containing site's handler is not included here. The sender uses `"*"` because the containing domain is not configured in this suite; it does not send answers or note text. Standalone pages do not send these messages.
+
+## Checking changes
+
+Run these dependency-free checks with Node:
+
+```sh
+node tests/regression.cjs
+node tests/invariants.cjs
+```
+
+The first checks reset/label consistency, invalid measure links, blank risk output, clipboard failure paths, documentation state, and numeric validation. The second checks calculation boundaries, item mappings, version separation, MSE output coverage, JavaScript syntax, local links/IDs, stylesheet order, and CSS variables.
+
+Browser checks remain necessary for real control behavior, responsive layout, colors, keyboard focus, and clipboard permissions. [tests/QA.md](tests/QA.md) records the latest performed checks and a repeatable checklist. [AUDIT.md](AUDIT.md) records the file-by-file review and changes.

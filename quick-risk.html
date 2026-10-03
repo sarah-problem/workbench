@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
   quick-risk.html: Quick Risk Assessment: reads the form and assembles narrative or list documentation.
+  Shared: workbench-shared.css (design), workbench-theme.js (theme).
   Appearance: risk.css.
+  Shared assessment actions: workbench-ui.js (except the home page).
   Behavior (loaded at the bottom): quick-risk.js, embed-resize.js.
   id attributes connect controls to JavaScript; class attributes connect them to CSS.
 -->
@@ -16,16 +18,20 @@
       href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap"
       rel="stylesheet"
     />
-    <!-- Load shared styling first, followed by any page-specific overrides. -->
-    <link rel="stylesheet" href="risk.css" />
+    <!-- Page layout first; the shared design system owns common styling. -->
+    <link rel="stylesheet" href="risk.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body class="risk-app">
+  <body class="risk-app spacious-tool">
     <main class="risk-shell">
       <a class="risk-back" href="index.html">← Back to Clinical Workbench</a>
       <h1>Quick Risk Assessment</h1>
 
       <div class="button-row quick-top-actions">
-        <button type="button" class="primary-button" id="reset">↺ Reset to Normal</button>
+        <button data-reset-assessment="true" type="button" class="primary-button" id="reset">
+          <span class="reset-icon" aria-hidden="true">↺</span> Reset assessment
+        </button>
       </div>
 
       <section class="risk-card">
@@ -34,7 +40,7 @@
         <h3>Suicidal Ideation</h3>
         <div class="risk-options single-choice" data-group="ideation">
           <label class="choice-chip"
-            ><input type="radio" name="ideation" value="denied" data-label="Denied" checked /><span
+            ><input type="radio" name="ideation" value="denied" data-label="Denied" /><span
               >Denied</span
             ></label
           >
@@ -67,7 +73,7 @@
         <h3>Plan</h3>
         <div class="risk-options single-choice" data-group="plan">
           <label class="choice-chip"
-            ><input type="radio" name="plan" value="none" data-label="None" checked /><span
+            ><input type="radio" name="plan" value="none" data-label="None" /><span
               >None</span
             ></label
           >
@@ -91,7 +97,6 @@
               name="means"
               value="none identified"
               data-label="None identified"
-              checked
             /><span>None identified</span></label
           >
           <label class="choice-chip"
@@ -109,7 +114,7 @@
         <h3>Recent Suicidal Behavior</h3>
         <div class="risk-options single-choice" data-group="behavior">
           <label class="choice-chip"
-            ><input type="radio" name="behavior" value="none" data-label="None" checked /><span
+            ><input type="radio" name="behavior" value="none" data-label="None" /><span
               >None</span
             ></label
           >
@@ -205,7 +210,8 @@
         <div class="optional-details" id="risk-other-wrap">
           <textarea
             id="riskOther"
-            placeholder="Optional additional risk factor or context"
+            aria-label="Additional risk factors"
+            placeholder="Ex.: Recent change in stressors / Collateral information differs from client report"
           ></textarea>
         </div>
       </section>
@@ -273,7 +279,8 @@
         <div class="optional-details" id="protective-other-wrap">
           <textarea
             id="protectiveOther"
-            placeholder="Optional additional protective factor or context"
+            aria-label="Additional protective factors"
+            placeholder="Ex.: Support is available only intermittently / Client identifies a specific reason for living"
           ></textarea>
         </div>
       </section>
@@ -287,12 +294,12 @@
               <div class="field-label">Current (Acute) Risk</div>
               <div class="risk-helper">Current risk in the immediate clinical context.</div>
             </div>
-            <div class="risk-level-result risk-low" id="acute-result">Low acute risk</div>
+            <div class="risk-level-result" id="acute-result">Not selected</div>
           </div>
 
           <div class="risk-options single-choice risk-level-options" data-group="acute">
             <label class="choice-chip risk-choice risk-low"
-              ><input type="radio" name="acute" value="low" data-label="Low" checked /><span
+              ><input type="radio" name="acute" value="low" data-label="Low" /><span
                 >Low</span
               ></label
             >
@@ -301,8 +308,8 @@
                 type="radio"
                 name="acute"
                 value="low-moderate"
-                data-label="Low-moderate"
-              /><span>Low-moderate</span></label
+                data-label="Low–moderate"
+              /><span>Low–moderate</span></label
             >
             <label class="choice-chip risk-choice risk-moderate"
               ><input type="radio" name="acute" value="moderate" data-label="Moderate" /><span
@@ -314,8 +321,8 @@
                 type="radio"
                 name="acute"
                 value="moderate-high"
-                data-label="Moderate-high"
-              /><span>Moderate-high</span></label
+                data-label="Moderate–high"
+              /><span>Moderate–high</span></label
             >
             <label class="choice-chip risk-choice risk-high"
               ><input type="radio" name="acute" value="high" data-label="High" /><span
@@ -324,10 +331,7 @@
             >
           </div>
 
-          <p class="risk-level-explainer risk-low" id="acute-explainer">
-            Current circumstances are unlikely to result in suicidal behavior. Outpatient care is
-            generally appropriate when otherwise clinically indicated.
-          </p>
+          <p class="risk-level-explainer" id="acute-explainer" hidden></p>
         </div>
 
         <div class="risk-level-panel" data-risk-panel="chronic">
@@ -338,12 +342,12 @@
                 Long-term baseline risk based on enduring and historical factors.
               </div>
             </div>
-            <div class="risk-level-result risk-low" id="chronic-result">Low chronic risk</div>
+            <div class="risk-level-result" id="chronic-result">Not selected</div>
           </div>
 
           <div class="risk-options single-choice risk-level-options" data-group="chronic">
             <label class="choice-chip risk-choice risk-low"
-              ><input type="radio" name="chronic" value="low" data-label="Low" checked /><span
+              ><input type="radio" name="chronic" value="low" data-label="Low" /><span
                 >Low</span
               ></label
             >
@@ -352,8 +356,8 @@
                 type="radio"
                 name="chronic"
                 value="low-moderate"
-                data-label="Low-moderate"
-              /><span>Low-moderate</span></label
+                data-label="Low–moderate"
+              /><span>Low–moderate</span></label
             >
             <label class="choice-chip risk-choice risk-moderate"
               ><input type="radio" name="chronic" value="moderate" data-label="Moderate" /><span
@@ -365,8 +369,8 @@
                 type="radio"
                 name="chronic"
                 value="moderate-high"
-                data-label="Moderate-high"
-              /><span>Moderate-high</span></label
+                data-label="Moderate–high"
+              /><span>Moderate–high</span></label
             >
             <label class="choice-chip risk-choice risk-high"
               ><input type="radio" name="chronic" value="high" data-label="High" /><span
@@ -375,9 +379,7 @@
             >
           </div>
 
-          <p class="risk-level-explainer risk-low" id="chronic-explainer">
-            Long-term history suggests little ongoing elevation above baseline suicide risk.
-          </p>
+          <p class="risk-level-explainer" id="chronic-explainer" hidden></p>
         </div>
 
         <button type="button" class="secondary-button toggle-details" data-target="rationale-wrap">
@@ -386,7 +388,8 @@
         <div class="optional-details" id="rationale-wrap">
           <textarea
             id="rationale"
-            placeholder="Optional clinical rationale or relevant context"
+            aria-label="Clinical rationale"
+            placeholder="Ex.: Change from recent baseline / Limits of information available / Basis for the selected risk level"
           ></textarea>
         </div>
       </section>
@@ -468,7 +471,8 @@
         <div class="optional-details" id="intervention-notes-wrap">
           <textarea
             id="interventionNotes"
-            placeholder="Optional intervention, recommendation, or follow-up details"
+            aria-label="Intervention notes"
+            placeholder="Ex.: Follow-up timing / Support person involved / Agreed next steps"
           ></textarea>
         </div>
       </section>
@@ -481,18 +485,26 @@
             Narrative
           </button>
           <button type="button" class="output-style-button" data-style="list">List</button>
+          <div class="output-copy-actions">
+            <button data-copy-output type="button" class="primary-button" id="copy">Copy</button>
+
+            <span id="copy-status" aria-live="polite" data-copy-status></span>
+          </div>
         </div>
-        <textarea id="output" class="risk-output" readonly></textarea>
-        <div class="button-row">
-          <button type="button" class="primary-button" id="copy">Copy</button>
-          <button type="button" class="secondary-button" id="selectText">Select text</button>
-          <span id="copy-status" aria-live="polite"></span>
-        </div>
+        <textarea
+          id="output"
+          data-note-output
+          aria-label="Generated documentation"
+          class="risk-output"
+          readonly
+        ></textarea>
       </section>
     </main>
 
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="quick-risk.js"></script>
-    <script src="embed-resize.js"></script>
+    <script src="workbench-ui.js?v=20261003-audit4"></script>
+    <script src="risk-presentation.js?v=20261003-audit4"></script>
+    <script src="quick-risk.js?v=20261003-audit4"></script>
+    <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

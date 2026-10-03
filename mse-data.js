@@ -12,10 +12,220 @@
  *
  * Each section can include:
  *   - options: selectable choices and generated sentences
- *   - info.questions: prompts that build clinical reasoning
+ *   - info.nuances: practical ambiguities and limits when interpreting findings
  *
  * The interface code lives in mse.js.
  */
+
+// Plain-language teaching labels appear beside field headings in Learn mode only.
+// These explain what is being assessed, without adding claims to the generated note.
+const mseDimensionDescriptions = {
+  appearance: "grooming, hygiene, and clothing in context",
+  behavior: "how the client engages and behaves during the session",
+  eyeContact: "pattern of gaze during interaction",
+  speech: "how the client speaks: rate, rhythm, volume, and amount",
+  mood: "the client's reported emotional state",
+  affect: "observable emotional expression",
+  thoughtProcess: "how thoughts are organized and connected",
+  thoughtContent: "the ideas, beliefs, and concerns being expressed",
+  perception: "sensory experiences, such as hearing or seeing things",
+  orientation: "awareness of person, place, time, and situation",
+  attentionMemory: "ability to focus, sustain attention, and recall information",
+  insight: "recognition of one's patterns, difficulties, and their impact",
+  judgment: "ability to weigh options and consequences when making decisions",
+  impulse: "ability to pause and regulate urges before acting",
+  sib: "self-injury urges, behavior, and history",
+  si: "thoughts of death or ending one's life",
+  hi: "thoughts of killing another person",
+};
+
+// Placeholder examples are hints only, never defaults or generated note content.
+// More specific examples take priority when their corresponding choice is selected.
+const mseObservationHints = {
+  appearance: {
+    default:
+      "Describe the specific observation and relevant context, e.g., Arrived in work clothing immediately after a shift.",
+  },
+  behavior: {
+    default: "e.g., Initially reserved; became more engaged as the session progressed.",
+    guarded: "e.g., Answered general questions but declined to discuss family conflict.",
+    restless:
+      "e.g., Frequently shifted position while continuing to participate in the conversation.",
+  },
+  eyeContact: {
+    default: "e.g., Eye contact varied with the topic being discussed.",
+    limited:
+      "e.g., Limited eye contact was consistent with prior sessions; client remained engaged in the interaction.",
+  },
+  speech: {
+    default: "Describe rate, volume, pauses, or amount of speech and any relevant context.",
+    latent: "e.g., Took additional time before answering; responses were relevant when given time.",
+    impoverished:
+      "e.g., Responses were brief, with little spontaneous elaboration; continued to participate when prompted.",
+    rapid: "e.g., Spoke quickly but paused for questions and clarification.",
+    other:
+      "Describe the speech feature in your own words, e.g., Volume increased when discussing the conflict.",
+  },
+  affect: {
+    default: "e.g., Became tearful when discussing a recent loss.",
+    restricted: "e.g., Emotional expression was limited in range, consistent with prior sessions.",
+  },
+  thoughtProcess: {
+    default: "Describe how ideas connected and whether the client reached the point.",
+    circumstantial:
+      "e.g., Provided extensive background before answering; returned to the original question with brief redirection.",
+    tangential: "e.g., Shifted from the question to other topics and required redirection.",
+    perseverative: "e.g., Repeatedly returned to the same concern despite changes in topic.",
+  },
+  thoughtContent: {
+    default: "Describe the specific theme and whether it was reported or observed.",
+    ruminative: "e.g., Repeatedly revisited a recent disagreement and concerns about its meaning.",
+    preoccupied: "e.g., Much of the discussion centered on an upcoming housing decision.",
+  },
+  perception: {
+    default:
+      "Clarify what the client reported versus what you observed, including timing and context.",
+  },
+  attentionMemory: {
+    default:
+      "Clarify attention and memory separately when needed, e.g., Needed occasional repetition of questions; recalled recent events.",
+  },
+  insight: {
+    default: "Describe what the client recognizes and what remains unclear.",
+    good: "e.g., Recognized a recurring interpersonal pattern and described its effect on relationships.",
+    fair: "e.g., Recognized distress but had difficulty identifying recurring triggers.",
+    limited:
+      "e.g., Recognized associated distress but had limited awareness of recurring interpersonal patterns.",
+    poor: "Describe the specific concern the client did not recognize, rather than making a global statement about awareness.",
+    mixed:
+      "e.g., Recognized difficulties at school but had less awareness of their impact at home.",
+  },
+  judgment: {
+    default: "Give a specific example of a decision, the options available, and the context.",
+    fair: "e.g., Identified some possible consequences but needed support to consider alternatives.",
+    limited:
+      "e.g., Could identify consequences during discussion but reported difficulty applying this understanding during conflict.",
+    poor: "Describe the decision and its consequences, and distinguish reported behavior from what you observed today.",
+    mixed:
+      "e.g., Considered alternatives during the session; caregiver reported difficulty making decisions during conflict at home.",
+  },
+  impulse: {
+    default:
+      "Distinguish behavior in the session from recent reported behavior, and identify the source.",
+    intact:
+      "e.g., Behavioral control was maintained during the session; parent reported continued impulsive behavior at school.",
+    fair: "e.g., Needed occasional reminders to pause before responding during the session.",
+    limited:
+      "e.g., Behavioral control was maintained during the session; caregiver reported episodes of hitting peers when frustrated.",
+    poor: "Describe the specific behavior, when it occurred, and who reported it; clarify what was observed during this session.",
+  },
+  sib: {
+    default:
+      "Clarify urges versus behavior, timing, and source of information. Include only findings actually assessed.",
+  },
+  si: {
+    default:
+      "Clarify the client's report, timing, and any further risk assessment or action taken. Include only findings actually assessed.",
+  },
+  hi: {
+    default:
+      "Clarify the client's report and context, and any further risk assessment or action taken. Include only findings actually assessed.",
+  },
+};
+
+// One shared category map keeps the form and the grouped list output in the same order.
+const mseCategories = [
+  {
+    id: "presentation",
+    title: "General Presentation",
+    sections: ["appearance", "behavior", "eyeContact"],
+  },
+  {
+    id: "speech-emotion",
+    title: "Speech & Emotional Presentation",
+    sections: ["speech", "mood", "affect"],
+  },
+  {
+    id: "thought-perception",
+    title: "Thought & Perception",
+    sections: ["thoughtProcess", "thoughtContent", "perception"],
+  },
+  { id: "cognition", title: "Cognition", sections: ["orientation", "attentionMemory"] },
+  {
+    id: "insight-judgment",
+    title: "Self-Awareness & Self-Regulation",
+    sections: ["insight", "judgment", "impulse"],
+  },
+  { id: "safety", title: "Safety / Risk", sections: ["sib", "si", "hi"] },
+];
+
+// Context is explicitly selected for one finding; it never infers a diagnosis or cause.
+const mseContextOptions = [
+  { value: "", label: "No modifier", phrase: "" },
+  {
+    value: "unknown",
+    label: "Baseline not yet established",
+    phrase: "",
+    statement: "Baseline has not yet been established.",
+  },
+  {
+    value: "baseline",
+    label: "Consistent with baseline",
+    phrase: "consistent with the client's baseline presentation",
+  },
+  {
+    value: "change",
+    label: "Change from baseline",
+    phrase: "a change from the client's baseline presentation",
+  },
+];
+// Sources qualify the selected baseline comparison, not the observed finding itself.
+const mseBaselineSources = [
+  { value: "", label: "Not specified", phrase: "" },
+  {
+    value: "sessions",
+    label: "Observed across prior sessions",
+    phrase: "based on observations across prior sessions",
+  },
+  { value: "client", label: "Client report", phrase: "per client report" },
+  { value: "collateral", label: "Collateral report", phrase: "per collateral report" },
+];
+
+// Offer only observations relevant to a domain; each must be explicitly checked.
+const mseContextObservations = [
+  {
+    value: "redirectable",
+    label: "Benefits from redirection",
+    sentence: "Client benefited from redirection.",
+    sections: ["thoughtProcess", "attentionMemory"],
+  },
+  {
+    value: "responseTime",
+    label: "Benefits from additional response time",
+    sentence: "Client benefited from additional time to formulate responses.",
+    sections: ["speech", "thoughtProcess", "attentionMemory"],
+  },
+  {
+    value: "engaged",
+    label: "Remains engaged and responsive",
+    sentence: "Client remained engaged and responsive.",
+    sections: ["behavior", "eyeContact", "speech", "affect", "attentionMemory"],
+  },
+];
+const mseContextSections = [
+  "appearance",
+  "behavior",
+  "eyeContact",
+  "speech",
+  "affect",
+  "thoughtProcess",
+  "thoughtContent",
+  "perception",
+  "attentionMemory",
+  "insight",
+  "judgment",
+  "impulse",
+];
 
 // Each section has a stable id, displayed title, normal default, and choices. multiple allows several selections; observation enables free text. Keep ids aligned with mse.js.
 const mseSections = [
@@ -38,10 +248,8 @@ const mseSections = [
       option("other", "Other", "Appearance otherwise notable."),
     ],
     info: {
-      questions: [
-        "Could this appearance be explained by the setting, weather, culture, finances, sensory needs, work/school, transportation, or telehealth rather than psychopathology?",
-        "Does this represent the client's typical level of functioning, or is it a situational or temporary change?",
-        "Would documenting this observation meaningfully improve another clinician's understanding of the client?",
+      nuances: [
+        "Grooming can reflect access to resources, sensory preferences, or the circumstances of the visit. A change may relate to disrupted routines or lost support as well as changes in the client’s functioning; the appearance alone does not establish why it changed.",
       ],
     },
   },
@@ -62,10 +270,9 @@ const mseSections = [
       option("other", "Other", "Behavior otherwise notable."),
     ],
     info: {
-      questions: [
-        "Does this describe the client's overall behavioral pattern, or is it better explained by speech style, anxiety, neurodevelopment, or the specific topic being discussed?",
-        "Is this behavior consistent throughout the interaction, or does it change across situations, topics, or emotional states?",
-        "Does this behavior represent the client's baseline, or a meaningful change in functioning?",
+      nuances: [
+        "Engagement may shift with the topic, who is present, or how comfortable the client feels with the interviewer. Someone can be cooperative overall and still protect information they expect could lead to conflict or consequences.",
+        "Frequent movement alone does not establish agitation, especially when the client remains calm and engaged.",
       ],
     },
   },
@@ -84,9 +291,8 @@ const mseSections = [
       option("variable", "Variable", "Eye contact variable."),
     ],
     info: {
-      questions: [
-        "Could this pattern of eye contact be better explained by autism, anxiety, trauma, culture, or the telehealth setting than by psychopathology?",
-        "Is the quality of eye contact clinically meaningful, or simply different from my own expectations or communication style?",
+      nuances: [
+        "Someone who rarely looks directly at you may still be following closely, with eye contact varying by culture, sensory comfort, and whether they are listening or speaking. On video, screen placement can also affect where they appear to be looking.",
       ],
     },
   },
@@ -113,10 +319,9 @@ const mseSections = [
       option("other", "Other", "Speech otherwise notable."),
     ],
     info: {
-      questions: [
-        "Which aspect of speech is actually abnormal--rate, volume, response latency, quantity, rhythm, or fluency--and are multiple characteristics present?",
-        "Could anxiety, autism, depression, fatigue, medication effects, language differences, or processing speed better explain these speech characteristics?",
-        "Is limited verbal output due to impoverished speech, or is the client selectively withholding information because they are guarded?",
+      nuances: [
+        "Long pauses may reflect processing time, word-finding, or reluctance to disclose. How the client responds when given more time or a differently phrased question can help clarify what you are observing.",
+        "Brief answers around one topic may suggest something different from sparse speech throughout the interview, especially if the client elaborates freely elsewhere.",
       ],
     },
   },
@@ -137,9 +342,8 @@ const mseSections = [
       option("other", "Other", "Mood otherwise notable."),
     ],
     info: {
-      questions: [
-        "Is this the client's reported internal emotional experience, or am I inferring mood from observed affect or behavior?",
-        "Does the reported mood remain consistent throughout the interview, and is it congruent with the observed affect?",
+      nuances: [
+        "The client’s own wording can be more useful when one mood label does not capture their experience, such as feeling anxious and numb at the same time.",
       ],
     },
   },
@@ -162,10 +366,9 @@ const mseSections = [
       option("other", "Other", "Affect otherwise notable."),
     ],
     info: {
-      questions: [
-        "Which aspect of affect is notable--range, intensity, stability, congruence, or emotional expression--and are multiple characteristics present?",
-        "Could autism, masking, culture, medication, trauma, personality style, or exhaustion better explain the observed affect?",
-        'Does this reflect what was actually observed, rather than my expectation of how the client "should" express emotion?',
+      nuances: [
+        "When considering lability, it helps to look at whether emotional shifts follow changes in topic and how readily the client settles.",
+        "A client may describe considerable distress while showing little outward emotion — expression and felt experience do not always match. Comfort with the interviewer and expectations about showing emotion may also shape what is visible.",
       ],
     },
   },
@@ -192,10 +395,9 @@ const mseSections = [
       option("other", "Other", "Thought process otherwise notable."),
     ],
     info: {
-      questions: [
-        "Is the primary difficulty organization, speed, persistence, or maintaining the thread of conversation, and are multiple thought process abnormalities present?",
-        "Do the client's associations remain understandable, and do they ultimately answer the original question?",
-        "Could anxiety, ADHD, autism, language differences, or communication style better explain this presentation?",
+      nuances: [
+        "Redirection can make the conversation easier to follow. Whether the client reaches the point independently or relies on prompting helps describe their thought process.",
+        "An unfamiliar storytelling style, language differences, or extensive background detail can make an account hard to follow without necessarily indicating disorganized thinking.",
       ],
     },
   },
@@ -217,9 +419,9 @@ const mseSections = [
       option("other", "Other", "Thought content otherwise notable."),
     ],
     info: {
-      questions: [
-        "Is the concern the content of the client's thoughts, or the way those thoughts are connected and communicated?",
-        "Are these thoughts intrusive, repetitive, emotionally dominant, suspicious, fixed, or simply understandable reactions to the client's circumstances?",
+      nuances: [
+        "An intrusive thought may be distressing because the client does not want it; its content alone does not establish that they believe it, desire it, or intend to act on it.",
+        "Suspiciousness may relate to actual threats or prior experiences, and beliefs need to be understood in their cultural context. How firmly the client holds a belief and how they respond to other explanations can help clarify the concern.",
       ],
     },
   },
@@ -248,10 +450,9 @@ const mseSections = [
       option("other", "Other", "Perception otherwise notable."),
     ],
     info: {
-      questions: [
-        "Was this experience directly observed, reported by the client, or inferred from behavior, and how confident am I in that distinction?",
-        "Could trauma, dissociation, intrusive thoughts, sleep deprivation, substance use, or another explanation better account for this experience?",
-        "Does this finding have immediate implications for safety, distress, or level of care?",
+      nuances: [
+        "Experiences around sleep, trauma reminders, or dissociation can be difficult to categorize. The description becomes clearer with details about when they occur, what they feel or sound like, and how the client understands them.",
+        "When a client’s account differs from what their behavior appears to suggest, documenting each separately keeps an observation from becoming a presumed experience.",
       ],
     },
   },
@@ -268,9 +469,8 @@ const mseSections = [
       { id: "situation", label: "Situation" },
     ],
     info: {
-      questions: [
-        "Is this true disorientation, or could anxiety, dissociation, inattention, fatigue, misunderstanding, or joking better explain the presentation?",
-        "Which specific domains are impaired, and does this require medical or psychiatric follow-up?",
+      nuances: [
+        "Getting the exact date wrong differs from losing track of the broader time period or setting. Even a fluent conversation may leave some orientation domains untested.",
       ],
     },
   },
@@ -297,9 +497,9 @@ const mseSections = [
       option("other", "Other", "Attention, concentration, and/or memory otherwise notable."),
     ],
     info: {
-      questions: [
-        "Is the difficulty primarily attention, concentration, memory, or a combination, and how does it affect participation in the session?",
-        "Could ADHD, anxiety, depression, dissociation, sleep deprivation, intoxication, medication effects, or a cognitive disorder better explain these findings?",
+      nuances: [
+        "If attention was limited when information was presented, difficulty recalling it later may reflect what was taken in. Attention and memory may need separate descriptions rather than one overall rating.",
+        "Following a quiet, structured conversation and managing competing demands at home or school are different tasks. Better performance with fewer distractions or more support is useful context for the finding.",
       ],
     },
   },
@@ -319,10 +519,9 @@ const mseSections = [
       option("other", "Other", "Insight otherwise notable."),
     ],
     info: {
-      questions: [
-        "How well does the client recognize their symptoms, patterns, needs, and the impact those have on their life?",
-        "Could development, trauma, neurodevelopment, shame, fear, or mistrust affect what they can acknowledge?",
-        "Does the client truly lack insight, or do they understand the concern but disagree, prioritize different values, or reach a different conclusion?",
+      nuances: [
+        "A client may recognize their distress while still learning to connect it with triggers or recurring patterns. Describing what they understand and what remains unclear can be more useful than a global rating.",
+        "Developmental and cognitive abilities affect how someone explains their experience. A client may also understand the problem through a different cultural or family framework — disagreement with the clinician’s explanation does not by itself establish a lack of awareness.",
       ],
     },
   },
@@ -342,10 +541,9 @@ const mseSections = [
       option("other", "Other", "Judgment otherwise notable."),
     ],
     info: {
-      questions: [
-        "Given the client's developmental stage, available information, emotional state, and environment, how reasonable were their decisions?",
-        "Does this reflect impaired judgment, or simply an unfavorable outcome?",
-        "Could trauma, coercion, neurodevelopment, emotional activation, or limited options better explain the client's decisions?",
+      nuances: [
+        "A client may be able to discuss consequences in session but struggle to apply that understanding during conflict, with emotional activation and available support affecting how judgment shows up in different settings.",
+        "Decisions need to be understood in light of the options available, including constraints or coercion; an unfavorable outcome alone does not establish poor judgment.",
       ],
     },
   },
@@ -364,9 +562,8 @@ const mseSections = [
       option("other", "Other", "Impulse control otherwise notable."),
     ],
     info: {
-      questions: [
-        "Does the client have difficulty inhibiting behavior, or are the primary problems poor coping skills, emotional overwhelm, environmental factors, or limited opportunities to use better strategies?",
-        "Is this conclusion supported by observed behavior, recent behavior, or meaningful risk?",
+      nuances: [
+        "A client may maintain behavioral control in a structured session while struggling during conflict or distress elsewhere — both accounts can be accurate. Differences in demands, relationships, and available support are worth exploring without assuming they explain the behavior.",
       ],
     },
   },
@@ -393,9 +590,8 @@ const mseSections = [
       option("other", "Other", "Self-injury status otherwise notable."),
     ],
     info: {
-      questions: [
-        "Are there urges, behavior, or both, and when did self-injury most recently occur?",
-        "Is the behavior suicidal, non-suicidal, mixed, or still unclear, and does it require a more comprehensive risk assessment?",
+      nuances: [
+        "Intent may vary between episodes or remain mixed or unclear; neither the method nor a history of nonsuicidal self-injury establishes intent for a new episode.",
       ],
     },
   },
@@ -414,9 +610,8 @@ const mseSections = [
       option("other", "Other", "Suicidal ideation otherwise notable."),
     ],
     info: {
-      questions: [
-        "Are the thoughts passive or active, and is there intent, planning, access to means, preparatory behavior, or recent suicidal behavior?",
-        "Does the current presentation require a comprehensive suicide risk assessment or a higher level of care?",
+      nuances: [
+        "“Passive” describes the thoughts rather than an overall risk level. Plans, access, preparation, and recent behavior may add information that the MSE selection does not capture.",
       ],
     },
   },
@@ -434,9 +629,9 @@ const mseSections = [
       option("other", "Other", "Homicidal ideation otherwise notable."),
     ],
     info: {
-      questions: [
-        "Does this represent anger, an intrusive thought, a fantasy, a threat, intent, or a plan, and is there an identifiable target?",
-        "What is the client's access to means, current level of risk, and need for immediate intervention or a comprehensive violence risk assessment?",
+      nuances: [
+        "Because similar wording can describe unwanted violent thoughts, anger, threats, or an intention to harm, the client’s experience of the thought and what they want or intend to do need clarification.",
+        "A specific target, access to means, or preparatory actions may call for a fuller violence risk assessment beyond the MSE description.",
       ],
     },
   },
@@ -481,19 +676,6 @@ const optionHelp = {
     variable:
       "Eye contact changes across topics, emotional states, or moments in session. Describes eye contact that is inconsistent or fluctuating.",
   },
-  speech: {
-    normal: "Rate, rhythm, volume, and amount of speech are unremarkable.",
-    rapid: "The client speaks quickly but can pause, be interrupted, and redirect.",
-    pressured:
-      "Speech feels driven, is difficult to interrupt, and resumes quickly after interruption.",
-    slow: "Words and sentences are produced at a reduced rate.",
-    quiet: "Volume is low, while the amount and content of speech may otherwise be normal.",
-    latent: "There is a noticeable delay before the client begins responding.",
-    impoverished:
-      "The client produces little speech or spontaneous elaboration, often using brief responses across topics. Verbal output remains sparse across topics, even after prompting.",
-    other:
-      "Use this for other clinically meaningful speech characteristics, including unusual rhythm, articulation, fluency, or prosody, or when additional clarification is needed.",
-  },
   mood: {
     euthymic:
       "Mood is relatively neutral or stable without a prominent depressive, anxious, irritable, or elevated state.",
@@ -520,19 +702,6 @@ const optionHelp = {
     tearful: "The client is visibly crying or near tears.",
     other:
       "Use this for other clinically meaningful qualities of emotional expression, including changes in range, intensity, stability, or congruence, or when additional clarification is needed.",
-  },
-  thoughtProcess: {
-    linear: "Thoughts are organized, connected, and move toward answering the question or goal.",
-    circumstantial:
-      "The client includes excessive detail but eventually answers the original question.",
-    tangential: "The client moves away from the question and never gets back to the point.",
-    perseverative: "The client repeatedly returns to the same idea, phrase, concern, or topic.",
-    flight: "Ideas move rapidly, but the connections remain understandable.",
-    blocking:
-      "The train of thought suddenly stops, and the client may be unable to continue or recover it.",
-    disorganized: "Connections between ideas become difficult or impossible to follow.",
-    other:
-      "Use this for other clinically meaningful patterns in how thoughts are organized, connected, or expressed, or when additional clarification is needed.",
   },
   thoughtContent: {
     unremarkable:
@@ -632,6 +801,38 @@ const optionHelp = {
   },
 };
 
+// Visual guides are teaching aids only. The observation examples are illustrative,
+// never inserted into a note or used to select a finding automatically.
+const mseVisualGuides = {
+  speech: {
+    normal: "Speech has a conversational rate, rhythm, volume, and amount, with ordinary pauses.",
+    rapid: "Words come quickly, but the client can pause for another speaker and redirect.",
+    pressured:
+      "Speech feels driven, continues with few pauses, and is difficult to interrupt; it may resume quickly after interruption.",
+    slow: "Words are produced at a slower pace once the client begins speaking.",
+    quiet: "Speech is low in volume. This describes loudness, not the amount said.",
+    latent: "There is a noticeable delay between a question and the start of the response.",
+    impoverished:
+      "Responses remain brief across topics, with little spontaneous elaboration even after prompting.",
+    other:
+      "Describe a feature not captured above, such as unusual rhythm, articulation, fluency, or intonation.",
+  },
+  thoughtProcess: {
+    linear: "An answer follows understandable connections toward the question or goal.",
+    circumstantial:
+      "The answer includes substantial background and side details before reaching the point.",
+    tangential: "The answer moves onto another topic without returning to the question.",
+    perseverative:
+      "The client repeatedly returns to the same topic even as the conversation moves on.",
+    flight: "Ideas change rapidly while the links between them remain understandable.",
+    blocking:
+      "An ongoing train of thought stops suddenly, and the client may be unable to resume it; this differs from a delay before answering.",
+    disorganized: "It is difficult to follow how one idea relates to the next.",
+    other:
+      "Describe the actual pattern and whether the client reaches the point or benefits from redirection.",
+  },
+};
+
 /* Small helpers that make the data above easier to read. */
 
 // Package the internal value, button label, and sentence for one choice.
@@ -639,7 +840,95 @@ function option(value, label, sentence) {
   return { value, label, sentence };
 }
 
-// Package a teaching term and its explanation for the reference panels.
-function item(term, text) {
-  return { term, text };
-}
+// Context examples are placeholder hints only; they never populate the clinical note.
+const mseContextNoteExamples = {
+  appearance: [
+    "Arrived in work clothing immediately after a shift.",
+    "Appearance could only be partially assessed by video.",
+  ],
+  behavior: [
+    "Participation improved with a predictable structure.",
+    "Used a movement break and returned to the activity.",
+    "Initially reserved; engagement increased with rapport.",
+  ],
+  eyeContact: ["Limited eye contact with continued engagement.", "Eye contact varied by topic."],
+  speech: [
+    "Needed extra time to formulate responses.",
+    "Brief responses became more detailed with prompting.",
+  ],
+  affect: [
+    "Expression became more varied as rapport developed.",
+    "Client described a usually reserved expressive style.",
+  ],
+  thoughtProcess: [
+    "Returned to the question with brief redirection.",
+    "Organization improved with one question at a time.",
+  ],
+  thoughtContent: [
+    "Thoughts described as unwanted rather than endorsed beliefs.",
+    "Conviction varied when alternatives were explored.",
+    "Content was difficult to assess because responses were limited.",
+  ],
+  perception: [
+    "Experience reported only while falling asleep.",
+    "No similar experience reported during the interview.",
+    "Client distinguished the experience from external events.",
+  ],
+  attentionMemory: [
+    "Followed one question at a time more easily.",
+    "Recalled details with a reminder of the topic.",
+    "Attention improved with brief breaks.",
+  ],
+  insight: [
+    "Limited but developing awareness of trauma-related patterns.",
+    "Understanding was concrete and consistent with developmental level.",
+    "Recognized patterns with simplified language and repeated examples.",
+  ],
+  judgment: [
+    "Reasoning improved with concrete choices and prompting.",
+    "Ability to anticipate consequences varied with emotional activation.",
+    "Assessment was limited by difficulty understanding hypothetical questions.",
+  ],
+  impulse: [
+    "No difficulty inhibiting behavior observed during this visit; difficulties reported in other settings.",
+    "Needed external prompts to pause before acting.",
+    "Behavioral inhibition improved with structure and breaks.",
+  ],
+};
+
+// Other fields are user-entered descriptions, not prefilled clinical findings.
+const mseOtherHints = {
+  mood: "‘fucked up’ / ‘numb’ / ‘all over the place’",
+  sib: "Current status could not be established / Client declined to discuss self-injury / Reported behavior with unclear intent",
+  si: "Client declined to answer / Current ideation could not be established / Client and collateral reports differed",
+  hi: "Client declined to answer / Meaning of a statement about harming someone remained unclear / Current ideation could not be established",
+};
+
+// These mappings control visibility only, never infer an observation from a finding.
+const mseObservationRelevance = {
+  behavior: { engaged: ["guarded", "withdrawn", "restless", "agitated", "other"] },
+  eyeContact: { engaged: ["limited", "avoidant", "intense", "variable"] },
+  speech: {
+    responseTime: ["slow", "latent", "impoverished", "other"],
+    engaged: ["rapid", "pressured", "slow", "quiet", "latent", "impoverished", "other"],
+  },
+  affect: {
+    engaged: ["restricted", "blunted", "flat", "labile", "incongruent", "tearful", "other"],
+  },
+  thoughtProcess: {
+    redirectable: [
+      "circumstantial",
+      "tangential",
+      "perseverative",
+      "flight",
+      "disorganized",
+      "other",
+    ],
+    responseTime: ["blocking", "disorganized", "other"],
+  },
+  attentionMemory: {
+    redirectable: ["mild", "moderate", "severe", "other"],
+    responseTime: ["mild", "moderate", "severe", "other"],
+    engaged: ["mild", "moderate", "severe", "other"],
+  },
+};

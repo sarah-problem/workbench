@@ -165,7 +165,7 @@ function renderBehaviors() {
   document.querySelectorAll("[data-behavior-count]").forEach((input) => {
     input.addEventListener("input", () => {
       const name = BEHAVIORS[Number(input.dataset.behaviorCount)];
-      behaviorCounts[name] = Math.max(0, Number(input.value) || 0);
+      if (input.validity.valid) behaviorCounts[name] = Number(input.value) || 0;
       updateAll();
     });
   });
@@ -248,7 +248,8 @@ function lifetimeBehaviorTotal() {
   return standard + other;
 }
 
-// Collect behaviors with positive counts, including a named other behavior when provided.
+// Include every positive count. An unnamed Other entry keeps a neutral label,
+// so the behavior list and total cannot disagree while its description is blank.
 function behaviorSummary() {
   const entries = BEHAVIORS.filter((name) => behaviorCounts[name] > 0).map((name) => ({
     name,
@@ -261,9 +262,9 @@ function behaviorSummary() {
     0,
     Number(document.getElementById("other-behavior-count").value) || 0,
   );
-  if (otherName && otherCount > 0) {
+  if (otherCount > 0) {
     entries.push({
-      name: otherName,
+      name: otherName || "Other behavior",
       count: otherCount,
       main: document.getElementById("other-behavior-main").checked,
     });
@@ -301,7 +302,6 @@ function updateFunctionResults() {
       FUNCTIONS.findIndex((group) => group.name === a.name) -
         FUNCTIONS.findIndex((group) => group.name === b.name),
   );
-  const highestGroups = ranked.filter((group) => group.score === highest);
   const shown =
     highest === 0 ? ranked.slice(0, 3) : ranked.filter((group) => group.score > 0).slice(0, 5);
 
@@ -445,8 +445,7 @@ function detailedOutput() {
 // Regenerate the note using the currently selected output style.
 function updateOutput() {
   const style = document.querySelector('input[name="outputStyle"]:checked').value;
-  document.getElementById("output").value =
-    style === "summary" ? summaryOutput() : detailedOutput();
+  Workbench.writeOutput(style === "summary" ? summaryOutput() : detailedOutput());
 }
 
 // Refresh the behavior notice, function results, and note after an answer changes.
@@ -494,6 +493,7 @@ function wireInputs() {
 
 // Clear behavior counts, function responses, context choices, and optional text, then rebuild the form.
 function resetAll() {
+  Workbench.resetReview();
   behaviorCounts = Object.fromEntries(BEHAVIORS.map((name) => [name, 0]));
   mainBehaviors = new Set();
   responses = Array(40).fill(0);
@@ -525,21 +525,10 @@ function resetAll() {
   updateAll();
 }
 
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 document.getElementById("reset-button").addEventListener("click", resetAll);
-document.getElementById("copy-button").addEventListener("click", async () => {
-  await navigator.clipboard.writeText(document.getElementById("output").value);
-  const status = document.getElementById("copy-status");
-  status.textContent = "Copied";
-  setTimeout(() => {
-    status.textContent = "";
-  }, 1500);
-});
-document.getElementById("select-button").addEventListener("click", () => {
-  const output = document.getElementById("output");
-  output.focus();
-  output.select();
-});
+
+Workbench.initReview();
 
 // Initial page setup: populate the form and show its starting results.
 renderBehaviors();

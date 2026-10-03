@@ -10,6 +10,15 @@
   if (window.parent === window) return;
 
   let lastHeight = 0;
+  // Messages contain layout data only. The embedding parent must validate the
+  // message origin and source before applying a height or scroll request.
+  const ordinaryClick = (event) =>
+    !event.defaultPrevented &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey;
 
   // Measure the full page and notify the parent only when its height changes.
   function reportHeight() {
@@ -49,6 +58,7 @@
 
   // Request a navigation reset for ordinary links, leaving downloads and special links alone.
   function handlePageLink(event) {
+    if (!ordinaryClick(event)) return;
     const link = event.target.closest("a[href]");
     if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
 
@@ -61,10 +71,16 @@
 
   // Send the destination section position to the parent so embedded navigation scrolls correctly.
   function handleSectionLink(event) {
+    if (!ordinaryClick(event)) return;
     const link = event.target.closest('a[href^="#"]');
-    if (!link) return;
+    if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
 
-    const targetId = decodeURIComponent(link.getAttribute("href").slice(1));
+    let targetId;
+    try {
+      targetId = decodeURIComponent(link.getAttribute("href").slice(1));
+    } catch {
+      return; // An invalid encoded fragment must not break the click handler.
+    }
     const target = document.getElementById(targetId);
     if (!target) return;
 

@@ -372,17 +372,32 @@ function render() {
 function renderChecklist() {
   let html = "";
   for (const [domain, categories] of Object.entries(SYMPTOMS)) {
-    html += `<div class="symptom-domain"><h2>${domain}</h2>`;
+    html += `<div class="symptom-domain">
+        <h2>${domain}</h2>`;
     for (const [cat, items] of Object.entries(categories)) {
       const otherId = `${domain}|${cat}`,
         other = state().others[otherId] || {};
-      html += `<div class="symptom-group"><h3>${cat}</h3>`;
+      html += `<div class="symptom-group">
+        <h3>${cat}</h3>`;
       for (const text of items) {
         const id = `${domain}|${cat}|${text}`,
           v = state().symptoms[id] || {};
-        html += `<div class="symptom-row"><span>${text}</span><label><input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="current" ${v.current ? "checked" : ""}>Current</label><label><input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="past" ${v.past ? "checked" : ""}>Past</label></div>`;
+        html += `<div class="symptom-row">
+        <span>${text}</span>
+        <label>
+        <input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="current" ${v.current ? "checked" : ""}>Current</label>
+        <label>
+        <input type="checkbox" data-symptom="${escapeAttr(id)}" data-time="past" ${v.past ? "checked" : ""}>Past</label>
+        </div>`;
       }
-      html += `<div class="other-symptom-row"><input type="text" data-other-text="${escapeAttr(otherId)}" value="${escapeAttr(other.text || "")}" placeholder="Other ${cat.toLowerCase()} symptom"><label><input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="current" ${other.current ? "checked" : ""}>Current</label><label><input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="past" ${other.past ? "checked" : ""}>Past</label></div></div>`;
+      html += `<div class="other-symptom-row">
+        <input type="text" aria-label="Other ${cat.toLowerCase()} ${domain.toLowerCase()}" data-other-text="${escapeAttr(otherId)}" value="${escapeAttr(other.text || "")}" placeholder="Other ${cat.toLowerCase()} symptom">
+        <label>
+        <input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="current" ${other.current ? "checked" : ""}>Current</label>
+        <label>
+        <input type="checkbox" data-other="${escapeAttr(otherId)}" data-time="past" ${other.past ? "checked" : ""}>Past</label>
+        </div>
+        </div>`;
     }
     html += "</div>";
   }
@@ -423,7 +438,7 @@ function renderTargets() {
     $(id).innerHTML = state()
       .targets[domain].map(
         (v, i) =>
-          `<input class="target-input" data-target="${domain}" data-index="${i}" value="${escapeAttr(v)}" placeholder="${i + 1}. Target ${domain.toLowerCase().slice(0, -1)}">`,
+          `<input class="target-input" aria-label="Target ${domain.toLowerCase().slice(0, -1)} ${i + 1}" data-target="${domain}" data-index="${i}" value="${escapeAttr(v)}" placeholder="${i + 1}. Target ${domain.toLowerCase().slice(0, -1)}">`,
       )
       .join("");
   }
@@ -440,7 +455,19 @@ function renderTargets() {
 function renderSeverity() {
   $("severity-items").innerHTML = ITEMS.map(
     (item, i) =>
-      `<div class="severity-item"><h3>${i + 1}. ${item.name}</h3><p class="severity-probe">${item[version]}</p><div class="anchor-grid">${item.anchors.map((a, n) => `<label class="anchor-option"><input type="radio" name="severity-${i}" value="${n}" ${state().scores[i] === n ? "checked" : ""}><span><strong>${n}</strong> - ${a}</span></label>`).join("")}</div></div>`,
+      `<div class="severity-item">
+        <h3>${i + 1}. ${item.name}</h3>
+        <p class="severity-probe">${item[version]}</p>
+        <div class="anchor-grid">${item.anchors
+          .map(
+            (a, n) => `<label class="anchor-option">
+        <input type="radio" name="severity-${i}" value="${n}" ${state().scores[i] === n ? "checked" : ""}>
+        <span>
+        <strong>${n}</strong> - ${a}</span>
+        </label>`,
+          )
+          .join("")}</div>
+        </div>`,
   ).join("");
   document.querySelectorAll('[name^="severity-"]').forEach(
     (x) =>
@@ -455,7 +482,20 @@ function renderSeverity() {
 function renderAdditional() {
   $("additional-items").innerHTML = ADDITIONAL_ITEMS.map(
     (item, i) =>
-      `<div class="severity-item"><h3>${item.name} <span class="helper-text">(not scored)</span></h3><p class="severity-probe">${item.probe}</p><div class="anchor-grid">${item.anchors.map((a, n) => `<label class="anchor-option"><input type="radio" name="additional-${i}" value="${n}" ${state().additional[i] === n ? "checked" : ""}><span><strong>${n}</strong> - ${a}</span></label>`).join("")}</div></div>`,
+      `<div class="severity-item">
+        <h3>${item.name} <span class="helper-text">(not scored)</span>
+        </h3>
+        <p class="severity-probe">${item.probe}</p>
+        <div class="anchor-grid">${item.anchors
+          .map(
+            (a, n) => `<label class="anchor-option">
+        <input type="radio" name="additional-${i}" value="${n}" ${state().additional[i] === n ? "checked" : ""}>
+        <span>
+        <strong>${n}</strong> - ${a}</span>
+        </label>`,
+          )
+          .join("")}</div>
+        </div>`,
   ).join("");
   document.querySelectorAll('[name^="additional-"]').forEach(
     (x) =>
@@ -486,10 +526,11 @@ function update() {
   $("compulsion-score").textContent = `${c} / 20`;
   $("total-score").textContent = `${t} / 40`;
   $("severity-label").textContent = label;
-  $("output").value =
+  Workbench.writeOutput(
     document.querySelector('[name="outputStyle"]:checked').value === "detailed"
       ? detailed(o, c, t, label)
-      : summary(o, c, t, label);
+      : summary(o, c, t, label),
+  );
 }
 
 // Build the paragraph version of the note from the current results.
@@ -569,7 +610,7 @@ function sum(a, b) {
 function escapeAttr(s) {
   return String(s).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 }
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 document.querySelectorAll("[data-version]").forEach(
   (b) =>
     (b.onclick = () => {
@@ -581,18 +622,14 @@ document.querySelectorAll("[data-version]").forEach(
     }),
 );
 $("reset-button").onclick = () => {
-  states[version] = blankState();
+  Workbench.resetReview();
+  // Reset covers both versions so hidden answers cannot carry into the next assessment.
+  states.adult = blankState();
+  states.child = blankState();
   render();
 };
 document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
-$("copy-button").onclick = async () => {
-  await navigator.clipboard.writeText($("output").value);
-  $("copy-status").textContent = "Copied";
-  setTimeout(() => ($("copy-status").textContent = ""), 1500);
-};
-$("select-button").onclick = () => {
-  $("output").focus();
-  $("output").select();
-};
+Workbench.initReview();
+
 // Initial page setup: populate the form and show its starting results.
 render();

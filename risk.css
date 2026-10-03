@@ -1,80 +1,33 @@
-/* risk.css
- * Shared by quick-risk.html and comprehensive-risk.html.
- * CSS controls appearance. JavaScript controls responses and generated notes.
- * Rules later in the file can override earlier rules with equal specificity.
- */
-
-/* Theme variables: change these values to adjust the main colors and fonts used below. */
-:root {
-  --risk-bg: #000;
-  --risk-text: #fff;
-  --risk-pink: #ff42a7;
-  --risk-yellow: #ffec1a;
-  --risk-surface: #111;
-  --risk-surface-2: #1a1a1a;
-  --risk-border: #333;
-  --risk-heading: "Cutive", serif;
-  --risk-body: "Asap", sans-serif;
-}
-
-.risk-app,
-.risk-app * {
-  box-sizing: border-box;
-}
-
-body.risk-app {
-  margin: 0;
-  background: var(--risk-bg);
-  color: var(--risk-text);
-  font-family: var(--risk-body);
-}
-
-.risk-shell {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(28px, 4vw, 64px);
-}
-
+/* Layout and risk-category styling for both risk forms. Common controls live in workbench-shared.css. */
 .risk-back {
-  color: var(--risk-pink);
-}
-
-.risk-app h1,
-.risk-app h2 {
-  font-family: var(--risk-heading);
+  color: var(--accent-primary);
 }
 
 .risk-app h1 {
   margin: 24px 0;
-  color: var(--risk-yellow);
-  font-size: 42px;
-  line-height: 1.2;
-  text-decoration: underline var(--risk-pink);
+  color: var(--accent-secondary);
+  text-decoration: underline var(--accent-primary);
   text-underline-offset: 6px;
 }
 
 .risk-app h2 {
   margin: 0 0 12px;
-  color: var(--risk-yellow);
-  font-size: 19px;
+  color: var(--accent-secondary);
 }
 
 .risk-app h3,
 .field-label {
   margin: 16px 0 8px;
-  color: var(--risk-yellow);
-  font-size: 15px;
-  font-weight: 700;
+  color: var(--accent-secondary);
 }
 
 /* Panel appearance shared by both risk assessments. */
 .risk-card {
   margin: 14px 0;
   padding: 18px;
-  border: 1px solid var(--risk-border);
+  border: 1px solid var(--border);
   border-radius: 30px;
-  background: var(--risk-surface);
+  background: var(--surface);
 }
 
 .risk-section-heading,
@@ -116,10 +69,10 @@ body.risk-app {
 }
 
 .framework-badge {
-  color: var(--risk-pink);
+  color: var(--accent-primary);
 }
 .framework-badge.secondary {
-  color: var(--risk-yellow);
+  color: var(--accent-secondary);
 }
 
 .choice-chip {
@@ -136,78 +89,46 @@ body.risk-app {
   pointer-events: none;
 }
 
-.choice-chip span,
-.risk-app button {
-  border: 1px solid var(--risk-border);
-  background: var(--risk-surface-2);
-  color: var(--risk-text);
+.choice-chip span {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
   font: inherit;
-  font-weight: 700;
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease,
     transform 0.08s ease;
-}
-
-.choice-chip span {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 9px 12px;
   border-radius: 8px;
 }
 
-.single-choice .choice-chip span,
-.risk-app button {
+.single-choice .choice-chip span {
   border-radius: 20px;
 }
 
-.choice-chip:hover span,
-.risk-app button:hover {
-  border-color: var(--risk-yellow);
+.choice-chip:hover span {
+  border-color: var(--accent-secondary);
 }
 
-.choice-chip:active span,
-.risk-app button:active {
+.choice-chip:active span {
   transform: translateY(1px);
 }
 
-.choice-chip input:focus-visible + span,
-.risk-app button:focus-visible {
-  outline: 2px solid var(--risk-yellow);
+.choice-chip input:focus-visible + span {
+  outline: 2px solid var(--accent-secondary);
   outline-offset: 2px;
 }
 
-.choice-chip input:checked + span,
-.risk-app button.primary-button,
-.risk-app button.output-style-button.selected {
-  border-color: var(--risk-pink);
-  background: var(--risk-pink);
-  color: #000;
+.choice-chip input:checked + span {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: var(--on-accent);
 }
 
 .choice-chip input[type="checkbox"]:checked + span::before {
   content: "✓ ";
-}
-
-.risk-app button {
-  padding: 10px 16px;
-  cursor: pointer;
-}
-
-.risk-app button.primary-button:hover,
-.risk-app button.secondary-button:hover,
-.risk-app button.output-style-button:hover {
-  border-color: var(--risk-yellow);
-  background: var(--risk-yellow);
-  color: #000;
-}
-
-.risk-app button.secondary-button,
-.risk-app button.output-style-button {
-  background: transparent;
-  color: var(--risk-text);
 }
 
 .button-row {
@@ -229,10 +150,10 @@ body.risk-app {
   width: 100%;
   min-height: 100px;
   padding: 12px;
-  border: 1px solid var(--risk-border);
+  border: 1px solid var(--border);
   border-radius: 18px;
-  background: var(--risk-surface-2);
-  color: var(--risk-text);
+  background: var(--surface-2);
+  color: var(--text);
   font: inherit;
   resize: vertical;
 }
@@ -252,14 +173,14 @@ body.risk-app {
 .risk-level-panel {
   margin-top: 14px;
   padding: 14px;
-  border: 1px solid var(--risk-border);
+  border: 1px solid var(--border);
   border-radius: 20px;
-  background: var(--risk-surface-2);
+  background: var(--surface-2);
 }
 
 .risk-helper,
 .risk-note {
-  color: #ccc;
+  color: var(--muted-text);
   font-size: 14px;
   line-height: 1.4;
 }
@@ -280,7 +201,7 @@ body.risk-app {
   padding: 10px 12px;
   border-left: 4px solid currentColor;
   border-radius: 10px;
-  background: #101010;
+  background: var(--surface-2);
   line-height: 1.45;
 }
 
@@ -325,20 +246,8 @@ body.risk-app {
   border-color: #ff5a5f;
 }
 
-#copy-status {
-  color: var(--risk-yellow);
-  font-weight: 700;
-}
-
 /* Smaller-screen adjustments: reduce columns and spacing to fit the available width. */
 @media (max-width: 700px) {
-  .risk-shell {
-    margin: 0;
-    padding: 14px;
-  }
-  .risk-app h1 {
-    font-size: 34px;
-  }
   .risk-section-heading,
   .risk-level-header {
     display: block;

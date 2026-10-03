@@ -54,7 +54,6 @@ const MEASURES = {
         options: YES_NO,
       },
     ],
-    max: 13,
     // Count the first 13 symptoms; co-occurrence and impairment answers must also meet the configured criteria.
     score(a) {
       const symptoms = a.slice(0, 13).reduce(sum, 0),
@@ -95,7 +94,6 @@ const MEASURES = {
         options: ["Not much", "Some", "A lot"].map((label, value) => ({ label, value })),
       },
     ],
-    max: 10,
     // Count the first 10 exposure categories. The extra perceived-impact response is not part of the total.
     score(a) {
       const n = a.slice(0, 10).reduce(sum, 0);
@@ -133,10 +131,9 @@ const MEASURES = {
             "All of the time",
           ]
         : ["Never", "Rarely", "Sometimes", "Often", "Very often"]
-      ).map((label, value) => ({ label, value: value >= 3 ? 1 : 0, displayValue: value })),
+      ).map((label, value) => ({ label, value: value >= 3 ? 1 : 0 })),
     })),
-    max: 7,
-    // Add the binary category scores. Several response labels share a score, so _choice separately records the label.
+    // Add the binary category scores. Several response labels share a score, so answerChoices separately records the label.
     score(a) {
       const n = a.reduce(sum, 0);
       return {
@@ -161,7 +158,6 @@ const MEASURES = {
       "Fidgeting or squirming with hands or feet when sitting for a long time",
       "Feeling overly active and compelled to do things, as if driven by a motor",
     ].map((text) => ({ text, options: FREQ5 })),
-    max: 6,
     // Count responses meeting each item’s threshold (2 for the first three, 3 for the last three); do not sum raw ratings.
     score(a) {
       const thresholds = [2, 2, 2, 3, 3, 3];
@@ -200,7 +196,6 @@ const MEASURES = {
         "All of the time",
       ].map((label, value) => ({ label, value })),
     })),
-    max: 25,
     // Sum five 0–5 ratings, then multiply by four for a percentage. Compare the raw total with the configured threshold.
     score(a) {
       const raw = a.reduce(sum, 0),
@@ -236,7 +231,6 @@ const MEASURES = {
         "Felt guilty or unable to stop blaming yourself or others for the event or resulting problems",
       ].map((text) => ({ text, context: "In the past month", options: YES_NO })),
     ],
-    max: 5,
     // The first answer is trauma exposure. Only the five later symptom answers contribute, and only when exposure is Yes.
     score(a) {
       const exposed = a[0] === 1,
@@ -273,12 +267,11 @@ const MEASURES = {
         "Gotten into TROUBLE while using alcohol or drugs",
       ].map((text) => ({ text, options: YES_NO })),
     ],
-    max: 6,
     // The first three answers are use days; the last six form the CRAFFT total. Combine use history with that total.
     score(a) {
       const use = a.slice(0, 3).some((v) => v > 0),
         n = a.slice(3).reduce(sum, 0);
-      let result = !use && n === 0 ? "Low risk" : use && n >= 2 ? "High risk" : "Medium risk";
+      const result = !use && n === 0 ? "Low risk" : use && n >= 2 ? "High risk" : "Medium risk";
       return {
         score: `${n} / 6`,
         result,
@@ -293,16 +286,25 @@ const MEASURES = {
 
 // Choose the measure from the URL, then combine its main questions and extra context questions.
 const key = new URLSearchParams(location.search).get("measure");
-const config = MEASURES[key] || MEASURES.mdq;
+// Accept only explicitly supported URL keys, never inherited Object properties.
+const config = Object.hasOwn(MEASURES, key) ? MEASURES[key] : MEASURES.mdq;
 const allQuestions = [...config.questions, ...(config.extras || [])];
 let answers = [];
+let answerChoices = [];
 const sum = (a, b) => a + (Number(b) || 0);
 // Short helper: $("id") means document.getElementById("id").
 const $ = (id) => document.getElementById(id);
 
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
-  answers = allQuestions.map((q) => (q.type === "number" ? 0 : 0));
+  Workbench.resetReview();
+  // Keep the selected label and numeric score together, including labels sharing a score.
+  answerChoices = allQuestions.map((question) =>
+    Math.max(0, question.options?.findIndex((option) => option.value === 0) ?? 0),
+  );
+  answers = allQuestions.map((question, index) =>
+    question.type === "number" ? 0 : question.options[answerChoices[index]].value,
+  );
   render();
 }
 
@@ -315,10 +317,26 @@ function render() {
   $("age-note").textContent = config.age;
   $("clinical-note").textContent = config.note;
   $("attribution").textContent = config.attribution;
+  // Day counts allow 366 to accommodate a leap-year interval; decimals remain invalid.
   $("questions").innerHTML = allQuestions
     .map(
       (q, i) =>
-        `<section class="card question-card"><h2><span class="question-number">${i + 1}.</span>${q.text}</h2>${q.context ? `<p class="question-context">${q.context}</p>` : ""}${q.type === "number" ? `<label class="number-answer"><input type="number" min="0" step="1" value="${answers[i]}" data-number="${i}"></label>` : `<div class="response-grid compact">${q.options.map((o, j) => `<label class="response-option"><input type="radio" name="q-${i}" value="${o.value}" data-index="${i}" data-choice="${j}" ${answers[i] === o.value && (q._choice ?? 0) === j ? "checked" : ""}><span>${o.label}</span></label>`).join("")}</div>`}</section>`,
+        `<section class="card question-card">
+        <h2>
+        <span class="question-number">${i + 1}.</span>${q.text}</h2>${q.context ? `<p class="question-context">${q.context}</p>` : ""}${
+          q.type === "number"
+            ? `<label class="number-answer">
+        <input type="number" min="0" max="366" step="1" aria-label="${q.text}" value="${answers[i]}" data-number="${i}">
+        </label>`
+            : `<div class="response-grid compact">${q.options
+                .map(
+                  (o, j) => `<label class="response-option">
+        <input type="radio" name="q-${i}" value="${o.value}" data-index="${i}" data-choice="${j}" ${answers[i] === o.value && answerChoices[i] === j ? "checked" : ""}>
+        <span>${o.label}</span>
+        </label>`,
+                )
+                .join("")}</div>`
+        }</section>`,
     )
     .join("");
   document.querySelectorAll("[data-index]").forEach(
@@ -326,14 +344,15 @@ function render() {
       (el.onchange = () => {
         const i = +el.dataset.index;
         answers[i] = +el.value;
-        allQuestions[i]._choice = +el.dataset.choice;
+        answerChoices[i] = +el.dataset.choice;
         update();
       }),
   );
   document.querySelectorAll("[data-number]").forEach(
     (el) =>
       (el.oninput = () => {
-        answers[+el.dataset.number] = Math.max(0, +el.value || 0);
+        // Keep the last valid score while the native field reports an invalid entry.
+        if (el.validity.valid) answers[+el.dataset.number] = Number(el.value) || 0;
         update();
       }),
   );
@@ -347,16 +366,18 @@ function update() {
   $("result-display").textContent = r.result;
   $("result-note").textContent = r.note;
   const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
-  $("output").value = detailed
-    ? detail(r)
-    : `${config.short} completed. Score: ${r.score}. Result: ${r.result}. ${r.note}`;
+  Workbench.writeOutput(
+    detailed
+      ? detail(r)
+      : `${config.short} completed. Score: ${r.score}. Result: ${r.result}. ${r.note}`,
+  );
 }
 
-// Read the chosen answer label. _choice keeps distinct labels that share the same numeric score.
+// Read the chosen answer label. answerChoices keeps distinct labels that share the same numeric score.
 function labelFor(q, i) {
   if (q.type === "number") return `${answers[i]} days`;
   const selected =
-    q.options?.[q._choice ?? 0] || (q.options || []).find((o) => o.value === answers[i]);
+    q.options?.[answerChoices[i]] || (q.options || []).find((o) => o.value === answers[i]);
   return selected ? selected.label : "Not answered";
 }
 
@@ -367,17 +388,10 @@ function detail(r) {
   lines.push(`Score: ${r.score}`, `Result: ${r.result}`, "", r.note);
   return lines.join("\n");
 }
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((x) => (x.onchange = update));
-$("copy-button").onclick = async () => {
-  await navigator.clipboard.writeText($("output").value);
-  $("copy-status").textContent = "Copied";
-  setTimeout(() => ($("copy-status").textContent = ""), 1500);
-};
-$("select-button").onclick = () => {
-  $("output").focus();
-  $("output").select();
-};
+Workbench.initReview();
+
 // Initial page setup: populate the form and show its starting results.
 reset();

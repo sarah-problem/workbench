@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
   tsds.html: TSDS: totals 21 responses and separately records discrimination types and percentages.
+  Shared: workbench-shared.css (design), workbench-theme.js (theme).
   Appearance: screening.css, tsds.css.
+  Shared assessment actions: workbench-ui.js (except the home page).
   Behavior (loaded at the bottom): tsds.js, embed-resize.js.
   id attributes connect controls to JavaScript; class attributes connect them to CSS.
 -->
@@ -16,11 +18,13 @@
       href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap"
       rel="stylesheet"
     />
-    <!-- Load shared styling first, followed by any page-specific overrides. -->
-    <link rel="stylesheet" href="screening.css" />
-    <link rel="stylesheet" href="tsds.css" />
+    <!-- Page layout first; the shared design system owns common styling. -->
+    <link rel="stylesheet" href="screening.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="tsds.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
-  <body>
+  <body class="spacious-tool">
     <main class="page-shell">
       <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
       <h1>TSDS</h1>
@@ -36,7 +40,9 @@
           experience or multiple experiences over the course of life.
         </p>
         <div class="button-row">
-          <button type="button" id="reset-button">↺ Reset to Normal</button>
+          <button data-reset-assessment="true" type="button" id="reset-button">
+            <span class="reset-icon" aria-hidden="true">↺</span> Reset assessment
+          </button>
         </div>
       </section>
       <nav class="section-nav card">
@@ -86,15 +92,19 @@
           ><label class="inline-option"
             ><input type="radio" name="outputStyle" value="summary" checked /> Summary</label
           ><label class="inline-option"
-            ><input type="radio" name="outputStyle" value="detailed" /> Detailed list</label
+            ><input type="radio" name="outputStyle" value="detailed" /> List</label
           >
+          <div class="output-copy-actions">
+            <button data-copy-output type="button" id="copy-button">Copy</button
+            ><span id="copy-status" aria-live="polite" data-copy-status></span>
+          </div>
         </div>
-        <textarea id="output" readonly></textarea>
-        <div class="button-row">
-          <button type="button" id="copy-button">Copy</button
-          ><button type="button" class="secondary" id="select-button">Select text</button
-          ><span id="copy-status" aria-live="polite"></span>
-        </div>
+        <textarea
+          id="output"
+          data-note-output
+          aria-label="Generated documentation"
+          readonly
+        ></textarea>
       </section>
       <section class="card">
         <h2>Clinical Note</h2>
@@ -110,7 +120,8 @@
       </section>
     </main>
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="tsds.js"></script>
-    <script src="embed-resize.js"></script>
+    <script src="workbench-ui.js?v=20261003-audit4"></script>
+    <script src="tsds.js?v=20261003-audit4"></script>
+    <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

@@ -26,7 +26,7 @@ const MEASURES = {
     instructions:
       "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
     ageGuidance:
-      "Adult timeframe: past 2 weeks. For clients ages 11–17, use the adolescent timeframe of the past 7 days.",
+      "This page uses the standard PHQ-9 wording and a two-week timeframe. The adolescent-modified PHQ-A has different wording and additional questions; this page does not reproduce that form.",
     impactPrompt:
       "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
     max: 27,
@@ -80,12 +80,11 @@ const MEASURES = {
 
 // Choose the measure from ?measure= in the link; an unknown value falls back to PHQ-9.
 const requestedMeasure = new URLSearchParams(window.location.search).get("measure");
-let currentMeasure = Object.hasOwn(MEASURES, requestedMeasure) ? requestedMeasure : "phq9";
+const currentMeasure = Object.hasOwn(MEASURES, requestedMeasure) ? requestedMeasure : "phq9";
 let answers = [];
 let impact = "Not difficult at all";
 
 const questionsContainer = document.getElementById("questions");
-const output = document.getElementById("output");
 
 // Return the configuration for the measure selected by the URL.
 function measure() {
@@ -94,6 +93,7 @@ function measure() {
 
 // Set every symptom response to zero and reset the functional impact choice.
 function resetAnswers() {
+  Workbench.resetReview();
   answers = Array(measure().questions.length).fill(0);
   impact = "Not difficult at all";
 }
@@ -152,7 +152,6 @@ function renderMeasure() {
     });
   });
 
-  renderInterpretation();
   updateResults();
 }
 
@@ -264,10 +263,10 @@ function updateResults() {
   document.getElementById("safety-alert").hidden = !(currentMeasure === "phq9" && answers[8] > 0);
   renderInterpretation();
   const style = document.querySelector('input[name="outputStyle"]:checked').value;
-  output.value = style === "summary" ? summaryOutput() : detailedOutput();
+  Workbench.writeOutput(style === "summary" ? summaryOutput() : detailedOutput());
 }
 
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 document.getElementById("reset-button").addEventListener("click", () => {
   resetAnswers();
   renderMeasure();
@@ -277,19 +276,7 @@ document
   .querySelectorAll('input[name="outputStyle"]')
   .forEach((input) => input.addEventListener("change", updateResults));
 
-document.getElementById("copy-button").addEventListener("click", async () => {
-  await navigator.clipboard.writeText(output.value);
-  const status = document.getElementById("copy-status");
-  status.textContent = "Copied";
-  setTimeout(() => {
-    status.textContent = "";
-  }, 1500);
-});
-
-document.getElementById("select-button").addEventListener("click", () => {
-  output.focus();
-  output.select();
-});
+Workbench.initReview();
 
 // Initial page setup: populate the form and show its starting results.
 resetAnswers();

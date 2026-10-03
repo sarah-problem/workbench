@@ -197,13 +197,14 @@ const $ = (id) => document.getElementById(id);
 let answers = [];
 
 // Choose 4 for negatively weighted items and 1 for the others as the existing starting profile.
-function normalAnswers() {
+function presetAnswers() {
   return WEIGHTS.map((weight) => (weight < 0 ? 4 : 1));
 }
 
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
-  answers = normalAnswers();
+  Workbench.resetReview();
+  answers = presetAnswers();
   renderQuestions();
   update();
 }
@@ -212,7 +213,16 @@ function reset() {
 function renderQuestions() {
   $("questions").innerHTML = ITEMS.map(
     (text, i) =>
-      `<section class="card question-card"><h2><span class="question-number">${i + 1}.</span>${text}</h2><div class="response-grid">${OPTIONS.map((option) => `<label class="response-option"><input type="radio" name="item-${i}" value="${option.value}" ${answers[i] === option.value ? "checked" : ""}><span>${option.value}<br>${option.label}</span></label>`).join("")}</div></section>`,
+      `<section class="card question-card">
+        <h2>
+        <span class="question-number">${i + 1}.</span>${text}</h2>
+        <div class="response-grid">${OPTIONS.map(
+          (option) => `<label class="response-option">
+        <input type="radio" name="item-${i}" value="${option.value}" ${answers[i] === option.value ? "checked" : ""}>
+        <span>${option.value}<br>${option.label}</span>
+        </label>`,
+        ).join("")}</div>
+        </section>`,
   ).join("");
   document.querySelectorAll('[name^="item-"]').forEach(
     (input) =>
@@ -254,23 +264,38 @@ function update() {
   $("domain-results").innerHTML = DOMAIN_ORDER.map((name) => domainCard(name, result[name])).join(
     "",
   );
+  const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
+  Workbench.writeOutput(detailed ? detailedOutput(result) : summaryOutput(result));
+}
+
+// Reference values are static; build them once rather than on every answer change.
+function renderReference() {
   $("reference-rows").innerHTML = Object.entries(NORMS)
     .map(
       ([name, values]) =>
-        `<div class="reference-row ${name === "Total" ? "current" : ""}" role="row"><span>${name}</span>${values
+        `<div class="reference-row ${name === "Total" ? "current" : ""}" role="row">
+        <span role="rowheader">${name}</span>${values
           .map(format)
-          .map((value) => `<span>${value}</span>`)
+          .map((value) => `<span role="cell">${value}</span>`)
           .join("")}</div>`,
     )
     .join("");
-  const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
-  $("output").value = detailed ? detailedOutput(result) : summaryOutput(result);
 }
 
 // Build one domain result card with its score, reference label, and segmented bar.
 function domainCard(name, score) {
   const active = benchmarkLevel(name, score);
-  return `<div class="domain-card"><h3>${name}</h3><div class="domain-score">${format(score)}</div><div class="domain-marker">${marker(name, score)}</div><div class="benchmark-bar" aria-hidden="true">${[1, 2, 3, 4].map((level) => `<span class="${level <= active ? "active" : ""}"></span>`).join("")}</div></div>`;
+  return `<div class="domain-card">
+        <h3>${name}</h3>
+        <div class="domain-score">${format(score)}</div>
+        <div class="domain-marker">${marker(name, score)}</div>
+        <div class="benchmark-bar" aria-hidden="true">${[1, 2, 3, 4]
+          .map(
+            (level) => `<span class="${level <= active ? "active" : ""}">
+        </span>`,
+          )
+          .join("")}</div>
+        </div>`;
 }
 
 // Build the paragraph version of the note from the current results.
@@ -318,17 +343,11 @@ function format(value) {
   return Number(value).toFixed(1);
 }
 
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((input) => (input.onchange = update));
-$("copy-button").onclick = async () => {
-  await navigator.clipboard.writeText($("output").value);
-  $("copy-status").textContent = "Copied";
-  setTimeout(() => ($("copy-status").textContent = ""), 1500);
-};
-$("select-button").onclick = () => {
-  $("output").focus();
-  $("output").select();
-};
+Workbench.initReview();
+
 // Initial page setup: populate the form and show its starting results.
+renderReference();
 reset();

@@ -121,6 +121,7 @@ let behaviors = [],
 
 // Restore the starting answers, rebuild the controls, and refresh the results.
 function reset() {
+  Workbench.resetReview();
   behaviors = BEHAVIORS.map(() => ({ selected: false, count: 0, medical: "No", other: "" }));
   reasons = REASONS.map(() => 0);
   context = { intent: "No", delay: "None", substances: "No", pain: "No pain", age: "" };
@@ -142,7 +143,17 @@ function render() {
 function renderBehaviors() {
   $("behavior-list").innerHTML = BEHAVIORS.map((name, i) => {
     const item = behaviors[i];
-    return `<div class="behavior-row"><div class="behavior-name"><label><input type="checkbox" data-behavior-check="${i}" ${item.selected ? "checked" : ""}> ${i + 1}. ${name}</label>${i === 11 ? `<input class="other-input" type="text" data-behavior-other="${i}" value="${escapeAttr(item.other)}" placeholder="Describe other behavior">` : ""}</div><label class="field-label">How many times?<input type="number" min="1" step="1" data-behavior-count="${i}" value="${item.selected ? item.count : ""}" ${item.selected ? "" : "disabled"}></label><div><span class="small-label">Medical treatment?</span></div><div class="segmented-options">${["No", "Yes"].map((value) => `<button type="button" class="segment-button ${item.medical === value && item.selected ? "selected" : ""}" data-medical="${i}" data-value="${value}" ${item.selected ? "" : "disabled"}>${value}</button>`).join("")}</div></div>`;
+    return `<div class="behavior-row">
+        <div class="behavior-name">
+        <label>
+        <input type="checkbox" data-behavior-check="${i}" ${item.selected ? "checked" : ""}> ${i + 1}. ${name}</label>${i === BEHAVIORS.length - 1 ? `<input class="other-input" type="text" aria-label="Other self-harm behavior" data-behavior-other="${i}" value="${escapeAttr(item.other)}" placeholder="Describe other behavior">` : ""}</div>
+        <label class="field-label">How many times?<input type="number" min="1" step="1" required data-behavior-count="${i}" value="${item.selected ? item.count : ""}" ${item.selected ? "" : "disabled"}>
+        </label>
+        <div>
+        <span class="small-label">Medical treatment?</span>
+        </div>
+        <div class="segmented-options">${["No", "Yes"].map((value) => `<button type="button" class="segment-button ${item.medical === value && item.selected ? "selected" : ""}" data-medical="${i}" data-value="${value}" ${item.selected ? "" : "disabled"}>${value}</button>`).join("")}</div>
+        </div>`;
   }).join("");
   document.querySelectorAll("[data-behavior-check]").forEach(
     (input) =>
@@ -151,17 +162,26 @@ function renderBehaviors() {
         item.selected = input.checked;
         item.count = input.checked ? Math.max(1, item.count || 0) : 0;
         if (!input.checked) item.medical = "No";
-        renderBehaviors();
+        // Update this row in place so keyboard focus and other in-progress inputs survive.
+        const row = input.closest(".behavior-row");
+        const count = row.querySelector("[data-behavior-count]");
+        count.disabled = !item.selected;
+        count.value = item.selected ? item.count : "";
+        row.querySelectorAll("[data-medical]").forEach((button) => {
+          button.disabled = !item.selected;
+          button.classList.toggle(
+            "selected",
+            item.selected && button.dataset.value === item.medical,
+          );
+        });
         update();
       }),
   );
   document.querySelectorAll("[data-behavior-count]").forEach(
     (input) =>
       (input.oninput = () => {
-        behaviors[Number(input.dataset.behaviorCount)].count = Math.max(
-          1,
-          Math.floor(Number(input.value) || 1),
-        );
+        if (input.validity.valid)
+          behaviors[Number(input.dataset.behaviorCount)].count = Number(input.value);
         update();
       }),
   );
@@ -176,7 +196,12 @@ function renderBehaviors() {
     (button) =>
       (button.onclick = () => {
         behaviors[Number(button.dataset.medical)].medical = button.dataset.value;
-        renderBehaviors();
+        button
+          .closest(".segmented-options")
+          .querySelectorAll("button")
+          .forEach((choice) => {
+            choice.classList.toggle("selected", choice === button);
+          });
         update();
       }),
   );
@@ -194,7 +219,9 @@ function renderLifetime() {
     (button) =>
       (button.onclick = () => {
         lifetime = button.dataset.lifetime;
-        renderLifetime();
+        document.querySelectorAll("[data-lifetime]").forEach((choice) => {
+          choice.classList.toggle("selected", choice === button);
+        });
         update();
       }),
   );
@@ -212,15 +239,26 @@ function renderContext() {
     fields
       .map(
         ([key, label]) =>
-          `<div class="context-item"><h3>${label}</h3><div class="segmented-options">${CONTEXT_OPTIONS[key].map((value) => `<button type="button" class="segment-button ${context[key] === value ? "selected" : ""}" data-context="${key}" data-value="${value}">${value}</button>`).join("")}</div></div>`,
+          `<div class="context-item">
+        <h3>${label}</h3>
+        <div class="segmented-options">${CONTEXT_OPTIONS[key].map((value) => `<button type="button" class="segment-button ${context[key] === value ? "selected" : ""}" data-context="${key}" data-value="${value}">${value}</button>`).join("")}</div>
+        </div>`,
       )
       .join("") +
-    `<div class="context-item"><h3>G. How old were you when you first harmed yourself in this way?</h3><input class="age-input" id="onset-age" type="number" min="0" max="120" step="1" value="${escapeAttr(context.age)}" placeholder="Age"></div>`;
+    `<div class="context-item">
+        <h3>G. How old were you when you first harmed yourself in this way?</h3>
+        <input class="age-input" id="onset-age" aria-label="Age at first self-harm" type="number" min="0" max="120" step="1" value="${escapeAttr(context.age)}" placeholder="Age">
+        </div>`;
   document.querySelectorAll("[data-context]").forEach(
     (button) =>
       (button.onclick = () => {
         context[button.dataset.context] = button.dataset.value;
-        renderContext();
+        button
+          .closest(".segmented-options")
+          .querySelectorAll("button")
+          .forEach((choice) => {
+            choice.classList.toggle("selected", choice === button);
+          });
         update();
       }),
   );
@@ -234,7 +272,15 @@ function renderContext() {
 function renderReasons() {
   $("reason-list").innerHTML = REASONS.map(
     (text, i) =>
-      `<section class="card reason-card"><h2><span class="question-number">${i + 1}.</span>${text}</h2>${i === 22 ? `<input class="other-input" id="other-reason" type="text" value="${escapeAttr(otherReason)}" placeholder="Describe other reason">` : ""}<div class="response-grid">${REASON_OPTIONS.map((option) => `<label class="response-option"><input type="radio" name="reason-${i}" value="${option.value}" ${reasons[i] === option.value ? "checked" : ""}><span>${option.value}<br>${option.label}</span></label>`).join("")}</div></section>`,
+      `<section class="card reason-card">
+        <h2>
+        <span class="question-number">${i + 1}.</span>${text}</h2>${i === REASONS.length - 1 ? `<input class="other-input" id="other-reason" aria-label="Other reason for self-harm" type="text" value="${escapeAttr(otherReason)}" placeholder="Describe other reason">` : ""}<div class="response-grid">${REASON_OPTIONS.map(
+          (option) => `<label class="response-option">
+        <input type="radio" name="reason-${i}" value="${option.value}" ${reasons[i] === option.value ? "checked" : ""}>
+        <span>${option.value}<br>${option.label}</span>
+        </label>`,
+        ).join("")}</div>
+        </section>`,
   ).join("");
   document.querySelectorAll('[name^="reason-"]').forEach(
     (input) =>
@@ -273,9 +319,17 @@ function update() {
   $("function-results").innerHTML = FACTOR_ORDER.map((code) => {
     const info = FACTOR_INFO[code],
       score = scores[code];
-    return `<div class="function-card"><h3>${info.name}</h3><div class="function-score">${score.mean.toFixed(2)} / 3</div><div class="function-description">${info.description}</div><div class="function-bar"><span style="width:${(score.mean / 3) * 100}%"></span></div></div>`;
+    return `<div class="function-card">
+        <h3>${info.name}</h3>
+        <div class="function-score">${score.mean.toFixed(2)} / 3</div>
+        <div class="function-description">${info.description}</div>
+        <div class="function-bar">
+        <span style="width:${(score.mean / 3) * 100}%">
+        </span>
+        </div>
+        </div>`;
   }).join("");
-  const ranked = REASONS.slice(0, 22)
+  const ranked = REASONS.slice(0, -1)
     .map((text, i) => ({ text, value: reasons[i] }))
     .filter((item) => item.value > 0)
     .sort((a, b) => b.value - a.value);
@@ -284,14 +338,17 @@ function update() {
         .slice(0, 5)
         .map(
           (item) =>
-            `<p><strong>${REASON_OPTIONS[item.value].label} (${item.value}):</strong> ${item.text}</p>`,
+            `<p>
+        <strong>${REASON_OPTIONS[item.value].label} (${item.value}):</strong> ${item.text}</p>`,
         )
         .join("")
     : "<p>No reasons endorsed above Never.</p>";
   const detailed = document.querySelector('[name="outputStyle"]:checked').value === "detailed";
-  $("output").value = detailed
-    ? detailedOutput(selected, incidents, scores)
-    : summaryOutput(selected, incidents, scores, ranked);
+  Workbench.writeOutput(
+    detailed
+      ? detailedOutput(selected, incidents, scores)
+      : summaryOutput(selected, incidents, scores, ranked),
+  );
 }
 
 // Collect checked behaviors and substitute the free-text name for Other when supplied.
@@ -299,7 +356,7 @@ function selectedBehaviors() {
   return behaviors
     .map((item, i) => ({
       ...item,
-      name: i === 11 && item.other.trim() ? item.other.trim() : BEHAVIORS[i],
+      name: i === BEHAVIORS.length - 1 && item.other.trim() ? item.other.trim() : BEHAVIORS[i],
     }))
     .filter((item) => item.selected);
 }
@@ -357,7 +414,7 @@ function detailedOutput(selected, incidents, scores) {
   REASONS.forEach((text, i) =>
     lines.push(
       "",
-      `${i + 1}. ${i === 22 && otherReason.trim() ? otherReason.trim() : text}`,
+      `${i + 1}. ${i === REASONS.length - 1 && otherReason.trim() ? otherReason.trim() : text}`,
       `${REASON_OPTIONS[reasons[i]].label} - ${reasons[i]}`,
     ),
   );
@@ -374,17 +431,10 @@ function escapeAttr(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 }
 
-// Connect page controls: reset answers, change output style, copy the note, or select it manually.
+// Connect page controls: reset answers, change output style, and refresh documentation.
 $("reset-button").onclick = reset;
 document.querySelectorAll('[name="outputStyle"]').forEach((input) => (input.onchange = update));
-$("copy-button").onclick = async () => {
-  await navigator.clipboard.writeText($("output").value);
-  $("copy-status").textContent = "Copied";
-  setTimeout(() => ($("copy-status").textContent = ""), 1500);
-};
-$("select-button").onclick = () => {
-  $("output").focus();
-  $("output").select();
-};
+Workbench.initReview();
+
 // Initial page setup: populate the form and show its starting results.
 reset();

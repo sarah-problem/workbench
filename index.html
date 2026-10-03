@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
   index.html: Clinical Workbench home page and links to every tool.
+  Shared: workbench-shared.css (design), workbench-theme.js (theme).
   Appearance: workbench.css.
+  Shared assessment actions: workbench-ui.js (except the home page).
   Behavior (loaded at the bottom): embed-resize.js.
   id attributes connect controls to JavaScript; class attributes connect them to CSS.
 -->
@@ -16,8 +18,10 @@
       href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Cutive&display=swap"
       rel="stylesheet"
     />
-    <!-- Load shared styling first, followed by any page-specific overrides. -->
-    <link rel="stylesheet" href="workbench.css" />
+    <!-- Page layout first; the shared design system owns common styling. -->
+    <link rel="stylesheet" href="workbench.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
   <body>
     <main class="workbench-shell">
@@ -57,10 +61,7 @@
         <div class="workbench-grid screening-grid">
           <a class="tool-card" href="screening.html?measure=phq9">
             <h3>PHQ-9</h3>
-            <p>
-              Screen depressive symptoms and generate documentation. For ages 11–17, use the
-              one-week adolescent timeframe.
-            </p>
+            <p>Screen depressive symptoms over the past two weeks and generate documentation.</p>
           </a>
 
           <a class="tool-card" href="screening.html?measure=gad7">
@@ -144,6 +145,6 @@
       </section>
     </main>
     <!-- Scripts run after the markup exists. Keep the page script before the shared embedding helper. -->
-    <script src="embed-resize.js"></script>
+    <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>

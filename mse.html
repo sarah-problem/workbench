@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
   mse.html: Mental Status Exam: builds the form from mse-data.js and turns selections into a note.
+  Shared: workbench-shared.css (design), workbench-theme.js (theme).
   Appearance: mse.css.
+  Shared assessment actions: workbench-ui.js (except the home page).
   Behavior (loaded at the bottom): mse-data.js, mse.js, embed-resize.js.
   id attributes connect controls to JavaScript; class attributes connect them to CSS.
 -->
@@ -19,13 +21,21 @@
       rel="stylesheet"
     />
 
-    <!-- Load shared styling first, followed by any page-specific overrides. -->
-    <link rel="stylesheet" href="mse.css" />
+    <!-- Page layout first; the shared design system owns common styling. -->
+    <link rel="stylesheet" href="mse.css?v=20261003-audit4" />
+    <link rel="stylesheet" href="workbench-shared.css?v=20261003-audit4" />
+    <script src="workbench-theme.js?v=20261003-audit4"></script>
   </head>
 
   <body>
     <main class="page-shell">
-      <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+      <div class="mse-topbar">
+        <a class="back-link" href="index.html">← Back to Clinical Workbench</a>
+        <button type="button" id="theme-toggle" class="secondary-button" aria-pressed="false">
+          <span class="theme-icon" aria-hidden="true">☀︎</span
+          ><span class="theme-label">Light mode</span>
+        </button>
+      </div>
 
       <h1>Mental Status Exam</h1>
 
@@ -37,32 +47,28 @@
             Learn
           </label>
           <label class="inline-option">
-            <input type="radio" name="mode" value="document" />
-            Document
-          </label>
-          <label class="inline-option">
             <input type="radio" name="mode" value="compact" />
             Compact
           </label>
         </div>
 
         <div class="button-row">
-          <button type="button" class="primary-button" onclick="resetToNormal()">
-            ↺ Reset to Normal
+          <button
+            data-reset-assessment="true"
+            type="button"
+            class="primary-button"
+            onclick="resetToNormal()"
+          >
+            <span class="reset-icon" aria-hidden="true">↺</span> Reset assessment
           </button>
           <button
+            id="toggle-all-info"
             type="button"
             class="secondary-button learning-only"
-            onclick="toggleAllInfo(true)"
+            aria-expanded="false"
+            onclick="toggleAllInfo()"
           >
             Open all info
-          </button>
-          <button
-            type="button"
-            class="secondary-button learning-only"
-            onclick="toggleAllInfo(false)"
-          >
-            Close all info
           </button>
         </div>
       </section>
@@ -86,24 +92,26 @@
             <input type="radio" name="outputStyle" value="list" />
             List
           </label>
+          <div class="output-copy-actions">
+            <button data-copy-output type="button" class="primary-button">Copy</button>
+            <span id="copyStatus" aria-live="polite" data-copy-status></span>
+          </div>
         </div>
 
-        <textarea id="output" readonly></textarea>
-
-        <div class="button-row">
-          <button type="button" class="primary-button" onclick="copyOutput()">Copy</button>
-          <button type="button" class="secondary-button" onclick="selectOutput()">
-            Select text
-          </button>
-          <span id="copyStatus" aria-live="polite"></span>
-        </div>
+        <textarea
+          id="output"
+          data-note-output
+          aria-label="Generated documentation"
+          readonly
+        ></textarea>
       </section>
     </main>
 
     <!-- Clinical content loads first; mse.js uses that content to build the page. -->
     <!-- Scripts run after the markup exists. Keep this load order, especially mse-data.js before mse.js. -->
-    <script src="mse-data.js"></script>
-    <script src="mse.js"></script>
-    <script src="embed-resize.js"></script>
+    <script src="workbench-ui.js?v=20261003-audit4"></script>
+    <script src="mse-data.js?v=20261003-audit4"></script>
+    <script src="mse.js?v=20261003-audit4"></script>
+    <script src="embed-resize.js?v=20261003-audit4"></script>
   </body>
 </html>
